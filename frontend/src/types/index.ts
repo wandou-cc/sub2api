@@ -100,6 +100,13 @@ export interface User {
   deleted_at?: string | null
 }
 
+export interface DailyCheckinStatus {
+  claimed: boolean
+  claimed_at?: string | null
+  reward: number
+  balance: number
+}
+
 export interface AdminUser extends User {
   // 管理员备注（普通用户接口不返回）
   notes: string

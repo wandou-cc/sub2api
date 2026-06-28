@@ -1,9 +1,11 @@
 export default {
   // Home Page
   home: {
-    viewOnGithub: 'View on GitHub',
     viewDocs: 'View Documentation',
     docs: 'Docs',
+    homeAriaLabel: 'Home',
+    logoAlt: 'Site logo',
+    brandTagline: 'AI Gateway',
     switchToLight: 'Switch to Light Mode',
     switchToDark: 'Switch to Dark Mode',
     dashboard: 'Dashboard',
@@ -12,11 +14,26 @@ export default {
     goToDashboard: 'Go to Dashboard',
     // User-focused value proposition
     heroSubtitle: 'One Key, All AI Models',
-    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Gemini and more with a single API key',
+    defaultSubtitle: 'AI API Gateway Platform',
+    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Antigravity and more with a single API key',
+    statsLabel: 'Platform highlights',
+    gateway: {
+      routeLabel: 'API Route',
+      liveStatus: 'Live',
+      requestPath: 'POST /v1/messages',
+      okStatus: '200 OK',
+      readyStatus: 'Ready',
+      syncStatus: 'Sync',
+      singleKey: 'Single Key',
+      payAsYouGo: 'Pay As You Go'
+    },
     tags: {
       subscriptionToApi: 'Subscription to API',
       stickySession: 'Session Persistence',
-      realtimeBilling: 'Pay As You Go'
+      realtimeBilling: 'Pay As You Go',
+      subscription: 'Subscription',
+      affinity: 'Affinity',
+      billing: 'Billing'
     },
     // Pain points section
     painPoints: {
@@ -95,7 +112,7 @@ export default {
       supported: 'Supported',
       soon: 'Soon',
       claude: 'Claude',
-      gemini: 'Gemini',
+      gpt: 'GPT',
       antigravity: 'Antigravity',
       more: 'More'
     },
@@ -313,6 +330,15 @@ export default {
     saving: 'Saving...',
     selectedCount: '({count} selected)',
     refresh: 'Refresh',
+    dailyCheckin: {
+      title: 'Daily Check-in',
+      claimedTitle: 'Checked In Today',
+      tapToClaim: 'CLAIM · Available',
+      claimedMeta: 'CLAIMED · {time}',
+      success: 'Checked in. ${amount} added',
+      failed: 'Check-in failed. Please try again later.',
+      loadFailed: 'Failed to load check-in status'
+    },
     autoRefresh: {
       title: 'Auto Refresh',
       enable: 'Enable auto refresh',
@@ -378,6 +404,7 @@ export default {
     announcements: 'Announcements',
     apiKeys: 'API Keys',
     usage: 'Usage',
+    speedRank: 'Speed Rank',
     redeem: 'Redeem',
     affiliate: 'Affiliate Rebates',
     affiliateManagement: 'Affiliate Rebates',
@@ -416,6 +443,12 @@ export default {
     channelMonitor: 'Channel Monitor',
     channelStatus: 'Channel Status',
     riskControl: 'Risk Control',
+    groupSpace: 'MY SPACE',
+    groupMyAccount: 'MY ACCOUNT',
+    groupBilling: 'BILLING',
+    groupAdmin: 'ADMIN',
+    groupChannel: 'CHANNEL',
+    groupSystem: 'SYSTEM',
   },
 
   // Auth
@@ -994,6 +1027,36 @@ export default {
         loadFailed: 'Failed to load detail, please try again',
       },
     },
+  },
+
+  speedRank: {
+    title: 'Speed Rank',
+    description: 'Top three users by today input and output tokens',
+    rewardAt: 'Daily reward countdown',
+    countdownLabel: 'Round ends in',
+    dailyOpen: 'New round opens daily at 00:00',
+    todayBoard: "Today's Leaderboard",
+    rankPrize: 'No. {rank} +{reward}',
+    rank: 'Rank',
+    player: 'Player',
+    rewardPreview: 'Reward Preview',
+    dataRefreshNote: 'Data is calculated from live usage logs',
+    historyEyebrow: 'Daily first place',
+    historyTitle: 'History',
+    historyEmpty: 'No history yet',
+    activityRules: 'Rules',
+    ruleRank: 'Users are ranked by today input and output tokens.',
+    ruleReward: 'Top three rewards are issued automatically at 00:00.',
+    ruleReset: 'The leaderboard resets every day and reward records are kept.',
+    hours: 'h',
+    minutes: 'm',
+    seconds: 's',
+    inputTokens: 'Input',
+    outputTokens: 'Output',
+    totalTokens: 'Total',
+    reward: 'Reward',
+    empty: 'No ranking data today',
+    loadFailed: 'Failed to load leaderboard'
   },
 
   // Shared keys for channel monitor (admin + user views)

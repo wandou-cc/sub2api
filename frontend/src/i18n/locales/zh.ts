@@ -1,9 +1,11 @@
 export default {
   // Home Page
   home: {
-    viewOnGithub: '在 GitHub 上查看',
     viewDocs: '查看文档',
     docs: '文档',
+    homeAriaLabel: '首页',
+    logoAlt: '站点标识',
+    brandTagline: 'AI 网关',
     switchToLight: '切换到浅色模式',
     switchToDark: '切换到深色模式',
     dashboard: '控制台',
@@ -12,11 +14,26 @@ export default {
     goToDashboard: '进入控制台',
     // 新增：面向用户的价值主张
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
-    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
+    defaultSubtitle: 'AI API 网关平台',
+    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Antigravity 等主流 AI 服务',
+    statsLabel: '平台亮点',
+    gateway: {
+      routeLabel: 'API 路由',
+      liveStatus: '运行中',
+      requestPath: 'POST /v1/messages',
+      okStatus: '200 OK',
+      readyStatus: '就绪',
+      syncStatus: '同步中',
+      singleKey: '统一密钥',
+      payAsYouGo: '按量计费'
+    },
     tags: {
       subscriptionToApi: '订阅转 API',
       stickySession: '会话保持',
-      realtimeBilling: '按量计费'
+      realtimeBilling: '按量计费',
+      subscription: '订阅',
+      affinity: '亲和调度',
+      billing: '计费'
     },
     // 用户痛点区块
     painPoints: {
@@ -95,7 +112,7 @@ export default {
       supported: '已支持',
       soon: '即将推出',
       claude: 'Claude',
-      gemini: 'Gemini',
+      gpt: 'GPT',
       antigravity: 'Antigravity',
       more: '更多'
     },
@@ -313,6 +330,15 @@ export default {
     saving: '保存中...',
     selectedCount: '（已选 {count} 个）',
     refresh: '刷新',
+    dailyCheckin: {
+      title: '今日签到',
+      claimedTitle: '今日已签到',
+      tapToClaim: 'CLAIM · 可领取',
+      claimedMeta: 'CLAIMED · {time}',
+      success: '签到成功，已到账 ${amount}',
+      failed: '签到失败，请稍后重试',
+      loadFailed: '签到状态加载失败'
+    },
     autoRefresh: {
       title: '自动刷新',
       enable: '启用自动刷新',
@@ -378,6 +404,7 @@ export default {
     announcements: '公告',
     apiKeys: 'API 密钥',
     usage: '使用记录',
+    speedRank: '消耗排行榜',
     redeem: '兑换',
     affiliate: '邀请返利',
     affiliateManagement: '邀请返利',
@@ -416,6 +443,12 @@ export default {
     channelMonitor: '渠道监控',
     channelStatus: '渠道状态',
     riskControl: '风控中心',
+    groupSpace: 'MY 我的空间',
+    groupMyAccount: 'MY 我的账户',
+    groupBilling: 'BILLING 账务',
+    groupAdmin: 'ADMIN 管理',
+    groupChannel: 'CHANNEL 渠道',
+    groupSystem: 'SYSTEM 系统',
   },
 
   // Auth
@@ -998,6 +1031,36 @@ export default {
         loadFailed: '加载详情失败，请稍后重试',
       },
     },
+  },
+
+  speedRank: {
+    title: '消耗排行榜',
+    description: '按今日输入和输出 Token 统计前三名',
+    rewardAt: '每日 0 点发奖倒计时',
+    countdownLabel: '距本局结束',
+    dailyOpen: '每日 00:00 开新局',
+    todayBoard: '今日排行榜',
+    rankPrize: '第 {rank} 名 +{reward}',
+    rank: '排名',
+    player: '玩家',
+    rewardPreview: '奖励预览',
+    dataRefreshNote: '数据按实时使用记录统计',
+    historyEyebrow: '每日第一名',
+    historyTitle: '历史战绩',
+    historyEmpty: '暂无历史战绩',
+    activityRules: '活动说明',
+    ruleRank: '活动期间，按用户输入和输出 Token 合计排序。',
+    ruleReward: '每日 00:00 自动为前三名发放奖励。',
+    ruleReset: '榜单每天重新开始，奖励记录保留在后台。',
+    hours: '时',
+    minutes: '分',
+    seconds: '秒',
+    inputTokens: '输入',
+    outputTokens: '输出',
+    totalTokens: '合计',
+    reward: '奖励',
+    empty: '今日暂无上榜数据',
+    loadFailed: '排行榜加载失败'
   },
 
   // Shared keys for channel monitor (admin + user views)

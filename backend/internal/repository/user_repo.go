@@ -751,6 +751,91 @@ func (r *userRepository) UpdateBalance(ctx context.Context, id int64, amount flo
 	return nil
 }
 
+// GetDailyCheckinStatus reads today's check-in record and current balance for the user.
+func (r *userRepository) GetDailyCheckinStatus(ctx context.Context, id int64, today time.Time, reward float64) (*service.DailyCheckinStatus, error) {
+	sqlq := txAwareSQLExecutor(ctx, r.sql, r.client)
+	if sqlq == nil {
+		return nil, fmt.Errorf("sql executor is not configured")
+	}
+	checkinDay := checkinDate(today)
+	var claimed bool
+	var claimedAt *time.Time
+	var balance float64
+	if err := scanSingleRow(ctx, sqlq, `
+SELECT uc.id IS NOT NULL, uc.created_at, u.balance
+FROM users u
+LEFT JOIN user_daily_checkins uc ON uc.user_id = u.id AND uc.checkin_date = $2::date
+WHERE u.id = $1 AND u.deleted_at IS NULL
+`, []any{id, checkinDay}, &claimed, &claimedAt, &balance); err != nil {
+		return nil, translatePersistenceError(err, service.ErrUserNotFound, nil)
+	}
+	return &service.DailyCheckinStatus{
+		Claimed:   claimed,
+		ClaimedAt: claimedAt,
+		Reward:    reward,
+		Balance:   balance,
+	}, nil
+}
+
+// ClaimDailyCheckin inserts the daily claim record before adding balance.
+func (r *userRepository) ClaimDailyCheckin(ctx context.Context, id int64, today time.Time, reward float64) (*service.DailyCheckinStatus, error) {
+	sqlq := txAwareSQLExecutor(ctx, r.sql, r.client)
+	if sqlq == nil {
+		return nil, fmt.Errorf("sql executor is not configured")
+	}
+	var balance float64
+	var claimedAt time.Time
+	checkinDay := checkinDate(today)
+	err := scanSingleRow(ctx, sqlq, `
+WITH user_row AS (
+    SELECT id
+    FROM users
+    WHERE id = $1 AND deleted_at IS NULL
+    FOR UPDATE
+),
+claimed AS (
+    INSERT INTO user_daily_checkins (user_id, checkin_date, reward)
+    SELECT id, $3::date, $2
+    FROM user_row
+    ON CONFLICT (user_id, checkin_date) DO NOTHING
+    RETURNING created_at
+),
+updated AS (
+    UPDATE users
+    SET balance = balance + $2,
+        updated_at = NOW()
+    WHERE id = (SELECT id FROM user_row)
+      AND EXISTS (SELECT 1 FROM claimed)
+    RETURNING balance
+)
+SELECT updated.balance, claimed.created_at
+FROM updated, claimed
+`, []any{id, reward, checkinDay}, &balance, &claimedAt)
+	if err == nil {
+		return &service.DailyCheckinStatus{
+			Claimed:   true,
+			ClaimedAt: &claimedAt,
+			Reward:    reward,
+			Balance:   balance,
+		}, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	status, statusErr := r.GetDailyCheckinStatus(ctx, id, today, reward)
+	if statusErr != nil {
+		return nil, statusErr
+	}
+	return status, service.ErrDailyCheckinClaimed
+}
+
+// checkinDate returns the local calendar date used as the daily claim key.
+func checkinDate(t time.Time) string {
+	year, month, day := t.In(time.Local).Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, time.Local).Format("2006-01-02")
+}
+
 // DeductBalance 扣除用户余额
 // 透支策略：允许余额变为负数，确保当前请求能够完成
 // 中间件会阻止余额 <= 0 的用户发起后续请求

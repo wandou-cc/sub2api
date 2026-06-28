@@ -103,6 +103,7 @@ func ProvideHandlers(
 	userHandler *UserHandler,
 	apiKeyHandler *APIKeyHandler,
 	usageHandler *UsageHandler,
+	speedRankService *service.SpeedRankService,
 	redeemHandler *RedeemHandler,
 	subscriptionHandler *SubscriptionHandler,
 	announcementHandler *AnnouncementHandler,
@@ -118,6 +119,7 @@ func ProvideHandlers(
 	_ *service.IdempotencyCoordinator,
 	_ *service.IdempotencyCleanupService,
 ) *Handlers {
+	usageHandler.SetSpeedRankService(speedRankService)
 	return &Handlers{
 		Auth:             authHandler,
 		User:             userHandler,

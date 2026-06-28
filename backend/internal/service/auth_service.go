@@ -1237,8 +1237,7 @@ func (s *AuthService) HashPassword(password string) (string, error) {
 
 // CheckPassword 验证密码是否匹配
 func (s *AuthService) CheckPassword(password, hashedPassword string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	return err == nil
+	return checkPassword(password, hashedPassword)
 }
 
 // RefreshToken 刷新token

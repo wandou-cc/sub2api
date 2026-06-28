@@ -218,6 +218,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/speed-rank',
+    name: 'SpeedRank',
+    component: () => import('@/views/user/SpeedRankView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Speed Rank',
+      titleKey: 'speedRank.title',
+      descriptionKey: 'speedRank.description'
+    }
+  },
+  {
     path: '/redeem',
     name: 'Redeem',
     component: () => import('@/views/user/RedeemView.vue'),

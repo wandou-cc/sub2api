@@ -455,20 +455,20 @@ watch(
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+  background: linear-gradient(to bottom, var(--app-line), var(--app-soft));
   border-radius: 4px;
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #4b5563, #374151);
+  background: linear-gradient(to bottom, var(--app-line), var(--app-soft));
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #94a3b8, #64748b);
+  background: linear-gradient(to bottom, var(--app-soft), var(--app-muted));
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #6b7280, #4b5563);
+  background: linear-gradient(to bottom, var(--app-soft), var(--app-muted));
 }
 </style>
 
@@ -476,23 +476,29 @@ watch(
 /* Enhanced Markdown Styles */
 .markdown-body {
   @apply text-[15px] leading-[1.75];
-  @apply text-gray-700 dark:text-gray-300;
+  color: var(--app-ink);
 }
 
 .markdown-body h1 {
-  @apply mb-6 mt-8 border-b border-gray-200 pb-3 text-3xl font-bold text-gray-900 dark:border-dark-600 dark:text-white;
+  @apply mb-6 mt-8 pb-3 text-3xl font-bold;
+  border-bottom: 1px solid var(--app-line);
+  color: var(--app-ink);
 }
 
 .markdown-body h2 {
-  @apply mb-4 mt-7 border-b border-gray-100 pb-2 text-2xl font-bold text-gray-900 dark:border-dark-700 dark:text-white;
+  @apply mb-4 mt-7 pb-2 text-2xl font-bold;
+  border-bottom: 1px solid var(--app-line);
+  color: var(--app-ink);
 }
 
 .markdown-body h3 {
-  @apply mb-3 mt-6 text-xl font-semibold text-gray-900 dark:text-white;
+  @apply mb-3 mt-6 text-xl font-semibold;
+  color: var(--app-ink);
 }
 
 .markdown-body h4 {
-  @apply mb-2 mt-5 text-lg font-semibold text-gray-900 dark:text-white;
+  @apply mb-2 mt-5 text-lg font-semibold;
+  color: var(--app-ink);
 }
 
 .markdown-body p {
@@ -500,7 +506,13 @@ watch(
 }
 
 .markdown-body a {
-  @apply font-medium text-blue-600 underline decoration-blue-600/30 decoration-2 underline-offset-2 transition-all hover:decoration-blue-600 dark:text-blue-400 dark:decoration-blue-400/30 dark:hover:decoration-blue-400;
+  @apply font-medium underline decoration-2 underline-offset-2 transition-all;
+  color: var(--app-accent);
+  text-decoration-color: color-mix(in srgb, var(--app-accent) 32%, transparent);
+}
+
+.markdown-body a:hover {
+  text-decoration-color: var(--app-accent);
 }
 
 .markdown-body ul,
@@ -522,41 +534,53 @@ watch(
 }
 
 .markdown-body li::marker {
-  @apply text-blue-600 dark:text-blue-400;
+  color: var(--app-accent);
 }
 
 .markdown-body blockquote {
-  @apply relative my-5 border-l-4 border-blue-500 bg-blue-50/50 py-3 pl-5 pr-4 italic text-gray-700 dark:border-blue-400 dark:bg-blue-900/10 dark:text-gray-300;
+  @apply relative my-5 border-l-4 py-3 pl-5 pr-4 italic;
+  border-left-color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  color: var(--app-ink);
 }
 
 .markdown-body blockquote::before {
   content: '"';
-  @apply absolute -left-1 top-0 text-5xl font-serif text-blue-500/20 dark:text-blue-400/20;
+  @apply absolute -left-1 top-0 text-5xl font-serif;
+  color: color-mix(in srgb, var(--app-accent) 24%, transparent);
 }
 
 .markdown-body code {
-  @apply rounded-lg bg-gray-100 px-2 py-1 text-[13px] font-mono text-pink-600 dark:bg-dark-700 dark:text-pink-400;
+  @apply rounded-lg px-2 py-1 text-[13px] font-mono;
+  background: var(--app-surface-muted);
+  color: var(--app-accent-strong);
 }
 
 .markdown-body pre {
-  @apply my-5 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-dark-600 dark:bg-dark-900/50;
+  @apply my-5 overflow-x-auto rounded-xl p-5;
+  border: 1px solid var(--app-line);
+  background: var(--app-surface-muted);
 }
 
 .markdown-body pre code {
-  @apply bg-transparent p-0 text-[13px] text-gray-800 dark:text-gray-200;
+  @apply bg-transparent p-0 text-[13px];
+  color: var(--app-ink);
 }
 
 .markdown-body hr {
-  @apply my-8 border-0 border-t-2 border-gray-200 dark:border-dark-700;
+  @apply my-8 border-0 border-t-2;
+  border-color: var(--app-line);
 }
 
 .markdown-body table {
-  @apply mb-5 w-full overflow-hidden rounded-lg border border-gray-200 dark:border-dark-600;
+  @apply mb-5 w-full overflow-hidden rounded-lg;
+  border: 1px solid var(--app-line);
 }
 
 .markdown-body th,
 .markdown-body td {
-  @apply border-r border-b border-gray-200 px-4 py-3 text-left dark:border-dark-600;
+  @apply border-r border-b px-4 py-3 text-left;
+  border-color: var(--app-line);
 }
 
 .markdown-body th:last-child,
@@ -569,22 +593,31 @@ watch(
 }
 
 .markdown-body th {
-  @apply bg-gradient-to-br from-blue-50 to-indigo-50 font-semibold text-gray-900 dark:from-blue-900/20 dark:to-indigo-900/10 dark:text-white;
+  @apply font-semibold;
+  background: var(--app-surface-muted);
+  color: var(--app-ink);
 }
 
 .markdown-body tbody tr {
-  @apply transition-colors hover:bg-gray-50 dark:hover:bg-dark-700/30;
+  @apply transition-colors;
+}
+
+.markdown-body tbody tr:hover {
+  background: var(--app-surface-muted);
 }
 
 .markdown-body img {
-  @apply my-5 max-w-full rounded-xl border border-gray-200 shadow-md dark:border-dark-600;
+  @apply my-5 max-w-full rounded-xl shadow-md;
+  border: 1px solid var(--app-line);
 }
 
 .markdown-body strong {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold;
+  color: var(--app-ink);
 }
 
 .markdown-body em {
-  @apply italic text-gray-600 dark:text-gray-400;
+  @apply italic;
+  color: var(--app-muted);
 }
 </style>

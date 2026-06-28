@@ -32,6 +32,7 @@ var (
 	ErrUserNotFound             = infraerrors.NotFound("USER_NOT_FOUND", "user not found")
 	ErrPasswordIncorrect        = infraerrors.BadRequest("PASSWORD_INCORRECT", "current password is incorrect")
 	ErrInsufficientPerms        = infraerrors.Forbidden("INSUFFICIENT_PERMISSIONS", "insufficient permissions")
+	ErrDailyCheckinClaimed      = infraerrors.Conflict("DAILY_CHECKIN_CLAIMED", "daily check-in already claimed")
 	ErrNotifyCodeUserRateLimit  = infraerrors.TooManyRequests("NOTIFY_CODE_USER_RATE_LIMIT", "too many verification codes requested, please try again later")
 	ErrAvatarInvalid            = infraerrors.BadRequest("AVATAR_INVALID", "avatar must be a valid image data URL or http(s) URL")
 	ErrAvatarTooLarge           = infraerrors.BadRequest("AVATAR_TOO_LARGE", "avatar image must be 100KB or smaller")
@@ -56,6 +57,7 @@ const (
 	defaultUserIdentityRedirect = "/settings/profile"
 	userLastActiveMinTouch      = 10 * time.Minute
 	userLastActiveFailBackoff   = 30 * time.Second
+	dailyCheckinReward          = 0.5
 )
 
 var (
@@ -120,6 +122,11 @@ type UserRepository interface {
 	UpdateTotpSecret(ctx context.Context, userID int64, encryptedSecret *string) error
 	EnableTotp(ctx context.Context, userID int64) error
 	DisableTotp(ctx context.Context, userID int64) error
+}
+
+type DailyCheckinRepository interface {
+	GetDailyCheckinStatus(ctx context.Context, id int64, today time.Time, reward float64) (*DailyCheckinStatus, error)
+	ClaimDailyCheckin(ctx context.Context, id int64, today time.Time, reward float64) (*DailyCheckinStatus, error)
 }
 
 type UserAuthIdentityRecord struct {
@@ -253,6 +260,44 @@ func (s *UserService) GetProfile(ctx context.Context, userID int64) (*User, erro
 		return nil, fmt.Errorf("get user avatar: %w", err)
 	}
 	return user, nil
+}
+
+// GetDailyCheckinStatus 返回当前用户当天签到状态。
+func (s *UserService) GetDailyCheckinStatus(ctx context.Context, userID int64) (*DailyCheckinStatus, error) {
+	checkinRepo, ok := s.userRepo.(DailyCheckinRepository)
+	if !ok {
+		return nil, infraerrors.InternalServer("DAILY_CHECKIN_REPOSITORY_UNAVAILABLE", "daily check-in repository is unavailable")
+	}
+	status, err := checkinRepo.GetDailyCheckinStatus(ctx, userID, time.Now(), dailyCheckinReward)
+	if err != nil {
+		return nil, fmt.Errorf("get daily checkin status: %w", err)
+	}
+	return status, nil
+}
+
+// ClaimDailyCheckin 领取当天签到奖励。
+func (s *UserService) ClaimDailyCheckin(ctx context.Context, userID int64) (*DailyCheckinStatus, error) {
+	checkinRepo, ok := s.userRepo.(DailyCheckinRepository)
+	if !ok {
+		return nil, infraerrors.InternalServer("DAILY_CHECKIN_REPOSITORY_UNAVAILABLE", "daily check-in repository is unavailable")
+	}
+	status, err := checkinRepo.ClaimDailyCheckin(ctx, userID, time.Now(), dailyCheckinReward)
+	if err != nil {
+		return nil, fmt.Errorf("claim daily checkin: %w", err)
+	}
+	if s.authCacheInvalidator != nil {
+		s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, userID)
+	}
+	if s.billingCache != nil {
+		go func() {
+			cacheCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := s.billingCache.InvalidateUserBalance(cacheCtx, userID); err != nil {
+				slog.Error("invalidate user balance cache failed", "user_id", userID, "error", err)
+			}
+		}()
+	}
+	return status, nil
 }
 
 func (s *UserService) GetProfileIdentitySummaries(ctx context.Context, userID int64, user *User) (UserIdentitySummarySet, error) {

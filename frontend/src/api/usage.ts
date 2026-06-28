@@ -91,6 +91,27 @@ export interface ApiKeyDailyUsageResponse {
   end_date: string
 }
 
+export interface SpeedRankEntry {
+  rank: number
+  user_id: number
+  email: string
+  username: string
+  reward_date?: string
+  input_tokens: number
+  output_tokens: number
+  total_tokens: number
+  reward: number
+}
+
+export interface SpeedRankResponse {
+  entries: SpeedRankEntry[]
+  history: SpeedRankEntry[]
+  next_reward_at: string
+  generated_at: string
+  ranking_date: string
+  reward_amounts: Record<string, number>
+}
+
 /**
  * List usage logs with optional filters
  * @param page - Page number (default: 1)
@@ -323,6 +344,11 @@ export async function getMyErrorDetail(id: number): Promise<UserErrorRequestDeta
   return data
 }
 
+export async function getSpeedRank(): Promise<SpeedRankResponse> {
+  const { data } = await apiClient.get<SpeedRankResponse>('/usage/speed-rank')
+  return data
+}
+
 export const usageAPI = {
   list,
   query,
@@ -339,6 +365,7 @@ export const usageAPI = {
   // Error requests
   listMyErrorRequests,
   getMyErrorDetail,
+  getSpeedRank,
 }
 
 export default usageAPI

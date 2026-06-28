@@ -16,6 +16,7 @@ import type {
   UserAuthProvider,
   UserAffiliateDetail,
   AffiliateTransferResponse,
+  DailyCheckinStatus,
   PlatformQuotasResponse,
 } from '@/types'
 
@@ -25,6 +26,16 @@ import type {
  */
 export async function getProfile(): Promise<User> {
   const { data } = await apiClient.get<User>('/user/profile')
+  return data
+}
+
+export async function getDailyCheckinStatus(): Promise<DailyCheckinStatus> {
+  const { data } = await apiClient.get<DailyCheckinStatus>('/user/checkin')
+  return data
+}
+
+export async function claimDailyCheckin(): Promise<DailyCheckinStatus> {
+  const { data } = await apiClient.post<DailyCheckinStatus>('/user/checkin')
   return data
 }
 
@@ -196,6 +207,8 @@ export async function getMyPlatformQuotas(): Promise<PlatformQuotasResponse> {
 
 export const userAPI = {
   getProfile,
+  getDailyCheckinStatus,
+  claimDailyCheckin,
   updateProfile,
   changePassword,
   sendNotifyEmailCode,

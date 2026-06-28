@@ -159,7 +159,7 @@
             <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white/90 shadow-sm backdrop-blur-sm dark:border-dark-700 dark:bg-dark-900/90">
               <span
                 class="w-2.5 h-2.5 rounded-full pulse-dot"
-                :class="statusInfo.isActive ? 'bg-emerald-500' : 'bg-rose-500'"
+                :class="statusInfo.isActive ? 'bg-[var(--app-success)]' : 'bg-[var(--app-danger)]'"
               ></span>
               <span class="text-sm font-medium text-gray-900 dark:text-white">{{ statusInfo.label }}</span>
               <span class="text-xs text-gray-400 dark:text-dark-500">|</span>
@@ -525,16 +525,16 @@ function setDailyUsageDays(days: 7 | 30 | 90) {
 
 const CIRCUMFERENCE = 2 * Math.PI * 68
 const RING_GRADIENTS = [
-  { from: '#14b8a6', to: '#5eead4' },
-  { from: '#6366F1', to: '#A5B4FC' },
-  { from: '#10B981', to: '#6EE7B7' },
-  { from: '#F59E0B', to: '#FCD34D' },
+  { from: 'var(--app-accent)', to: 'var(--app-accent-strong)' },
+  { from: 'var(--app-accent)', to: 'var(--app-warning)' },
+  { from: 'var(--app-success)', to: 'var(--app-accent)' },
+  { from: 'var(--app-warning)', to: 'var(--app-accent-strong)' },
 ]
 
 const ringAnimated = ref(false)
 const displayPcts = ref<number[]>([])
 
-const ringTrackColor = computed(() => isDark.value ? '#222222' : '#F0F0EE')
+const ringTrackColor = computed(() => isDark.value ? '#2c2923' : '#f5f1e8')
 
 interface RingItem {
   title: string
@@ -670,9 +670,9 @@ interface DetailRow {
 }
 
 function getUsageColor(pct: number): string {
-  if (pct > 90) return 'text-rose-500'
-  if (pct > 70) return 'text-amber-500'
-  return 'text-emerald-500'
+  if (pct > 90) return 'text-[var(--app-danger)]'
+  if (pct > 70) return 'text-[var(--app-warning)]'
+  return 'text-[var(--app-success)]'
 }
 
 const detailRows = computed<DetailRow[]>(() => {
@@ -687,11 +687,11 @@ const detailRows = computed<DetailRow[]>(() => {
 
   if (data.mode === 'quota_limited') {
     if (data.quota) {
-      const remainColor = data.quota.remaining <= 0 ? 'text-rose-500'
-        : data.quota.remaining < data.quota.limit * 0.1 ? 'text-amber-500'
-        : 'text-emerald-500'
+      const remainColor = data.quota.remaining <= 0 ? 'text-[var(--app-danger)]'
+        : data.quota.remaining < data.quota.limit * 0.1 ? 'text-[var(--app-warning)]'
+        : 'text-[var(--app-success)]'
       rows.push({
-        iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
+        iconBg: 'bg-[color-mix(in_srgb,var(--app-success)_10%,transparent)]', iconColor: 'text-[var(--app-success)]', iconSvg: ICON_SHIELD,
         label: t('keyUsage.remainingQuota'), value: usd(data.quota.remaining), valueClass: remainColor,
       })
     }
@@ -702,7 +702,7 @@ const detailRows = computed<DetailRow[]>(() => {
         expiryStr += daysLeft > 0 ? ` ${t('keyUsage.daysLeft', { days: daysLeft })}` : daysLeft === 0 ? ` ${t('keyUsage.todayExpires')}` : ''
       }
       rows.push({
-        iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', iconSvg: ICON_CALENDAR,
+        iconBg: 'bg-[color-mix(in_srgb,var(--app-warning)_10%,transparent)]', iconColor: 'text-[var(--app-warning)]', iconSvg: ICON_CALENDAR,
         label: t('keyUsage.expiresAt'), value: expiryStr, valueClass: '',
       })
     }
@@ -725,7 +725,7 @@ const detailRows = computed<DetailRow[]>(() => {
     }
   } else {
     rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_CHECK,
+      iconBg: 'bg-[color-mix(in_srgb,var(--app-success)_10%,transparent)]', iconColor: 'text-[var(--app-success)]', iconSvg: ICON_CHECK,
       label: t('keyUsage.subscriptionType'), value: data.planName || t('keyUsage.walletBalance'), valueClass: '',
     })
 
@@ -741,30 +741,30 @@ const detailRows = computed<DetailRow[]>(() => {
       if (sub.weekly_limit_usd > 0) {
         const pct = (sub.weekly_usage_usd / sub.weekly_limit_usd) * 100
         rows.push({
-          iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-primary-500/10', iconColor: 'text-primary-500', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '周' : 'W'})`, value: `${usd(sub.weekly_usage_usd)} / ${usd(sub.weekly_limit_usd)}`, valueClass: getUsageColor(pct),
         })
       }
       if (sub.monthly_limit_usd > 0) {
         const pct = (sub.monthly_usage_usd / sub.monthly_limit_usd) * 100
         rows.push({
-          iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-[color-mix(in_srgb,var(--app-success)_10%,transparent)]', iconColor: 'text-[var(--app-success)]', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '月' : 'M'})`, value: `${usd(sub.monthly_usage_usd)} / ${usd(sub.monthly_limit_usd)}`, valueClass: getUsageColor(pct),
         })
       }
       if (sub.expires_at) {
         rows.push({
-          iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', iconSvg: ICON_CALENDAR,
+          iconBg: 'bg-[color-mix(in_srgb,var(--app-warning)_10%,transparent)]', iconColor: 'text-[var(--app-warning)]', iconSvg: ICON_CALENDAR,
           label: t('keyUsage.subscriptionExpires'), value: formatDate(sub.expires_at), valueClass: '',
         })
       }
     }
 
     const remainColor = data.remaining != null
-      ? (data.remaining <= 0 ? 'text-rose-500' : data.remaining < 10 ? 'text-amber-500' : 'text-emerald-500')
+      ? (data.remaining <= 0 ? 'text-[var(--app-danger)]' : data.remaining < 10 ? 'text-[var(--app-warning)]' : 'text-[var(--app-success)]')
       : ''
     rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
+      iconBg: 'bg-[color-mix(in_srgb,var(--app-success)_10%,transparent)]', iconColor: 'text-[var(--app-success)]', iconSvg: ICON_SHIELD,
       label: t('keyUsage.remainingQuota'), value: data.remaining != null ? usd(data.remaining) : '-', valueClass: remainColor,
     })
   }
@@ -943,8 +943,8 @@ onUnmounted(() => {
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .input-ring:focus {
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
-  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 22%, transparent);
+  border-color: var(--app-accent);
   outline: none;
 }
 
@@ -961,13 +961,13 @@ onUnmounted(() => {
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background: linear-gradient(90deg, var(--app-line) 25%, var(--app-surface-muted) 50%, var(--app-line) 75%);
   background-size: 200% 100%;
   animation: shimmer-kv 1.8s ease-in-out infinite;
   border-radius: 8px;
 }
 :global(.dark) .skeleton {
-  background: linear-gradient(90deg, #334155 25%, #1e293b 50%, #334155 75%);
+  background: linear-gradient(90deg, var(--app-line) 25%, var(--app-surface-muted) 50%, var(--app-line) 75%);
   background-size: 200% 100%;
 }
 
@@ -996,6 +996,6 @@ onUnmounted(() => {
 /* Tabular nums */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 </style>

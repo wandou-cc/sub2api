@@ -23,6 +23,7 @@ type UsageHandler struct {
 	apiKeyService  *service.APIKeyService
 	opsService     *service.OpsService
 	settingService *service.SettingService
+	speedRank      *service.SpeedRankService
 }
 
 // NewUsageHandler creates a new UsageHandler
@@ -38,6 +39,11 @@ func NewUsageHandler(
 		opsService:     opsService,
 		settingService: settingService,
 	}
+}
+
+// SetSpeedRankService attaches the user-facing speed ranking service.
+func (h *UsageHandler) SetSpeedRankService(speedRank *service.SpeedRankService) {
+	h.speedRank = speedRank
 }
 
 // List handles listing usage records with pagination
@@ -157,6 +163,26 @@ func (h *UsageHandler) List(c *gin.Context) {
 		out = append(out, *dto.UsageLogFromService(&records[i]))
 	}
 	response.Paginated(c, out, result.Total, page, pageSize)
+}
+
+// SpeedRank handles getting today's user usage leaderboard.
+// GET /api/v1/usage/speed-rank
+func (h *UsageHandler) SpeedRank(c *gin.Context) {
+	if _, ok := middleware2.GetAuthSubjectFromContext(c); !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	if h.speedRank == nil {
+		response.Error(c, http.StatusServiceUnavailable, "Speed ranking service not available")
+		return
+	}
+
+	result, err := h.speedRank.GetTodayRanking(c.Request.Context(), time.Now())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, result)
 }
 
 // ListErrors handles listing the current user's failed requests (redacted).

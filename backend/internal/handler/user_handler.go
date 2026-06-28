@@ -130,6 +130,40 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	response.Success(c, profileResp)
 }
 
+// GetDailyCheckinStatus handles getting current daily check-in status.
+func (h *UserHandler) GetDailyCheckinStatus(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+
+	status, err := h.userService.GetDailyCheckinStatus(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, status)
+}
+
+// ClaimDailyCheckin handles claiming today's daily check-in reward.
+func (h *UserHandler) ClaimDailyCheckin(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+
+	status, err := h.userService.ClaimDailyCheckin(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, status)
+}
+
 // ChangePassword handles changing user password
 // POST /api/v1/users/me/password
 func (h *UserHandler) ChangePassword(c *gin.Context) {

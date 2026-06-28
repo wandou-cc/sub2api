@@ -195,6 +195,13 @@ func ProvideUsageCleanupService(repo UsageCleanupRepository, timingWheel *Timing
 	return svc
 }
 
+// ProvideSpeedRankService creates and starts SpeedRankService.
+func ProvideSpeedRankService(repo SpeedRankRepository, authCacheInvalidator APIKeyAuthCacheInvalidator, billingCache *BillingCacheService) *SpeedRankService {
+	svc := NewSpeedRankService(repo, authCacheInvalidator, billingCache)
+	svc.Start()
+	return svc
+}
+
 // ProvideAccountExpiryService creates and starts AccountExpiryService.
 func ProvideAccountExpiryService(accountRepo AccountRepository) *AccountExpiryService {
 	svc := NewAccountExpiryService(accountRepo, time.Minute)
@@ -556,6 +563,7 @@ var ProviderSet = wire.NewSet(
 	NewRedeemService,
 	NewPromoService,
 	NewUsageService,
+	ProvideSpeedRankService,
 	NewDashboardService,
 	ProvidePricingService,
 	NewBillingService,

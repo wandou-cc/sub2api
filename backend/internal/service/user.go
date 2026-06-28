@@ -1,9 +1,13 @@
 package service
 
 import (
+	"crypto/subtle"
+	"encoding/hex"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/scrypt"
 )
 
 type User struct {
@@ -63,6 +67,13 @@ type User struct {
 	Subscriptions []UserSubscription
 }
 
+type DailyCheckinStatus struct {
+	Claimed   bool       `json:"claimed"`
+	ClaimedAt *time.Time `json:"claimed_at,omitempty"`
+	Reward    float64    `json:"reward"`
+	Balance   float64    `json:"balance"`
+}
+
 func (u *User) IsAdmin() bool {
 	return u.Role == RoleAdmin
 }
@@ -89,6 +100,7 @@ func (u *User) CanBindGroup(groupID int64, isExclusive bool) bool {
 	return false
 }
 
+// SetPassword 使用当前系统的 bcrypt 格式设置用户密码。
 func (u *User) SetPassword(password string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -98,6 +110,31 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
+// CheckPassword 校验用户密码，兼容旧系统迁移来的 scrypt 密码哈希。
 func (u *User) CheckPassword(password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
+	return checkPassword(password, u.PasswordHash)
+}
+
+// checkPassword 校验当前 bcrypt 密码和旧系统 scrypt:salt:hexhash 密码。
+func checkPassword(password, hashedPassword string) bool {
+	if strings.HasPrefix(hashedPassword, "scrypt:") {
+		parts := strings.Split(hashedPassword, ":")
+		if len(parts) != 3 {
+			return false
+		}
+
+		expectedHash, err := hex.DecodeString(parts[2])
+		if err != nil || len(expectedHash) == 0 {
+			return false
+		}
+
+		actualHash, err := scrypt.Key([]byte(password), []byte(parts[1]), 1<<14, 8, 1, len(expectedHash))
+		if err != nil {
+			return false
+		}
+
+		return subtle.ConstantTimeCompare(actualHash, expectedHash) == 1
+	}
+
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
 }

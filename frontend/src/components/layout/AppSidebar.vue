@@ -6,29 +6,68 @@
       { '-translate-x-full lg:translate-x-0': !mobileOpen }
     ]"
   >
-    <!-- Logo/Brand -->
-    <div class="sidebar-header" :class="{ 'sidebar-header-collapsed': sidebarCollapsed }">
-      <!-- Custom Logo or Default Logo -->
-      <div class="sidebar-logo flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-glow">
-        <img v-if="settingsLoaded" :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
-      </div>
-      <div class="sidebar-brand" :class="{ 'sidebar-brand-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
-        <span class="sidebar-brand-title text-lg font-bold text-gray-900 dark:text-white">
-          {{ siteName }}
-        </span>
-        <!-- Version Badge -->
-        <VersionBadge :version="siteVersion" />
-      </div>
-    </div>
-
     <!-- Navigation -->
     <nav class="sidebar-nav scrollbar-hide">
-      <!-- Admin View: Admin menu first, then personal menu -->
-      <template v-if="isAdmin">
-        <!-- Admin Section -->
+      <div
+        v-if="showDailyCheckin"
+        class="daily-checkin"
+        :class="{
+          'daily-checkin-claimed': dailyCheckinStatus?.claimed,
+          'daily-checkin-collapsed': sidebarCollapsed,
+        }"
+      >
+        <template v-if="!sidebarCollapsed">
+          <div class="daily-checkin-header">
+            <span class="daily-checkin-title">{{ dailyCheckinTitle }}</span>
+            <button
+              type="button"
+              class="daily-checkin-collapse"
+              :title="t('nav.collapse')"
+              @click.stop="toggleSidebar"
+            >
+              <ChevronDoubleLeftIcon class="h-5 w-5" />
+            </button>
+          </div>
+          <button
+            type="button"
+            class="daily-checkin-claim"
+            :disabled="dailyCheckinLoading || dailyCheckinStatus?.claimed"
+            @click="handleDailyCheckin"
+          >
+            <span class="daily-checkin-meta">{{ dailyCheckinMeta }}</span>
+            <span class="daily-checkin-reward">+${{ dailyCheckinReward }}</span>
+          </button>
+        </template>
+        <template v-else>
+          <button
+            type="button"
+            class="daily-checkin-claim"
+            :disabled="dailyCheckinLoading || dailyCheckinStatus?.claimed"
+            :title="dailyCheckinTitle"
+            @click="handleDailyCheckin"
+          >
+            <GiftIcon class="h-5 w-5 flex-shrink-0" />
+          </button>
+          <button
+            type="button"
+            class="daily-checkin-expand"
+            :title="t('nav.expand')"
+            @click.stop="toggleSidebar"
+          >
+            <ChevronDoubleRightIcon class="h-5 w-5" />
+          </button>
+        </template>
+      </div>
+
+      <template v-for="group in sidebarNavGroups" :key="group.key">
         <div class="sidebar-section">
-          <template v-for="item in adminNavItems" :key="item.path">
-            <!-- Collapsible group (has children) -->
+          <div class="sidebar-section-title" :class="{ 'sidebar-section-title-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
+            <span class="sidebar-section-title-text" :class="{ 'sidebar-section-title-text-collapsed': sidebarCollapsed }">
+              {{ group.label }}
+            </span>
+          </div>
+
+          <template v-for="item in group.items" :key="item.path">
             <template v-if="item.children?.length">
               <button
                 type="button"
@@ -53,13 +92,12 @@
                   />
                 </span>
               </button>
-              <!-- Children -->
-              <div v-if="!sidebarCollapsed && isGroupExpanded(item)" class="mb-1 ml-4 border-l border-gray-200 pl-2 dark:border-dark-600">
+              <div v-if="!sidebarCollapsed && isGroupExpanded(item)" class="sidebar-children">
                 <router-link
                   v-for="child in item.children"
                   :key="child.path"
                   :to="child.path"
-                  class="sidebar-link mb-0.5 py-1.5 text-sm"
+                  class="sidebar-link sidebar-child-link mb-0.5"
                   :class="{ 'sidebar-link-active': route.path === child.path }"
                   @click="handleMenuItemClick(child.path)"
                 >
@@ -68,7 +106,7 @@
                 </router-link>
               </div>
             </template>
-            <!-- Normal item (no children) -->
+
             <router-link
               v-else
               :to="item.path"
@@ -84,6 +122,7 @@
                       ? 'sidebar-wallet'
                       : undefined
               "
+              :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
               @click="handleMenuItemClick(item.path)"
             >
               <span v-if="item.iconSvg" class="h-5 w-5 flex-shrink-0 sidebar-svg-icon" v-html="sanitizeSvg(item.iconSvg)"></span>
@@ -92,81 +131,9 @@
             </router-link>
           </template>
         </div>
-
-        <!-- Personal Section for Admin (hidden in simple mode) -->
-        <div v-if="!authStore.isSimpleMode" class="sidebar-section">
-          <div class="sidebar-section-title" :class="{ 'sidebar-section-title-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
-            <span class="sidebar-section-title-text" :class="{ 'sidebar-section-title-text-collapsed': sidebarCollapsed }">
-              {{ t('nav.myAccount') }}
-            </span>
-          </div>
-
-          <router-link
-            v-for="item in personalNavItems"
-            :key="item.path"
-            :to="item.path"
-            class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
-            :title="sidebarCollapsed ? item.label : undefined"
-            :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
-            @click="handleMenuItemClick(item.path)"
-          >
-            <span v-if="item.iconSvg" class="h-5 w-5 flex-shrink-0 sidebar-svg-icon" v-html="sanitizeSvg(item.iconSvg)"></span>
-            <component v-else :is="item.icon" class="h-5 w-5 flex-shrink-0" />
-            <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ item.label }}</span>
-          </router-link>
-        </div>
-      </template>
-
-      <!-- Regular User View -->
-      <template v-else-if="!appStore.backendModeEnabled">
-        <div class="sidebar-section">
-          <router-link
-            v-for="item in userNavItems"
-            :key="item.path"
-            :to="item.path"
-            class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
-            :title="sidebarCollapsed ? item.label : undefined"
-            :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
-            @click="handleMenuItemClick(item.path)"
-          >
-            <span v-if="item.iconSvg" class="h-5 w-5 flex-shrink-0 sidebar-svg-icon" v-html="sanitizeSvg(item.iconSvg)"></span>
-            <component v-else :is="item.icon" class="h-5 w-5 flex-shrink-0" />
-            <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ item.label }}</span>
-          </router-link>
-        </div>
       </template>
     </nav>
 
-    <!-- Bottom Section -->
-    <div class="mt-auto border-t border-gray-100 p-3 dark:border-dark-800">
-      <!-- Theme Toggle -->
-      <button
-        @click="toggleTheme"
-        class="sidebar-link mb-2 w-full"
-        :class="{ 'sidebar-link-collapsed': sidebarCollapsed }"
-        :title="sidebarCollapsed ? (isDark ? t('nav.lightMode') : t('nav.darkMode')) : undefined"
-      >
-        <SunIcon v-if="isDark" class="h-5 w-5 flex-shrink-0 text-amber-500" />
-        <MoonIcon v-else class="h-5 w-5 flex-shrink-0" />
-        <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{
-          isDark ? t('nav.lightMode') : t('nav.darkMode')
-        }}</span>
-      </button>
-
-      <!-- Collapse Button -->
-      <button
-        @click="toggleSidebar"
-        class="sidebar-link w-full"
-        :class="{ 'sidebar-link-collapsed': sidebarCollapsed }"
-        :title="sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
-      >
-        <ChevronDoubleLeftIcon v-if="!sidebarCollapsed" class="h-5 w-5 flex-shrink-0" />
-        <ChevronDoubleRightIcon v-else class="h-5 w-5 flex-shrink-0" />
-        <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ t('nav.collapse') }}</span>
-      </button>
-    </div>
   </aside>
 
   <!-- Mobile Overlay -->
@@ -184,9 +151,11 @@ import { computed, h, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminSettingsStore, useAppStore, useAuthStore, useOnboardingStore } from '@/stores'
-import VersionBadge from '@/components/common/VersionBadge.vue'
+import { userAPI } from '@/api'
+import { extractApiErrorMessage } from '@/utils/apiError'
 import { sanitizeSvg } from '@/utils/sanitize'
 import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
+import type { DailyCheckinStatus } from '@/types'
 
 interface NavItem {
   path: string
@@ -207,6 +176,12 @@ interface NavItem {
    * 开关切换时菜单自动更新。
    */
   featureFlag?: () => boolean | undefined
+}
+
+interface NavGroup {
+  key: string
+  label: string
+  items: NavItem[]
 }
 
 // applyFeatureFlags 递归过滤掉 featureFlag() === false 的节点（含子节点）。
@@ -236,16 +211,37 @@ const adminSettingsStore = useAdminSettingsStore()
 const sidebarCollapsed = computed(() => appStore.sidebarCollapsed)
 const mobileOpen = computed(() => appStore.mobileOpen)
 const isAdmin = computed(() => authStore.isAdmin)
-const isDark = ref(document.documentElement.classList.contains('dark'))
 
 // Track which parent nav groups are expanded
 const expandedGroups = ref<Set<string>>(new Set())
+const dailyCheckinStatus = ref<DailyCheckinStatus | null>(null)
+const dailyCheckinLoading = ref(false)
 
-// Site settings from appStore (cached, no flicker)
-const siteName = computed(() => appStore.siteName)
-const siteLogo = computed(() => appStore.siteLogo)
-const siteVersion = computed(() => appStore.siteVersion)
-const settingsLoaded = computed(() => appStore.publicSettingsLoaded)
+const showDailyCheckin = computed(() => Boolean(authStore.user) && !appStore.backendModeEnabled)
+const dailyCheckinReward = computed(() => (dailyCheckinStatus.value?.reward ?? 0.5).toFixed(2))
+const dailyCheckinTitle = computed(() =>
+  dailyCheckinStatus.value?.claimed ? t('common.dailyCheckin.claimedTitle') : t('common.dailyCheckin.title')
+)
+const dailyCheckinClaimedTime = computed(() => {
+  const claimedAt = dailyCheckinStatus.value?.claimed_at
+  if (!claimedAt) {
+    return '--:--'
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(claimedAt))
+})
+const dailyCheckinMeta = computed(() => {
+  if (dailyCheckinLoading.value) {
+    return t('common.loading')
+  }
+  if (dailyCheckinStatus.value?.claimed) {
+    return t('common.dailyCheckin.claimedMeta', { time: dailyCheckinClaimedTime.value })
+  }
+  return t('common.dailyCheckin.tapToClaim')
+})
 
 // SVG Icon Components
 const DashboardIcon = {
@@ -288,6 +284,21 @@ const ChartIcon = {
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round',
           d: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z'
+        })
+      ]
+    )
+}
+
+const SpeedIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M3.75 13.5a8.25 8.25 0 1114.667 5.203M12 13.5l4.5-4.5M7.5 18.75h9M9.75 21h4.5'
         })
       ]
     )
@@ -488,36 +499,6 @@ const CogIcon = {
     )
 }
 
-const SunIcon = {
-  render: () =>
-    h(
-      'svg',
-      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
-      [
-        h('path', {
-          'stroke-linecap': 'round',
-          'stroke-linejoin': 'round',
-          d: 'M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z'
-        })
-      ]
-    )
-}
-
-const MoonIcon = {
-  render: () =>
-    h(
-      'svg',
-      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
-      [
-        h('path', {
-          'stroke-linecap': 'round',
-          'stroke-linejoin': 'round',
-          d: 'M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z'
-        })
-      ]
-    )
-}
-
 const ChevronDoubleLeftIcon = {
   render: () =>
     h(
@@ -654,26 +635,28 @@ const flagRiskControl = makeSidebarFlag(FeatureFlags.riskControl)
 const flagOpsMonitoring = () => adminSettingsStore.opsMonitoringEnabled
 const flagAdminPayment = () => adminSettingsStore.paymentEnabled
 
-// buildSelfNavItems 构造用户自己的导航项（用户端主菜单和管理员的"我的账户"子菜单共享这组声明）。
+// finalizeNavGroups 合并分组内的功能开关和 simple 模式过滤，并移除空分组。
+function finalizeNavGroups(groups: NavGroup[]): NavGroup[] {
+  return groups
+    .map(group => ({ ...group, items: finalizeNav(group.items) }))
+    .filter(group => group.items.length > 0)
+}
+
+// buildSelfNavGroups 构造用户自己的导航分组（用户端主菜单和管理员的个人菜单共享这组声明）。
 // withDashboard=true 时包含仪表盘（用户端），false 时不含（管理员的个人区已经有独立仪表盘入口）。
 //
-// 条目顺序：密钥 → 用量 → 可用渠道 → 渠道状态 → 订阅/支付 → 兑换/资料。
 // 可用渠道紧挨渠道状态之上，让用户"先看自己能用什么、再看对应状态"。
-function buildSelfNavItems(withDashboard: boolean): NavItem[] {
-  const items: NavItem[] = []
+function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
+  const spaceItems: NavItem[] = []
   if (withDashboard) {
-    items.push({ path: '/dashboard', label: t('nav.dashboard'), icon: DashboardIcon })
+    spaceItems.push({ path: '/dashboard', label: t('nav.dashboard'), icon: DashboardIcon })
   }
-  items.push(
+  spaceItems.push(
     { path: '/keys', label: t('nav.apiKeys'), icon: KeyIcon },
     { path: '/usage', label: t('nav.usage'), icon: ChartIcon, hideInSimpleMode: true },
+    { path: '/speed-rank', label: t('nav.speedRank'), icon: SpeedIcon, hideInSimpleMode: true },
     { path: '/available-channels', label: t('nav.availableChannels'), icon: ChannelIcon, hideInSimpleMode: true, featureFlag: flagAvailableChannels },
     { path: '/monitor', label: t('nav.channelStatus'), icon: SignalIcon, featureFlag: flagChannelMonitor },
-    { path: '/subscriptions', label: t('nav.mySubscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
-    { path: '/purchase', label: t('nav.buySubscription'), icon: RechargeSubscriptionIcon, hideInSimpleMode: true, featureFlag: flagPayment },
-    { path: '/orders', label: t('nav.myOrders'), icon: OrderListIcon, hideInSimpleMode: true, featureFlag: flagPayment },
-    { path: '/redeem', label: t('nav.redeem'), icon: GiftIcon, hideInSimpleMode: true },
-    { path: '/affiliate', label: t('nav.affiliate'), icon: UsersIcon, hideInSimpleMode: true, featureFlag: flagAffiliate },
     { path: '/profile', label: t('nav.profile'), icon: UserIcon },
     ...customMenuItemsForUser.value.map((item): NavItem => ({
       path: `/custom/${item.id}`,
@@ -682,7 +665,25 @@ function buildSelfNavItems(withDashboard: boolean): NavItem[] {
       iconSvg: item.icon_svg,
     })),
   )
-  return items
+
+  return [
+    {
+      key: withDashboard ? 'user-space' : 'personal-space',
+      label: withDashboard ? t('nav.groupSpace') : t('nav.groupMyAccount'),
+      items: spaceItems,
+    },
+    {
+      key: withDashboard ? 'user-billing' : 'personal-billing',
+      label: t('nav.groupBilling'),
+      items: [
+        { path: '/subscriptions', label: t('nav.mySubscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
+        { path: '/purchase', label: t('nav.buySubscription'), icon: RechargeSubscriptionIcon, hideInSimpleMode: true, featureFlag: flagPayment },
+        { path: '/orders', label: t('nav.myOrders'), icon: OrderListIcon, hideInSimpleMode: true, featureFlag: flagPayment },
+        { path: '/redeem', label: t('nav.redeem'), icon: GiftIcon, hideInSimpleMode: true },
+        { path: '/affiliate', label: t('nav.affiliate'), icon: UsersIcon, hideInSimpleMode: true, featureFlag: flagAffiliate },
+      ],
+    },
+  ]
 }
 
 // finalizeNav 合并三重过滤：featureFlag 过滤 + simple 模式过滤。
@@ -691,13 +692,13 @@ function finalizeNav(items: NavItem[]): NavItem[] {
   return authStore.isSimpleMode ? visible.filter(item => !item.hideInSimpleMode) : visible
 }
 
-// User navigation items (for regular users)
-const userNavItems = computed((): NavItem[] => finalizeNav(buildSelfNavItems(true)))
+// User navigation groups (for regular users)
+const userNavGroups = computed((): NavGroup[] => finalizeNavGroups(buildSelfNavGroups(true)))
 
-// Personal navigation items (for admin's "My Account" section, without Dashboard).
+// Personal navigation groups (for admin's "My Account" section, without Dashboard).
 // Admins access 可用渠道 from this section just like regular users — there is no
 // separate admin entry, since the page is purely a user-facing view.
-const personalNavItems = computed((): NavItem[] => finalizeNav(buildSelfNavItems(false)))
+const personalNavGroups = computed((): NavGroup[] => finalizeNavGroups(buildSelfNavGroups(false)))
 
 // Custom menu items filtered by visibility
 const customMenuItemsForUser = computed(() => {
@@ -713,88 +714,138 @@ const customMenuItemsForAdmin = computed(() => {
     .sort((a, b) => a.sort_order - b.sort_order)
 })
 
-// Admin navigation items
-const adminNavItems = computed((): NavItem[] => {
-  const baseItems: NavItem[] = [
-    { path: '/admin/dashboard', label: t('nav.dashboard'), icon: DashboardIcon },
-    { path: '/admin/ops', label: t('nav.ops'), icon: ChartIcon, featureFlag: flagOpsMonitoring },
-    { path: '/admin/users', label: t('nav.users'), icon: UsersIcon, hideInSimpleMode: true },
-    { path: '/admin/groups', label: t('nav.groups'), icon: FolderIcon, hideInSimpleMode: true },
+// Admin navigation groups
+const adminNavGroups = computed((): NavGroup[] => {
+  const groups: NavGroup[] = [
     {
-      path: '/admin/channels',
-      label: t('nav.channelManagement'),
-      icon: ChannelIcon,
-      hideInSimpleMode: true,
-      expandOnly: true,
-      children: [
-        { path: '/admin/channels/pricing', label: t('nav.channelPricing'), icon: PriceTagIcon },
-        { path: '/admin/channels/monitor', label: t('nav.channelMonitor'), icon: SignalIcon, featureFlag: flagChannelMonitor },
-      ],
-    },
-    { path: '/admin/subscriptions', label: t('nav.subscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
-    { path: '/admin/accounts', label: t('nav.accounts'), icon: GlobeIcon },
-    { path: '/admin/announcements', label: t('nav.announcements'), icon: BellIcon },
-    { path: '/admin/proxies', label: t('nav.proxies'), icon: ServerIcon },
-    { path: '/admin/risk-control', label: t('nav.riskControl'), icon: ShieldIcon, hideInSimpleMode: true, featureFlag: flagRiskControl },
-    { path: '/admin/redeem', label: t('nav.redeemCodes'), icon: TicketIcon, hideInSimpleMode: true },
-    { path: '/admin/promo-codes', label: t('nav.promoCodes'), icon: GiftIcon, hideInSimpleMode: true },
-    {
-      path: '/admin/affiliates',
-      label: t('nav.affiliateManagement'),
-      icon: UsersIcon,
-      hideInSimpleMode: true,
-      expandOnly: true,
-      featureFlag: flagAffiliate,
-      children: [
-        { path: '/admin/affiliates/invites', label: t('nav.affiliateInviteRecords'), icon: UsersIcon },
-        { path: '/admin/affiliates/rebates', label: t('nav.affiliateRebateRecords'), icon: OrderIcon },
-        { path: '/admin/affiliates/transfers', label: t('nav.affiliateTransferRecords'), icon: CreditCardIcon },
+      key: 'admin-overview',
+      label: t('nav.groupAdmin'),
+      items: [
+        { path: '/admin/dashboard', label: t('nav.dashboard'), icon: DashboardIcon },
+        { path: '/admin/ops', label: t('nav.ops'), icon: ChartIcon, featureFlag: flagOpsMonitoring },
+        { path: '/admin/users', label: t('nav.users'), icon: UsersIcon, hideInSimpleMode: true },
+        { path: '/admin/groups', label: t('nav.groups'), icon: FolderIcon, hideInSimpleMode: true },
       ],
     },
     {
-      path: '/admin/orders',
-      label: t('nav.orderManagement'),
-      icon: OrderIcon,
-      hideInSimpleMode: true,
-      expandOnly: true,
-      featureFlag: flagAdminPayment,
-      children: [
-        { path: '/admin/orders/dashboard', label: t('nav.paymentDashboard'), icon: ChartIcon },
-        { path: '/admin/orders', label: t('nav.orderManagement'), icon: OrderIcon },
-        { path: '/admin/orders/plans', label: t('nav.paymentPlans'), icon: CreditCardIcon },
+      key: 'admin-channel',
+      label: t('nav.groupChannel'),
+      items: [
+        {
+          path: '/admin/channels',
+          label: t('nav.channelManagement'),
+          icon: ChannelIcon,
+          hideInSimpleMode: true,
+          expandOnly: true,
+          children: [
+            { path: '/admin/channels/pricing', label: t('nav.channelPricing'), icon: PriceTagIcon },
+            { path: '/admin/channels/monitor', label: t('nav.channelMonitor'), icon: SignalIcon, featureFlag: flagChannelMonitor },
+          ],
+        },
+        { path: '/admin/accounts', label: t('nav.accounts'), icon: GlobeIcon },
+        { path: '/admin/proxies', label: t('nav.proxies'), icon: ServerIcon },
+        { path: '/admin/risk-control', label: t('nav.riskControl'), icon: ShieldIcon, hideInSimpleMode: true, featureFlag: flagRiskControl },
       ],
     },
-    { path: '/admin/usage', label: t('nav.usage'), icon: ChartIcon }
+    {
+      key: 'admin-billing',
+      label: t('nav.groupBilling'),
+      items: [
+        { path: '/admin/subscriptions', label: t('nav.subscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
+        { path: '/admin/redeem', label: t('nav.redeemCodes'), icon: TicketIcon, hideInSimpleMode: true },
+        { path: '/admin/promo-codes', label: t('nav.promoCodes'), icon: GiftIcon, hideInSimpleMode: true },
+        {
+          path: '/admin/affiliates',
+          label: t('nav.affiliateManagement'),
+          icon: UsersIcon,
+          hideInSimpleMode: true,
+          expandOnly: true,
+          featureFlag: flagAffiliate,
+          children: [
+            { path: '/admin/affiliates/invites', label: t('nav.affiliateInviteRecords'), icon: UsersIcon },
+            { path: '/admin/affiliates/rebates', label: t('nav.affiliateRebateRecords'), icon: OrderIcon },
+            { path: '/admin/affiliates/transfers', label: t('nav.affiliateTransferRecords'), icon: CreditCardIcon },
+          ],
+        },
+        {
+          path: '/admin/orders',
+          label: t('nav.orderManagement'),
+          icon: OrderIcon,
+          hideInSimpleMode: true,
+          expandOnly: true,
+          featureFlag: flagAdminPayment,
+          children: [
+            { path: '/admin/orders/dashboard', label: t('nav.paymentDashboard'), icon: ChartIcon },
+            { path: '/admin/orders', label: t('nav.orderManagement'), icon: OrderIcon },
+            { path: '/admin/orders/plans', label: t('nav.paymentPlans'), icon: CreditCardIcon },
+          ],
+        },
+        { path: '/admin/usage', label: t('nav.usage'), icon: ChartIcon },
+      ],
+    },
+    {
+      key: 'admin-system',
+      label: t('nav.groupSystem'),
+      items: [
+        { path: '/admin/announcements', label: t('nav.announcements'), icon: BellIcon },
+        { path: '/admin/settings', label: t('nav.settings'), icon: CogIcon },
+        ...customMenuItemsForAdmin.value.map((cm): NavItem => ({
+          path: `/custom/${cm.id}`,
+          label: cm.label,
+          icon: null,
+          iconSvg: cm.icon_svg,
+        })),
+      ],
+    },
   ]
 
-  const visible = applyFeatureFlags(baseItems)
-
-  // 简单模式下，在系统设置前插入 API密钥
   if (authStore.isSimpleMode) {
-    const filtered = visible.filter(item => !item.hideInSimpleMode)
-    filtered.push({ path: '/keys', label: t('nav.apiKeys'), icon: KeyIcon })
-    filtered.push({ path: '/admin/settings', label: t('nav.settings'), icon: CogIcon })
-    for (const cm of customMenuItemsForAdmin.value) {
-      filtered.push({ path: `/custom/${cm.id}`, label: cm.label, icon: null, iconSvg: cm.icon_svg })
-    }
-    return filtered
+    groups.splice(3, 0, {
+      key: 'admin-simple-account',
+      label: t('nav.groupMyAccount'),
+      items: [{ path: '/keys', label: t('nav.apiKeys'), icon: KeyIcon }],
+    })
   }
 
-  visible.push({ path: '/admin/settings', label: t('nav.settings'), icon: CogIcon })
-  for (const cm of customMenuItemsForAdmin.value) {
-    visible.push({ path: `/custom/${cm.id}`, label: cm.label, icon: null, iconSvg: cm.icon_svg })
+  return finalizeNavGroups(groups)
+})
+
+// sidebarNavGroups returns the visible menu groups for the current role and backend mode.
+const sidebarNavGroups = computed((): NavGroup[] => {
+  if (isAdmin.value) {
+    return authStore.isSimpleMode ? adminNavGroups.value : [...adminNavGroups.value, ...personalNavGroups.value]
   }
-  return visible
+  return appStore.backendModeEnabled ? [] : userNavGroups.value
 })
 
 function toggleSidebar() {
   appStore.toggleSidebar()
 }
 
-function toggleTheme() {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+async function loadDailyCheckinStatus() {
+  if (!showDailyCheckin.value) {
+    dailyCheckinStatus.value = null
+    return
+  }
+  dailyCheckinStatus.value = await userAPI.getDailyCheckinStatus()
+}
+
+async function handleDailyCheckin() {
+  if (dailyCheckinLoading.value || dailyCheckinStatus.value?.claimed) {
+    return
+  }
+
+  dailyCheckinLoading.value = true
+  try {
+    dailyCheckinStatus.value = await userAPI.claimDailyCheckin()
+    await authStore.refreshUser()
+    appStore.showSuccess(t('common.dailyCheckin.success', { amount: dailyCheckinReward.value }))
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('common.dailyCheckin.failed')))
+    await loadDailyCheckinStatus()
+  } finally {
+    dailyCheckinLoading.value = false
+  }
 }
 
 function closeMobile() {
@@ -864,16 +915,6 @@ function handleGroupClick(item: NavItem) {
   }
 }
 
-// Initialize theme
-const savedTheme = localStorage.getItem('theme')
-if (
-  savedTheme === 'dark' ||
-  (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-) {
-  isDark.value = true
-  document.documentElement.classList.add('dark')
-}
-
 // Fetch admin settings (for feature-gated nav items like Ops).
 watch(
   isAdmin,
@@ -881,6 +922,16 @@ watch(
     if (v) {
       adminSettingsStore.fetch()
     }
+  },
+  { immediate: true }
+)
+
+watch(
+  showDailyCheckin,
+  () => {
+    loadDailyCheckinStatus().catch((error) => {
+      appStore.showError(extractApiErrorMessage(error, t('common.dailyCheckin.loadFailed')))
+    })
   },
   { immediate: true }
 )
@@ -930,10 +981,125 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.daily-checkin-collapse,
+.daily-checkin-expand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: var(--app-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.daily-checkin-collapse:hover,
+.daily-checkin-expand:hover {
+  background: var(--app-surface-muted);
+  color: var(--app-ink);
+}
+
 .sidebar-link-collapsed {
   gap: 0;
   padding-left: 0.875rem;
   padding-right: 0.875rem;
+}
+
+.daily-checkin {
+  display: flex;
+  width: 100%;
+  min-height: 4.75rem;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.45rem;
+  border-top: 1px solid var(--app-line);
+  border-bottom: 1px solid var(--app-line);
+  background: var(--app-surface);
+  padding: 0.75rem 0.85rem 0.75rem 1.35rem;
+  margin-bottom: 10px;
+  color: var(--app-ink);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    min-height 0.2s ease,
+    padding 0.2s ease;
+}
+
+.daily-checkin-claim {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.daily-checkin-claim:disabled {
+  cursor: default;
+}
+
+.daily-checkin-claim:hover:not(:disabled) .daily-checkin-meta {
+  color: var(--app-muted);
+}
+
+.daily-checkin-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.daily-checkin-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--app-font-display);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.daily-checkin-reward {
+  flex-shrink: 0;
+  color: var(--app-muted);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.daily-checkin-meta {
+  color: var(--app-soft);
+  font-family: var(--app-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.daily-checkin-collapsed {
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.45rem 0;
+  color: var(--app-muted);
+}
+
+.daily-checkin-collapsed.daily-checkin-claimed {
+  color: var(--app-ink);
+}
+
+.daily-checkin-collapsed .daily-checkin-claim {
+  align-items: center;
+  justify-content: center;
+}
+
+.daily-checkin-expand {
+  margin-top: 0.15rem;
 }
 
 .sidebar-section-title {
