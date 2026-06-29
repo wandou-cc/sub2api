@@ -84,6 +84,12 @@ ssh root@156.245.247.107 'rm -rf /opt/sub2api-build/frontend/node_modules /opt/s
 
 用唯一标签构建，避免覆盖旧镜像。
 
+服务器必须安装 Docker Buildx：
+
+```bash
+ssh root@156.245.247.107 'docker buildx version || { apt-get update && apt-get install -y docker-buildx; }'
+```
+
 ```bash
 TAG=deploy-$(date -u +%Y%m%dT%H%M%SZ)
 ssh root@156.245.247.107 "set -euo pipefail
@@ -92,6 +98,8 @@ DOCKER_BUILDKIT=1 docker build -t sub2api:${TAG} --build-arg COMMIT=${TAG} ."
 ```
 
 根目录 `Dockerfile` 使用 BuildKit cache mount 缓存 pnpm store、Go module cache 和 Go build cache。只要 `frontend/pnpm-lock.yaml`、`backend/go.mod`、`backend/go.sum` 没变，后续构建会明显更快。
+
+实测：首次 BuildKit 构建需要预热缓存，仍会比较慢；缓存命中后，同一份源码只变更 `COMMIT` 标签的构建约 17 秒完成。
 
 构建成功后确认镜像存在：
 
@@ -202,6 +210,8 @@ npx --yes pnpm@9 install --frozen-lockfile
 ```bash
 ssh root@156.245.247.107 'ps -eo pid,ppid,etime,stat,pcpu,pmem,cmd | grep -E "docker build|go mod download|go build" | grep -v grep || true'
 ```
+
+优化后的流程使用 BuildKit。首次构建会预热缓存，仍然可能慢；后续 `frontend/pnpm-lock.yaml`、`backend/go.mod`、`backend/go.sum` 不变时会复用缓存。
 
 ### 回滚
 

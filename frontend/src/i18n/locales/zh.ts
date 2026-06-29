@@ -15,7 +15,7 @@ export default {
     // 新增：面向用户的价值主张
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
     defaultSubtitle: 'AI API 网关平台',
-    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Antigravity 等主流 AI 服务',
+    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、GPT Image 2 等主流 AI 服务',
     statsLabel: '平台亮点',
     gateway: {
       routeLabel: 'API 路由',
@@ -113,7 +113,7 @@ export default {
       soon: '即将推出',
       claude: 'Claude',
       gpt: 'GPT',
-      antigravity: 'Antigravity',
+      gptImage2: 'GPT Image 2',
       more: '更多'
     },
     // CTA 区块
@@ -124,6 +124,132 @@ export default {
     },
     footer: {
       allRightsReserved: '保留所有权利。'
+    }
+  },
+
+  // Docs Page
+  docs: {
+    overview: '文档总览',
+    eyebrow: 'codeingforce Docs',
+    title: '接入文档',
+    description: '{siteName} 的 API 接入、密钥管理、充值订阅和模型使用说明。当前 Base URL：{baseUrl}',
+    sections: {
+      gettingStarted: {
+        title: '使用教程',
+        description: '从注册、创建 API Key 到发起第一次请求。'
+      },
+      billing: {
+        title: '充值与订阅',
+        description: '了解余额、订阅套餐、订单和用量扣费。'
+      },
+      apiAccess: {
+        title: 'API 接入指南',
+        description: 'OpenAI、Claude、Gemini 兼容接口示例。'
+      },
+      models: {
+        title: '模型与渠道',
+        description: '查看可用模型、分组、渠道状态和价格。'
+      },
+      support: {
+        title: '常见问题',
+        description: '排查 Key、扣费、调用失败等常见问题。'
+      }
+    },
+    pages: {
+      quickStart: {
+        title: '快速开始',
+        summary: '创建第一个 API Key 并完成一次 Claude Messages 调用。'
+      },
+      apiKey: {
+        title: 'API Key 管理',
+        summary: '创建、分组绑定、额度限制和安全建议。'
+      },
+      billing: {
+        title: '充值与订阅',
+        summary: '余额充值、订阅套餐、订单记录和用量扣费。'
+      },
+      openai: {
+        title: 'OpenAI 兼容接入',
+        summary: 'Responses 与 Chat Completions 两种入口示例。'
+      },
+      anthropic: {
+        title: 'Claude / Anthropic 接入',
+        summary: '使用 /v1/messages 和 Claude Code 环境变量。'
+      },
+      gemini: {
+        title: 'Gemini 接入',
+        summary: '使用 /v1beta/models/{model}:generateContent。'
+      },
+      models: {
+        title: '模型与渠道',
+        summary: '理解分组、可用渠道、渠道状态和模型列表。'
+      },
+      faq: {
+        title: '常见问题',
+        summary: '调用、扣费和错误排查的高频问题。'
+      }
+    },
+    quickStart: {
+      lead: '本教程帮助你在 {siteName} 中完成注册、创建 API Key，并发起第一次模型调用。',
+      createAccountTitle: '第 1 步：注册并进入控制台',
+      createAccountBody: '使用邮箱注册或登录账号。登录后进入控制台，可以查看余额、用量和快捷入口。',
+      createKeyTitle: '第 2 步：创建 API Key',
+      createKeyBody: '打开侧边栏的 API 密钥，点击新建，选择一个支持目标模型的平台分组后保存。',
+      firstRequestTitle: '第 3 步：发起第一次请求',
+      firstRequestBody: '把请求地址指向 {baseUrl}，并把你的 API Key 放入 Authorization 头。',
+      tip: '调用成功后，可以在使用记录中查看请求、Token、模型和费用明细。'
+    },
+    apiKey: {
+      lead: 'API Key 是访问网关的唯一凭据。每个 Key 绑定一个分组，分组决定可用模型、费率和部分限制。',
+      createTitle: '创建流程',
+      createStep1: '进入 API 密钥页面，点击新建。',
+      createStep2: '选择分组；OpenAI、Anthropic、Gemini 等平台由分组决定。',
+      createStep3: '保存后立即复制 Key；出于安全考虑，完整 Key 通常只展示一次。',
+      quotaTitle: '额度与限速',
+      quotaBody: 'Key 可以配置总额度、周期额度和 RPM。达到限制后，请求会被拒绝，避免余额被异常消耗。',
+      securityTitle: '安全建议',
+      securityBody: '按项目或环境拆分 Key。泄露时只禁用对应 Key，不要把 Key 写入前端代码或公开仓库。'
+    },
+    billing: {
+      lead: '平台同时支持余额按量扣费和订阅套餐。实际可用功能取决于管理员在系统设置中的配置。',
+      balanceTitle: '余额充值',
+      balanceBody: '充值成功后余额到账，API 调用按模型用量扣费。余额和扣费记录可以在控制台与使用记录中查看。',
+      subscriptionTitle: '订阅套餐',
+      subscriptionBody: '如果平台启用了订阅套餐，用户可以在充值/订阅页面购买套餐，并在我的订阅中查看有效期和额度。',
+      ordersTitle: '订单记录',
+      ordersBody: '我的订单会展示支付状态、金额、渠道和创建时间。支付失败或未到账时，先用订单号联系管理员排查。'
+    },
+    openai: {
+      lead: 'OpenAI 兼容入口适合官方 SDK、Codex CLI 和支持自定义 base_url 的客户端。',
+      responsesTitle: 'Responses API',
+      chatTitle: 'Chat Completions',
+      tip: 'OpenAI 平台分组会根据后台配置转发到支持的上游账号；模型是否可用以分组和渠道配置为准。'
+    },
+    anthropic: {
+      lead: 'Claude 兼容入口使用 Anthropic Messages 协议，适合 Claude Code、Anthropic SDK 或直接 cURL 调用。',
+      messagesTitle: 'Messages API',
+      sdkTitle: 'Claude Code 环境变量'
+    },
+    gemini: {
+      lead: 'Gemini 兼容入口使用 Google AI Studio 风格的 /v1beta 路径。',
+      generateTitle: 'Generate Content',
+      cliTitle: 'Gemini CLI 环境变量'
+    },
+    models: {
+      lead: '模型是否可用由分组、渠道和账号共同决定。用户侧只展示当前账号可访问的结果。',
+      groupsTitle: '分组决定可用范围',
+      groupsBody: 'API Key 绑定分组后，只能使用该分组开放的模型和倍率。需要更多模型时，请创建或切换到合适分组。',
+      statusTitle: '查看渠道状态',
+      statusBody: '可用渠道页面展示你能访问的渠道和模型；渠道状态页面展示监控状态，方便判断是否需要切换模型或稍后重试。'
+    },
+    faq: {
+      lead: '这里列出接入时最常见的问题，优先按页面里的配置和使用记录排查。',
+      keyQuestion: '请求返回未授权怎么办？',
+      keyAnswer: '确认 Authorization 或 x-goog-api-key 里使用的是完整 API Key，并检查 Key 是否启用、是否绑定了正确分组。',
+      usageQuestion: '为什么产生了扣费？',
+      usageAnswer: '扣费来自上游返回的 usage 和本平台模型定价。使用记录会展示模型、Token 和费用明细。',
+      errorQuestion: '模型不可用或返回上游错误怎么办？',
+      errorAnswer: '先查看可用渠道和渠道状态。如果分组不支持目标模型，创建 Key 时应选择支持该模型的平台分组。'
     }
   },
 
@@ -433,6 +559,7 @@ export default {
     mySubscriptions: '我的订阅',
     buySubscription: '充值/订阅',
     docs: '文档',
+    onlineImage: '在线生图',
     myOrders: '我的订单',
     orderManagement: '订单管理',
     paymentDashboard: '支付概览',
@@ -449,6 +576,7 @@ export default {
     groupAdmin: 'ADMIN 管理',
     groupChannel: 'CHANNEL 渠道',
     groupSystem: 'SYSTEM 系统',
+    groupOther: 'OTHER 其他',
   },
 
   // Auth

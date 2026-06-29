@@ -15,7 +15,7 @@ export default {
     // User-focused value proposition
     heroSubtitle: 'One Key, All AI Models',
     defaultSubtitle: 'AI API Gateway Platform',
-    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Antigravity and more with a single API key',
+    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, GPT Image 2 and more with a single API key',
     statsLabel: 'Platform highlights',
     gateway: {
       routeLabel: 'API Route',
@@ -113,7 +113,7 @@ export default {
       soon: 'Soon',
       claude: 'Claude',
       gpt: 'GPT',
-      antigravity: 'Antigravity',
+      gptImage2: 'GPT Image 2',
       more: 'More'
     },
     // CTA section
@@ -124,6 +124,132 @@ export default {
     },
     footer: {
       allRightsReserved: 'All rights reserved.'
+    }
+  },
+
+  // Docs Page
+  docs: {
+    overview: 'Docs Overview',
+    eyebrow: 'codeingforce Docs',
+    title: 'Documentation',
+    description: 'API access, key management, billing, subscriptions, and model usage for {siteName}. Current Base URL: {baseUrl}',
+    sections: {
+      gettingStarted: {
+        title: 'Tutorials',
+        description: 'Register, create an API key, and send your first request.'
+      },
+      billing: {
+        title: 'Billing & Subscriptions',
+        description: 'Understand balance, plans, orders, and usage billing.'
+      },
+      apiAccess: {
+        title: 'API Access Guide',
+        description: 'OpenAI, Claude, and Gemini compatible examples.'
+      },
+      models: {
+        title: 'Models & Channels',
+        description: 'Check available models, groups, channel status, and pricing.'
+      },
+      support: {
+        title: 'FAQ',
+        description: 'Troubleshoot keys, billing, and request failures.'
+      }
+    },
+    pages: {
+      quickStart: {
+        title: 'Quick Start',
+        summary: 'Create your first API key and complete a Claude Messages request.'
+      },
+      apiKey: {
+        title: 'API Key Management',
+        summary: 'Creation, group binding, quota limits, and security guidance.'
+      },
+      billing: {
+        title: 'Billing & Subscriptions',
+        summary: 'Balance top-ups, subscription plans, orders, and usage billing.'
+      },
+      openai: {
+        title: 'OpenAI Compatible Access',
+        summary: 'Examples for Responses and Chat Completions endpoints.'
+      },
+      anthropic: {
+        title: 'Claude / Anthropic Access',
+        summary: 'Use /v1/messages and Claude Code environment variables.'
+      },
+      gemini: {
+        title: 'Gemini Access',
+        summary: 'Use /v1beta/models/{model}:generateContent.'
+      },
+      models: {
+        title: 'Models & Channels',
+        summary: 'Understand groups, available channels, status, and model lists.'
+      },
+      faq: {
+        title: 'FAQ',
+        summary: 'Common questions about requests, billing, and errors.'
+      }
+    },
+    quickStart: {
+      lead: 'This guide helps you register on {siteName}, create an API key, and send your first model request.',
+      createAccountTitle: 'Step 1: Register and open the dashboard',
+      createAccountBody: 'Register or sign in with your email. The dashboard shows your balance, usage, and quick actions.',
+      createKeyTitle: 'Step 2: Create an API key',
+      createKeyBody: 'Open API Keys from the sidebar, click New, choose a platform group that supports your target model, and save.',
+      firstRequestTitle: 'Step 3: Send the first request',
+      firstRequestBody: 'Point requests to {baseUrl} and put your API key in the Authorization header.',
+      tip: 'After a successful call, open Usage to inspect requests, tokens, models, and cost details.'
+    },
+    apiKey: {
+      lead: 'An API key is the credential for gateway access. Each key is bound to one group, and the group controls models, rates, and some limits.',
+      createTitle: 'Creation flow',
+      createStep1: 'Open API Keys and click New.',
+      createStep2: 'Choose a group; OpenAI, Anthropic, Gemini, and other platforms are determined by the group.',
+      createStep3: 'Copy the key after saving. For security, the full key is usually shown only once.',
+      quotaTitle: 'Quota and rate limits',
+      quotaBody: 'Keys can have total quota, period quota, and RPM limits. Requests are rejected after limits are reached to avoid abnormal spend.',
+      securityTitle: 'Security guidance',
+      securityBody: 'Split keys by project or environment. If one leaks, disable only that key. Do not place keys in frontend code or public repositories.'
+    },
+    billing: {
+      lead: 'The platform supports balance-based usage billing and subscription plans. Available features depend on administrator settings.',
+      balanceTitle: 'Balance top-up',
+      balanceBody: 'After a successful top-up, balance is credited and API calls are billed by model usage. Balance and billing records are visible in the dashboard and Usage.',
+      subscriptionTitle: 'Subscription plans',
+      subscriptionBody: 'If subscription plans are enabled, users can purchase them from Recharge / Subscription and inspect validity and quota under My Subscriptions.',
+      ordersTitle: 'Orders',
+      ordersBody: 'My Orders shows payment status, amount, provider, and creation time. If payment fails or does not arrive, contact the administrator with the order ID.'
+    },
+    openai: {
+      lead: 'OpenAI compatible endpoints work with official SDKs, Codex CLI, and clients that support a custom base_url.',
+      responsesTitle: 'Responses API',
+      chatTitle: 'Chat Completions',
+      tip: 'OpenAI platform groups forward requests to configured upstream accounts. Model availability follows group and channel configuration.'
+    },
+    anthropic: {
+      lead: 'Claude compatible access uses the Anthropic Messages protocol for Claude Code, Anthropic SDKs, or direct cURL calls.',
+      messagesTitle: 'Messages API',
+      sdkTitle: 'Claude Code environment variables'
+    },
+    gemini: {
+      lead: 'Gemini compatible access uses Google AI Studio style /v1beta paths.',
+      generateTitle: 'Generate Content',
+      cliTitle: 'Gemini CLI environment variables'
+    },
+    models: {
+      lead: 'Model availability is determined by groups, channels, and accounts. User pages only show what the current account can access.',
+      groupsTitle: 'Groups define availability',
+      groupsBody: 'After an API key is bound to a group, it can only use models and rates exposed by that group. Choose another group if you need more models.',
+      statusTitle: 'Check channel status',
+      statusBody: 'Available Channels shows channels and models you can access. Channel Status shows monitoring state, which helps decide whether to switch models or retry later.'
+    },
+    faq: {
+      lead: 'These are the most common integration issues. Start by checking the page configuration and Usage records.',
+      keyQuestion: 'What if a request returns unauthorized?',
+      keyAnswer: 'Confirm the full API key is used in Authorization or x-goog-api-key, and check that the key is enabled and bound to the correct group.',
+      usageQuestion: 'Why was I billed?',
+      usageAnswer: 'Billing comes from upstream usage and this platform’s model pricing. Usage records show model, tokens, and cost details.',
+      errorQuestion: 'What if a model is unavailable or returns an upstream error?',
+      errorAnswer: 'Check Available Channels and Channel Status first. If the group does not support the target model, create the key under a platform group that does.'
     }
   },
 
@@ -433,6 +559,7 @@ export default {
     mySubscriptions: 'My Subscriptions',
     buySubscription: 'Recharge / Subscription',
     docs: 'Docs',
+    onlineImage: 'Online Image',
     myOrders: 'My Orders',
     orderManagement: 'Orders',
     paymentDashboard: 'Payment Dashboard',
@@ -449,6 +576,7 @@ export default {
     groupAdmin: 'ADMIN',
     groupChannel: 'CHANNEL',
     groupSystem: 'SYSTEM',
+    groupOther: 'OTHER',
   },
 
   // Auth

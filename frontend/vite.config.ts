@@ -1,7 +1,9 @@
-import { defineConfig, loadEnv, Plugin } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
+import type { Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import checker from 'vite-plugin-checker'
 import { resolve } from 'path'
+import { existsSync, readFileSync, statSync } from 'fs'
 
 /**
  * Vite 插件：开发模式下注入公开配置到 index.html
@@ -34,11 +36,65 @@ function injectPublicSettings(backendUrl: string): Plugin {
   }
 }
 
+function getStaticContentType(filePath: string): string {
+  if (filePath.endsWith('.html')) return 'text/html; charset=utf-8'
+  if (filePath.endsWith('.js')) return 'text/javascript; charset=utf-8'
+  if (filePath.endsWith('.css')) return 'text/css; charset=utf-8'
+  if (filePath.endsWith('.svg')) return 'image/svg+xml'
+  if (filePath.endsWith('.json') || filePath.endsWith('.webmanifest')) return 'application/json; charset=utf-8'
+  if (filePath.endsWith('.woff2')) return 'font/woff2'
+  if (filePath.endsWith('.woff')) return 'font/woff'
+  if (filePath.endsWith('.ttf')) return 'font/ttf'
+  return 'application/octet-stream'
+}
+
+function serveOnlineImageBuild(distDir: string): Plugin {
+  const normalizedDistDir = resolve(distDir)
+
+  return {
+    name: 'serve-online-image-build',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = new URL(req.url ?? '/', 'http://localhost')
+        if (url.pathname !== '/online-image' && !url.pathname.startsWith('/online-image/')) {
+          next()
+          return
+        }
+
+        const relativePath = url.pathname === '/online-image' || url.pathname === '/online-image/'
+          ? 'index.html'
+          : decodeURIComponent(url.pathname.slice('/online-image/'.length))
+        const requestedPath = resolve(normalizedDistDir, relativePath)
+        if (!requestedPath.startsWith(`${normalizedDistDir}/`) && requestedPath !== normalizedDistDir) {
+          res.statusCode = 400
+          res.end('Bad Request')
+          return
+        }
+
+        const filePath = existsSync(requestedPath) && !statSync(requestedPath).isDirectory()
+          ? requestedPath
+          : resolve(normalizedDistDir, 'index.html')
+        if (!existsSync(filePath)) {
+          res.statusCode = 404
+          res.end('online-image build not found')
+          return
+        }
+
+        res.setHeader('Content-Type', getStaticContentType(filePath))
+        res.setHeader('Cache-Control', 'no-cache')
+        res.end(readFileSync(filePath))
+      })
+    }
+  }
+}
+
 export default defineConfig(({ mode }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
   const backendUrl = env.VITE_DEV_PROXY_TARGET || 'http://localhost:8080'
   const devPort = Number(env.VITE_DEV_PORT || 3000)
+  const onlineImageDistDir = resolve(__dirname, '../backend/internal/web/dist/online-image')
 
   return {
     plugins: [
@@ -46,7 +102,8 @@ export default defineConfig(({ mode }) => {
       checker({
         vueTsc: true
       }),
-      injectPublicSettings(backendUrl)
+      injectPublicSettings(backendUrl),
+      serveOnlineImageBuild(onlineImageDistDir)
     ],
   resolve: {
     alias: {
@@ -121,6 +178,11 @@ export default defineConfig(({ mode }) => {
         '/setup': {
           target: backendUrl,
           changeOrigin: true
+        },
+        '/api-proxy': {
+          target: `${backendUrl.replace(/\/+$/, '')}/v1`,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api-proxy/, '')
         }
       }
     }

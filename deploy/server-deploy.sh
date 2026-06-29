@@ -18,6 +18,12 @@ echo "Image: ${IMAGE}"
 echo "Checking server containers..."
 ssh "${SERVER}" "docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' | sed -n '1,10p'"
 
+echo "Checking Docker Buildx..."
+ssh "${SERVER}" "docker buildx version >/dev/null || {
+  echo 'docker buildx is required. On Ubuntu, install it with: apt-get update && apt-get install -y docker-buildx' >&2
+  exit 1
+}"
+
 echo "Backing up PostgreSQL..."
 ssh "${SERVER}" "set -euo pipefail
 cd '${REMOTE_RUN_DIR}'

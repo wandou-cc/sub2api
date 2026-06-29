@@ -95,6 +95,8 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 		cleanPath := strings.TrimPrefix(path, "/")
 		if cleanPath == "" {
 			cleanPath = "index.html"
+		} else if strings.HasSuffix(cleanPath, "/") {
+			cleanPath += "index.html"
 		}
 
 		// For index.html or SPA routes, serve with injected settings
@@ -264,6 +266,8 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 		cleanPath := strings.TrimPrefix(path, "/")
 		if cleanPath == "" {
 			cleanPath = "index.html"
+		} else if strings.HasSuffix(cleanPath, "/") {
+			cleanPath += "index.html"
 		}
 
 		if file, err := distFS.Open(cleanPath); err == nil {
@@ -299,6 +303,7 @@ func tryServeOverrideFile(c *gin.Context, overrideDir, cleanPath string) bool {
 func shouldBypassEmbeddedFrontend(path string) bool {
 	trimmed := strings.TrimSpace(path)
 	return strings.HasPrefix(trimmed, "/api/") ||
+		strings.HasPrefix(trimmed, "/api-proxy/") ||
 		strings.HasPrefix(trimmed, "/v1/") ||
 		strings.HasPrefix(trimmed, "/v1beta/") ||
 		strings.HasPrefix(trimmed, "/backend-api/") ||

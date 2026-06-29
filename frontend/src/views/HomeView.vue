@@ -38,6 +38,14 @@
           >
             <Icon name="book" size="md" />
           </a>
+          <router-link
+            v-else
+            to="/docs"
+            class="nav-icon"
+            :title="t('home.viewDocs')"
+          >
+            <Icon name="book" size="md" />
+          </router-link>
 
           <LocaleSwitcher />
 
@@ -92,6 +100,13 @@
             >
               {{ t('home.docs') }}
             </a>
+            <router-link
+              v-else
+              to="/docs"
+              class="secondary-action"
+            >
+              {{ t('home.docs') }}
+            </router-link>
           </div>
         </div>
 
@@ -117,7 +132,7 @@
             </div>
             <div class="route-row">
               <span>03</span>
-              <strong>{{ t('home.providers.antigravity') }}</strong>
+              <strong>{{ t('home.providers.gptImage2') }}</strong>
               <em>{{ t('home.gateway.syncStatus') }}</em>
             </div>
           </div>
@@ -204,8 +219,8 @@
             <em>{{ t('home.providers.supported') }}</em>
           </div>
           <div class="provider-chip">
-            <span>A</span>
-            <strong>{{ t('home.providers.antigravity') }}</strong>
+            <span>I</span>
+            <strong>{{ t('home.providers.gptImage2') }}</strong>
             <em>{{ t('home.providers.supported') }}</em>
           </div>
           <div class="provider-chip muted">
@@ -240,6 +255,9 @@
           >
             {{ t('home.docs') }}
           </a>
+          <router-link v-else to="/docs">
+            {{ t('home.docs') }}
+          </router-link>
         </nav>
       </div>
     </footer>

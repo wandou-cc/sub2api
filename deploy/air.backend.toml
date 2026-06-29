@@ -1,0 +1,19 @@
+root = "/workspace/backend"
+tmp_dir = "/tmp/sub2api-air"
+
+[build]
+cmd = "go build -o /tmp/sub2api-air/sub2api ./cmd/server"
+bin = "/tmp/sub2api-air/sub2api"
+include_ext = ["go", "sql", "yaml", "yml"]
+exclude_dir = ["tmp", "vendor", "internal/web/dist"]
+exclude_regex = ["_test.go"]
+delay = 1000
+stop_on_error = true
+send_interrupt = true
+kill_delay = "500ms"
+
+[log]
+time = true
+
+[misc]
+clean_on_exit = true

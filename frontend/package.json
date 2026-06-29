@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview",
+    "dev": "npm --prefix online-image install && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true npm --prefix online-image run build && vite --config vite.config.ts",
+    "build": "vue-tsc -b && vite build --config vite.config.ts && npm --prefix online-image install && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true npm --prefix online-image run build",
+    "build:online-image": "npm --prefix online-image install && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true npm --prefix online-image run build",
+    "preview": "vite preview --config vite.config.ts",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "lint:check": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "typecheck": "vue-tsc --noEmit",

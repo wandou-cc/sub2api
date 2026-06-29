@@ -73,6 +73,8 @@ func TestGatewayRoutesOpenAIImagesPathsAreRegistered(t *testing.T) {
 		"/v1/images/edits",
 		"/images/generations",
 		"/images/edits",
+		"/api-proxy/images/generations",
+		"/api-proxy/images/edits",
 	} {
 		req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(`{"model":"gpt-image-2","prompt":"draw a cat"}`))
 		req.Header.Set("Content-Type", "application/json")

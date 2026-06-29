@@ -631,11 +631,27 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 		}
 	})
 
+	t.Run("serves_nested_index_html_for_static_app_directory", func(t *testing.T) {
+		middleware := ServeEmbeddedFrontend()
+
+		router := gin.New()
+		router.Use(middleware)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/online-image/", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Header().Get("Content-Type"), "text/html")
+		assert.Contains(t, w.Body.String(), "GPT Image Playground")
+	})
+
 	t.Run("skips_api_routes", func(t *testing.T) {
 		middleware := ServeEmbeddedFrontend()
 
 		apiPaths := []string{
 			"/api/users",
+			"/api-proxy/images/generations",
 			"/v1/models",
 			"/v1beta/chat",
 			"/backend-api/codex/responses",
