@@ -10,17 +10,22 @@ import { installMobileViewportGuards } from './lib/viewport'
 installMobileViewportGuards()
 
 if ('serviceWorker' in navigator) {
-  if (import.meta.env.PROD) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch((error) => {
-        console.error('Service worker registration failed:', error)
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        void registration.unregister()
       })
     })
-  } else {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister())
-    })
-  }
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        keys
+          .filter((key) => key.startsWith('gpt-image-playground-'))
+          .forEach((key) => {
+            void caches.delete(key)
+          })
+      })
+    }
+  })
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -4,6 +4,8 @@ import { useStore } from './store'
 import { activateFirstImportedProfile, buildSettingsFromUrlParams, clearUrlSettingParams, hasUrlSettingParams } from './lib/urlSettings'
 import { isDefaultConfigOnlyEnabled, mergeImportedSettings } from './lib/apiProfiles'
 import { getCustomProviderConfigUrl, loadCustomProviderSettingsFromUrl } from './lib/customProviderConfigUrl'
+import { isApiProxyAvailable, readClientDevProxyConfig } from './lib/devProxy'
+import { applyCurrentUserCodeingForceApiKey, fetchCurrentUserCodeingForceApiKeys } from './lib/codeingForce'
 import { useDockerApiUrlMigrationNotice } from './hooks/useDockerApiUrlMigrationNotice'
 import type { AppSettings } from './types'
 import Header from './components/Header'
@@ -36,6 +38,32 @@ export default function App() {
     const searchParams = new URLSearchParams(window.location.search)
     const customProviderConfigUrl = getCustomProviderConfigUrl()
     const defaultConfigOnly = isDefaultConfigOnlyEnabled()
+    const controller = new AbortController()
+    let apiKeySyncRun = 0
+
+    const syncCurrentUserApiKey = () => {
+      const run = ++apiKeySyncRun
+      const applySyncedApiKey = (apiKey: Parameters<typeof applyCurrentUserCodeingForceApiKey>[1]) => {
+        if (controller.signal.aborted || run !== apiKeySyncRun) return
+        const state = useStore.getState()
+        state.setSettings(applyCurrentUserCodeingForceApiKey(
+          state.settings,
+          apiKey,
+          isApiProxyAvailable(readClientDevProxyConfig()),
+        ))
+      }
+
+      applySyncedApiKey(null)
+      void fetchCurrentUserCodeingForceApiKeys(controller.signal)
+        .then((items) => {
+          applySyncedApiKey(items[0] ?? null)
+        })
+        .catch((error) => {
+          if (error instanceof Error && error.name === 'AbortError') return
+          applySyncedApiKey(null)
+          console.warn('Failed to sync current user API key:', error)
+        })
+    }
 
     const applyUrlSettings = (baseSettings: Partial<AppSettings>) => {
       const nextSettings = buildSettingsFromUrlParams(baseSettings, searchParams)
@@ -62,16 +90,18 @@ export default function App() {
             : state.settings
           state.setSettings(applyUrlSettings(baseSettings))
           clearAppliedUrlSettings()
+          syncCurrentUserApiKey()
         })
         .catch((error) => {
           console.warn('Failed to import custom provider config URL:', error)
           const state = useStore.getState()
           state.setSettings(applyUrlSettings(state.settings))
           clearAppliedUrlSettings()
+          syncCurrentUserApiKey()
         })
 
       initStore()
-      return
+      return () => controller.abort()
     }
 
     const nextSettings = buildSettingsFromUrlParams(useStore.getState().settings, searchParams)
@@ -79,6 +109,7 @@ export default function App() {
     setSettings(nextSettings)
 
     clearAppliedUrlSettings()
+    syncCurrentUserApiKey()
 
     if (customProviderConfigUrl && !customProviderConfigUrlImportStarted) {
       customProviderConfigUrlImportStarted = true
@@ -87,6 +118,7 @@ export default function App() {
           if (!importedSettings) return
           const state = useStore.getState()
           state.setSettings(mergeImportedSettings(state.settings, importedSettings))
+          syncCurrentUserApiKey()
         })
         .catch((error) => {
           console.warn('Failed to import custom provider config URL:', error)
@@ -94,6 +126,7 @@ export default function App() {
     }
 
     initStore()
+    return () => controller.abort()
   }, [setSettings])
 
   useEffect(() => {

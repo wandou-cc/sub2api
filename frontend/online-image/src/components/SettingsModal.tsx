@@ -32,6 +32,14 @@ import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_STREAM_PARTIAL_IMAGES, type Agen
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape'
 import { usePreventBackgroundScroll } from '../hooks/usePreventBackgroundScroll'
 import { DEFAULT_DROPDOWN_MAX_HEIGHT, getDropdownMaxHeight } from '../lib/dropdown'
+import {
+  applyCodeingForceProfile,
+  applyCurrentUserCodeingForceApiKey,
+  CODEINGFORCE_API_URL,
+  CODEINGFORCE_PROVIDER_NAME,
+  fetchCurrentUserCodeingForceApiKeys,
+  type CodeingForceApiKey,
+} from '../lib/codeingForce'
 import Select from './Select'
 import { Checkbox } from './Checkbox'
 import ViewportTooltip from './ViewportTooltip'
@@ -54,23 +62,6 @@ const DEFAULT_COPY_IMPORT_URL_OPTIONS = {
 }
 
 type CopyImportUrlOptions = typeof DEFAULT_COPY_IMPORT_URL_OPTIONS
-
-const CODEINGFORCE_PROVIDER_NAME = 'codeingforce'
-const CODEINGFORCE_API_URL = 'https://codeingforce.com/v1'
-
-interface Sub2ApiKey {
-  id: number
-  key: string
-  name: string
-}
-
-interface Sub2ApiKeysResponse {
-  code: number
-  message: string
-  data: {
-    items: Sub2ApiKey[]
-  }
-}
 
 const ZIP_DOWNLOAD_ROUTE_OPTIONS: Array<{ route: ZipDownloadRoute; label: string; description: string }> = [
   { route: 'task-selection', label: '任务列表 > 多选', description: '主页或收藏夹详情中框选、Ctrl/⌘ 点选或移动端滑动选中任务后的“下载选中”。' },
@@ -333,6 +324,7 @@ export default function SettingsModal() {
   const settingsScrollBoundaryRef = useRef<HTMLDivElement>(null)
   const customProviderScrollBoundaryRef = useRef<HTMLDivElement>(null)
   const zipDownloadRouteScrollBoundaryRef = useRef<HTMLDivElement>(null)
+  const sub2ApiKeysRequestRef = useRef(0)
   
   const [draft, setDraft] = useState<AppSettings>(normalizeSettings(settings))
   const [timeoutInput, setTimeoutInput] = useState(String(getActiveApiProfile(settings).timeout))
@@ -348,7 +340,7 @@ export default function SettingsModal() {
   const [duplicateProfileTooltipVisible, setDuplicateProfileTooltipVisible] = useState(false)
   const [llmPromptTooltipVisible, setLlmPromptTooltipVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<SettingsTab>('api')
-  const [sub2ApiKeys, setSub2ApiKeys] = useState<Sub2ApiKey[]>([])
+  const [sub2ApiKeys, setSub2ApiKeys] = useState<CodeingForceApiKey[]>([])
   const [sub2ApiKeysLoading, setSub2ApiKeysLoading] = useState(false)
   const [sub2ApiKeysError, setSub2ApiKeysError] = useState<string | null>(null)
   const [exportConfig, setExportConfig] = useState(true)
@@ -464,15 +456,7 @@ export default function SettingsModal() {
       : normalizedSettings
     const nextDraft = normalizeSettings({
       ...displaySettings,
-      profiles: displaySettings.profiles.map((profile) => ({
-        ...profile,
-        name: CODEINGFORCE_PROVIDER_NAME,
-        provider: 'openai',
-        baseUrl: CODEINGFORCE_API_URL,
-        apiMode: 'images',
-        apiProxy: apiProxyAvailable,
-        codexCli: false,
-      })),
+      profiles: displaySettings.profiles.map((profile) => applyCodeingForceProfile(profile, '', apiProxyAvailable)),
     })
     setDraft(nextDraft)
     setTimeoutInput(String(getActiveApiProfile(nextDraft).timeout))
@@ -499,40 +483,36 @@ export default function SettingsModal() {
   useEffect(() => {
     if (!showSettings || activeTab !== 'api') return
 
-    const token = window.localStorage.getItem('auth_token')
-    if (!token) {
-      setSub2ApiKeys([])
-      setSub2ApiKeysLoading(false)
-      setSub2ApiKeysError('当前未登录主系统，无法读取已配置 Key')
-      return
+    const controller = new AbortController()
+    const requestId = ++sub2ApiKeysRequestRef.current
+    const applySyncedApiKey = (apiKey: CodeingForceApiKey | null) => {
+      if (controller.signal.aborted || requestId !== sub2ApiKeysRequestRef.current) return
+      commitSettings(applyCurrentUserCodeingForceApiKey(useStore.getState().settings, apiKey, apiProxyAvailable))
     }
 
-    const controller = new AbortController()
+    setSub2ApiKeys([])
     setSub2ApiKeysLoading(true)
     setSub2ApiKeysError(null)
+    applySyncedApiKey(null)
 
-    fetch('/api/v1/keys?page=1&page_size=1000&status=active', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        const payload = await response.json() as Sub2ApiKeysResponse
-        if (!response.ok || payload.code !== 0) throw new Error(payload.message)
-        setSub2ApiKeys(payload.data.items)
+    fetchCurrentUserCodeingForceApiKeys(controller.signal)
+      .then((items) => {
+        if (controller.signal.aborted || requestId !== sub2ApiKeysRequestRef.current) return
+        setSub2ApiKeys(items)
+        applySyncedApiKey(items[0] ?? null)
       })
       .catch((err) => {
         if (err instanceof Error && err.name === 'AbortError') return
         setSub2ApiKeys([])
+        applySyncedApiKey(null)
         setSub2ApiKeysError(err instanceof Error ? err.message : String(err))
       })
       .finally(() => {
-        if (!controller.signal.aborted) setSub2ApiKeysLoading(false)
+        if (!controller.signal.aborted && requestId === sub2ApiKeysRequestRef.current) setSub2ApiKeysLoading(false)
       })
 
     return () => controller.abort()
-  }, [activeTab, showSettings])
+  }, [activeTab, apiProxyAvailable, showSettings])
 
   const updateProfileMenuMaxHeight = useCallback(() => {
     if (!profileMenuTriggerRef.current) return
@@ -612,19 +592,7 @@ export default function SettingsModal() {
 
   const commitSettings = (nextDraft: AppSettings) => {
     const normalizedProfiles = nextDraft.profiles.map((profile) => {
-      return {
-        ...profile,
-        name: CODEINGFORCE_PROVIDER_NAME,
-        provider: 'openai',
-        baseUrl: CODEINGFORCE_API_URL,
-        model: profile.model.trim() || DEFAULT_IMAGES_MODEL,
-        timeout: Number(profile.timeout) || DEFAULT_SETTINGS.timeout,
-        apiMode: 'images',
-        apiProxy: apiProxyAvailable,
-        codexCli: false,
-        streamImages: false,
-        streamPartialImages: DEFAULT_STREAM_PARTIAL_IMAGES,
-      }
+      return applyCodeingForceProfile(profile, profile.apiKey, apiProxyAvailable)
     })
     const fallbackProfile = createDefaultOpenAIProfile({ id: newId('openai') })
     const normalizedDraft = normalizeSettings({
@@ -1359,17 +1327,7 @@ export default function SettingsModal() {
                     if (!event.target.value) return
                     const apiKey = sub2ApiKeys.find((item) => String(item.id) === event.target.value)
                     if (apiKey) {
-                      commitActiveProfilePatch({
-                        apiKey: apiKey.key,
-                        name: CODEINGFORCE_PROVIDER_NAME,
-                        provider: 'openai',
-                        baseUrl: CODEINGFORCE_API_URL,
-                        apiMode: 'images',
-                        apiProxy: apiProxyAvailable,
-                        codexCli: false,
-                        streamImages: false,
-                        streamPartialImages: DEFAULT_STREAM_PARTIAL_IMAGES,
-                      })
+                      commitActiveProfilePatch(applyCodeingForceProfile(activeProfile, apiKey.key, apiProxyAvailable))
                     }
                   }}
                   disabled={sub2ApiKeysLoading || sub2ApiKeys.length === 0}

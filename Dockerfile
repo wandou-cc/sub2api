@@ -29,6 +29,10 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,id=sub2api-pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --store-dir /pnpm/store
 
+COPY frontend/online-image/package.json frontend/online-image/pnpm-lock.yaml ./online-image/
+RUN --mount=type=cache,id=sub2api-online-image-pnpm-store,target=/pnpm/online-image-store \
+    pnpm --dir online-image install --frozen-lockfile --store-dir /pnpm/online-image-store
+
 # Copy frontend source and build.
 # LegalDocumentView.vue (admin-compliance gate) build-time imports
 # ../../../../docs/legal/*.md?raw, so docs/legal/ must sit beside frontend/

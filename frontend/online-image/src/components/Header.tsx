@@ -8,6 +8,7 @@ import HelpModal from './HelpModal'
 import HistoryModal from './HistoryModal'
 import { useFavoriteCollectionTitle } from './FavoriteCollections'
 import { EditIcon, HelpCircleIcon, HistoryIcon, InstallIcon, SettingsIcon } from './icons'
+import { CODEINGFORCE_DASHBOARD_URL } from '../lib/codeingForce'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -152,24 +153,19 @@ export default function Header() {
             <h1 className="inline-flex min-w-0 items-start relative mr-2">
               {showFavoriteCollectionTitle ? (
                 <>
-                  <span className="min-w-0 truncate text-[17px] font-bold tracking-tight text-gray-800 dark:text-gray-100 sm:hidden" title={favoriteCollectionTitle}>{favoriteCollectionTitle}</span>
                   <a
-                    href="https://github.com/CookSleep/gpt_image_playground"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hidden text-lg font-bold tracking-tight text-gray-800 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300 sm:inline"
+                    href={CODEINGFORCE_DASHBOARD_URL}
+                    className="min-w-0 truncate text-[17px] font-bold tracking-tight text-gray-800 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300 sm:text-lg"
                   >
-                    GPT Image Playground
+                    CodingForce
                   </a>
                 </>
               ) : (
                 <a
-                  href="https://github.com/CookSleep/gpt_image_playground"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={CODEINGFORCE_DASHBOARD_URL}
                   className="text-[17px] sm:text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
-                  GPT Image Playground
+                  CodingForce
                 </a>
               )}
               {hasUpdate && latestRelease && (
@@ -253,6 +249,12 @@ export default function Header() {
             </button>
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            <a
+              href={CODEINGFORCE_DASHBOARD_URL}
+              className="inline-flex px-2 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white sm:text-sm"
+            >
+              返回到控制台
+            </a>
             {!isPwaInstalled && (
               <div
                 className="hidden"
