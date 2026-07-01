@@ -3,13 +3,17 @@ import Select from '../Select'
 
 interface GeneralSettingsTabProps {
   draft: AppSettings
+  zipDownloadRouteSummary: string
   commitSettings: (nextDraft: AppSettings) => void
+  onOpenZipDownloadRouteManager: () => void
   toggleTaskCompletionNotification: () => Promise<void>
 }
 
 export default function GeneralSettingsTab({
   draft,
+  zipDownloadRouteSummary,
   commitSettings,
+  onOpenZipDownloadRouteManager,
   toggleTaskCompletionNotification,
 }: GeneralSettingsTabProps) {
   return (
@@ -88,6 +92,21 @@ export default function GeneralSettingsTab({
         </div>
         <div data-selectable-text className="text-xs text-gray-500 dark:text-gray-500">
           控制未添加遮罩的参考图点击编辑按钮时，是每次询问、直接替换参考图，还是直接添加遮罩。
+        </div>
+      </div>
+      <div className="block">
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <span className="block text-sm text-gray-600 dark:text-gray-300">使用压缩包进行的批量下载途径</span>
+          <button
+            type="button"
+            onClick={onOpenZipDownloadRouteManager}
+            className="shrink-0 rounded-xl border border-gray-200/80 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/[0.08] dark:hover:text-white"
+          >
+            管理
+          </button>
+        </div>
+        <div data-selectable-text className="text-xs text-gray-500 dark:text-gray-500">
+          {zipDownloadRouteSummary}
         </div>
       </div>
       <div className="block">

@@ -27,11 +27,6 @@ export default defineConfig(({ command }) => {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __DEV_PROXY_CONFIG__: JSON.stringify(devProxyConfig),
     },
-    envPrefix: ['VITE_'],
-    build: {
-      outDir: '../../backend/internal/web/dist/online-image',
-      emptyOutDir: true,
-    },
     server: {
       host: true,
       proxy:

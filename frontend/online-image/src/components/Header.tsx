@@ -8,7 +8,6 @@ import HelpModal from './HelpModal'
 import HistoryModal from './HistoryModal'
 import { useFavoriteCollectionTitle } from './FavoriteCollections'
 import { EditIcon, HelpCircleIcon, HistoryIcon, InstallIcon, SettingsIcon } from './icons'
-import { CODEINGFORCE_DASHBOARD_URL } from '../lib/codeingForce'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -153,19 +152,24 @@ export default function Header() {
             <h1 className="inline-flex min-w-0 items-start relative mr-2">
               {showFavoriteCollectionTitle ? (
                 <>
+                  <span className="min-w-0 truncate text-[17px] font-bold tracking-tight text-gray-800 dark:text-gray-100 sm:hidden" title={favoriteCollectionTitle}>{favoriteCollectionTitle}</span>
                   <a
-                    href={CODEINGFORCE_DASHBOARD_URL}
-                    className="min-w-0 truncate text-[17px] font-bold tracking-tight text-gray-800 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300 sm:text-lg"
+                    href="https://codeingforce.com/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden text-lg font-bold tracking-tight text-gray-800 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300 sm:inline"
                   >
-                    CodingForce
+                    Codeingforce
                   </a>
                 </>
               ) : (
                 <a
-                  href={CODEINGFORCE_DASHBOARD_URL}
+                  href="https://codeingforce.com/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-[17px] sm:text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
-                  CodingForce
+                  Codeingforce
                 </a>
               )}
               {hasUpdate && latestRelease && (
@@ -231,8 +235,15 @@ export default function Header() {
               </div>
             </div>
           )}
-          {/* 宿主菜单已提供入口，这里隐藏上游应用的画廊 / Agent 模式切换。 */}
-          <div className="hidden sm:hidden items-center gap-1 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-100/70 dark:bg-white/[0.04] p-1 mr-4">
+          <div className="hidden sm:flex items-center gap-1 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-100/70 dark:bg-white/[0.04] p-1 mr-4">
+            <a
+              href="https://codeingforce.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-1.5 rounded-lg text-sm transition-colors text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+            >
+              回到控制台
+            </a>
             <button
               type="button"
               onClick={() => setAppMode('gallery')}
@@ -249,15 +260,9 @@ export default function Header() {
             </button>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <a
-              href={CODEINGFORCE_DASHBOARD_URL}
-              className="inline-flex px-2 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white sm:text-sm"
-            >
-              返回到控制台
-            </a>
             {!isPwaInstalled && (
               <div
-                className="hidden"
+                className="relative"
                 {...installTooltip.handlers}
               >
                 <button
@@ -275,9 +280,8 @@ export default function Header() {
                 </ViewportTooltip>
               </div>
             )}
-            {/* 隐藏上游应用的操作指南入口。 */}
             <div
-              className="hidden"
+              className="relative"
               {...helpTooltip.handlers}
             >
               <button
@@ -311,8 +315,16 @@ export default function Header() {
             </div>
           </div>
         </div>
-        <div className={`hidden safe-area-x sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${appMode === 'gallery' && scrollDirection === 'down' ? 'max-h-0 opacity-0 pb-0' : 'max-h-20 opacity-100 pb-2'}`}>
-          <div className="grid grid-cols-2 gap-1 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-100/70 dark:bg-white/[0.04] p-1 mx-2">
+        <div className={`safe-area-x sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${appMode === 'gallery' && scrollDirection === 'down' ? 'max-h-0 opacity-0 pb-0' : 'max-h-20 opacity-100 pb-2'}`}>
+          <div className="grid grid-cols-3 gap-1 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-100/70 dark:bg-white/[0.04] p-1 mx-2">
+            <a
+              href="https://codeingforce.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg text-sm transition-colors text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-center"
+            >
+              回到控制台
+            </a>
             <button
               type="button"
               onClick={() => setAppMode('gallery')}
@@ -340,7 +352,7 @@ export default function Header() {
 
       <div className={`safe-area-top invisible pointer-events-none transition-all duration-300 ease-in-out ${appMode === 'agent' && !agentMobileHeaderVisible ? 'max-h-0 sm:max-h-[500px] opacity-0 sm:opacity-100 overflow-hidden sm:overflow-visible' : 'max-h-[500px] opacity-100'}`} aria-hidden="true">
         <div className="safe-header-inner" />
-        <div className={`hidden safe-area-x sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${appMode === 'gallery' && scrollDirection === 'down' ? 'max-h-0 pb-0' : 'max-h-20 pb-2'}`}>
+        <div className={`safe-area-x sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${appMode === 'gallery' && scrollDirection === 'down' ? 'max-h-0 pb-0' : 'max-h-20 pb-2'}`}>
           <div className="p-1">
             <div className="py-1.5 text-sm">占位</div>
           </div>

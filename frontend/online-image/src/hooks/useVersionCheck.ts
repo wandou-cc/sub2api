@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { APP_VERSION } from '../appVersion'
 
 const REPO = 'CookSleep/gpt_image_playground'
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`
@@ -24,7 +23,7 @@ export interface LatestRelease {
 
 /**
  * 检查 GitHub 最新 Release 版本。
- * - 仅当最新 Release 版本高于当前版本时提示。
+ * - 仅当最新 Release 版本高于当前 __APP_VERSION__ 时提示。
  * - 用户点击后调用 dismiss()，本次浏览期间不再提示（sessionStorage）。
  * - 刷新页面后重新检查。
  */
@@ -46,7 +45,7 @@ export function useVersionCheck() {
         if (cancelled) return
         const tag: string = data.tag_name ?? ''
         const version = tag.replace(/^v/, '')
-        if (version && compareVersions(version, APP_VERSION) > 0) {
+        if (version && compareVersions(version, __APP_VERSION__) > 0) {
           setLatestRelease({
             tag,
             url: data.html_url ?? `https://github.com/${REPO}/releases/latest`,
