@@ -548,7 +548,7 @@ export default function SettingsModal() {
       const defaultModel = profile.provider === 'fal' ? DEFAULT_FAL_MODEL : getDefaultModelForMode(profile.apiMode)
       return {
         ...profile,
-        name: profile.name.trim() || (profile.id === DEFAULT_OPENAI_PROFILE_ID ? '默认' : '新配置'),
+        name: profile.name.trim() || (profile.id === DEFAULT_OPENAI_PROFILE_ID ? 'Codeingforce' : '新配置'),
         baseUrl: normalizedBaseUrl,
         model: profile.model.trim() || defaultModel,
         timeout: Number(profile.timeout) || DEFAULT_SETTINGS.timeout,

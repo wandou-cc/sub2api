@@ -548,6 +548,7 @@ export default {
     redeemCodes: '兑换码',
     ops: '运维监控',
     promoCodes: '优惠码',
+    license: '授权管理',
     settings: '系统设置',
     myAccount: '我的账户',
     lightMode: '浅色模式',
@@ -1695,6 +1696,45 @@ export default {
       systemSettings: '系统设置',
       configureSystem: '配置系统设置',
       failedToLoad: '加载仪表盘数据失败'
+    },
+
+    license: {
+      title: '授权管理',
+      description: '生成和管理离线客户端授权码',
+      createCodes: '生成授权码',
+      searchPlaceholder: '搜索授权码、授权 ID、产品或 USB 指纹',
+      allStatuses: '全部状态',
+      neverExpires: '永不过期',
+      code: '授权码',
+      licenseId: '授权 ID',
+      product: '产品',
+      productBatch: '批次',
+      features: '功能',
+      status: '状态',
+      usbFingerprint: 'USB 指纹',
+      createdAt: '创建时间',
+      expiresAt: '过期时间',
+      count: '数量',
+      prefix: '前缀',
+      total: '总数',
+      enable: '启用',
+      disable: '停用',
+      refund: '退款作废',
+      revokeLicense: '撤销授权',
+      confirmRefund: '确定要将这个授权码标记为已退款吗？',
+      confirmRevoke: '确定要撤销这个客户端授权吗？',
+      created: '授权码已生成',
+      editFeatures: '编辑功能',
+      featuresHint: '用逗号分隔多个功能，例如：openmontage, video-use',
+      featuresUpdated: '功能已更新',
+      statuses: {
+        unused: '未使用',
+        active: '已激活',
+        disabled: '已停用',
+        expired: '已过期',
+        revoked: '已撤销',
+        refunded: '已退款'
+      }
     },
 
     backup: {

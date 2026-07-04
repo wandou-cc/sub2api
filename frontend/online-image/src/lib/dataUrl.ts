@@ -14,7 +14,8 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary)
 }
 
-export function dataUrlToBytes(dataUrl: string): { ext: string; bytes: Uint8Array } {
+// 将 base64 图片 data URL 解成普通 ArrayBuffer 字节，供 Blob/File API 使用。
+export function dataUrlToBytes(dataUrl: string): { ext: string; bytes: Uint8Array<ArrayBuffer> } {
   const match = dataUrl.match(/^data:image\/(\w+);base64,/)
   const ext = match?.[1] ?? 'png'
   const binary = atob(dataUrl.replace(/^data:[^;]+;base64,/, ''))

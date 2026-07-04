@@ -93,6 +93,7 @@ type Config struct {
 	Gemini                  GeminiConfig                  `mapstructure:"gemini"`
 	Update                  UpdateConfig                  `mapstructure:"update"`
 	Idempotency             IdempotencyConfig             `mapstructure:"idempotency"`
+	License                 LicenseConfig                 `mapstructure:"license"`
 }
 
 type LogConfig struct {
@@ -544,6 +545,18 @@ type PricingConfig struct {
 	UpdateIntervalHours int `mapstructure:"update_interval_hours"`
 	// 哈希校验间隔（分钟）
 	HashCheckIntervalMinutes int `mapstructure:"hash_check_interval_minutes"`
+}
+
+type LicenseConfig struct {
+	ProductID         string   `mapstructure:"product_id"`
+	ProductBatch      string   `mapstructure:"product_batch"`
+	DefaultFeatures   []string `mapstructure:"default_features"`
+	PrivateKeyPEM     string   `mapstructure:"private_key_pem"`
+	PrivateKeyFile    string   `mapstructure:"private_key_file"`
+	SessionTTLSeconds int      `mapstructure:"session_ttl_seconds"`
+	MinClientVersion  string   `mapstructure:"min_client_version"`
+	LatestVersion     string   `mapstructure:"latest_version"`
+	UpdateURL         string   `mapstructure:"update_url"`
 }
 
 type ServerConfig struct {
@@ -1771,6 +1784,17 @@ func setDefaults() {
 	viper.SetDefault("pricing.fallback_file", "./resources/model-pricing/model_prices_and_context_window.json")
 	viper.SetDefault("pricing.update_interval_hours", 24)
 	viper.SetDefault("pricing.hash_check_interval_minutes", 10)
+
+	// Standalone license service
+	viper.SetDefault("license.product_id", "uclaw-usb")
+	viper.SetDefault("license.product_batch", "dev-2026-06")
+	viper.SetDefault("license.default_features", []string{"openmontage", "video-use"})
+	viper.SetDefault("license.private_key_pem", "")
+	viper.SetDefault("license.private_key_file", "")
+	viper.SetDefault("license.session_ttl_seconds", 3600)
+	viper.SetDefault("license.min_client_version", "")
+	viper.SetDefault("license.latest_version", "")
+	viper.SetDefault("license.update_url", "")
 
 	// Timezone (default to Asia/Shanghai for Chinese users)
 	viper.SetDefault("timezone", "Asia/Shanghai")

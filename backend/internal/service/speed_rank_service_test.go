@@ -72,7 +72,7 @@ func TestSpeedRankServiceGetTodayRankingRewards(t *testing.T) {
 		t.Fatalf("response dates mismatch: date=%s next=%s", result.RankingDate, result.NextRewardAt)
 	}
 	rewards := []float64{result.Entries[0].Reward, result.Entries[1].Reward, result.Entries[2].Reward}
-	if rewards[0] != 5 || rewards[1] != 3 || rewards[2] != 2 {
+	if rewards[0] != 3 || rewards[1] != 2 || rewards[2] != 1 {
 		t.Fatalf("reward mapping mismatch: %#v", rewards)
 	}
 }
@@ -96,7 +96,7 @@ func TestSpeedRankServiceIssueRewardsInvalidatesOnlyInsertedRewards(t *testing.T
 	if len(repo.grants) != 2 {
 		t.Fatalf("grant attempts = %d, want 2", len(repo.grants))
 	}
-	if repo.grants[0].RewardAmount != 5 || repo.grants[1].RewardAmount != 3 {
+	if repo.grants[0].RewardAmount != 3 || repo.grants[1].RewardAmount != 2 {
 		t.Fatalf("grant rewards mismatch: %#v", repo.grants)
 	}
 	if len(auth.userIDs) != 1 || auth.userIDs[0] != 21 {

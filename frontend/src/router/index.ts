@@ -560,6 +560,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/license',
+    name: 'AdminLicense',
+    component: () => import('@/views/admin/LicenseView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'License Management',
+      titleKey: 'admin.license.title',
+      descriptionKey: 'admin.license.description'
+    }
+  },
+  {
     path: '/admin/settings',
     name: 'AdminSettings',
     component: () => import('@/views/admin/SettingsView.vue'),

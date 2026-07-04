@@ -1,3 +1,4 @@
+import { dataUrlToBytes } from './dataUrl'
 import { assertUsableMaskCoverage, classifyMaskAlpha, type MaskCoverage } from './mask'
 
 export async function loadImage(dataUrl: string): Promise<HTMLImageElement> {
@@ -9,10 +10,11 @@ export async function loadImage(dataUrl: string): Promise<HTMLImageElement> {
   })
 }
 
+// 直接解析 data URL，避免 fetch(data:) 触发 connect-src CSP。
 export async function dataUrlToBlob(dataUrl: string, fallbackType = 'image/png'): Promise<Blob> {
-  const response = await fetch(dataUrl)
-  const blob = await response.blob()
-  return blob.type ? blob : new Blob([await blob.arrayBuffer()], { type: fallbackType })
+  const { bytes } = dataUrlToBytes(dataUrl)
+  const mime = dataUrl.match(/^data:([^;]+);base64,/)?.[1] || fallbackType
+  return new Blob([bytes], { type: mime })
 }
 
 export async function imageDataUrlToPngBlob(dataUrl: string): Promise<Blob> {

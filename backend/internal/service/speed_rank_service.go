@@ -12,9 +12,9 @@ const speedRankLimit = 3
 const speedRankHistoryLimit = 14
 
 var speedRankRewardByRank = map[int]float64{
-	1: 5,
-	2: 3,
-	3: 2,
+	1: 3,
+	2: 2,
+	3: 1,
 }
 
 type SpeedRankEntry struct {

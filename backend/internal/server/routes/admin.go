@@ -59,6 +59,9 @@ func RegisterAdminRoutes(
 		// 优惠码管理
 		registerPromoCodeRoutes(admin, h)
 
+		// 授权管理
+		RegisterAdminLicenseRoutes(admin, h)
+
 		// 系统设置
 		registerSettingsRoutes(admin, h)
 

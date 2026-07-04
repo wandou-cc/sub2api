@@ -806,6 +806,7 @@ const adminNavGroups = computed((): NavGroup[] => {
         { path: '/admin/subscriptions', label: t('nav.subscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
         { path: '/admin/redeem', label: t('nav.redeemCodes'), icon: TicketIcon, hideInSimpleMode: true },
         { path: '/admin/promo-codes', label: t('nav.promoCodes'), icon: GiftIcon, hideInSimpleMode: true },
+        { path: '/admin/license', label: t('nav.license'), icon: KeyIcon, hideInSimpleMode: true },
         {
           path: '/admin/affiliates',
           label: t('nav.affiliateManagement'),

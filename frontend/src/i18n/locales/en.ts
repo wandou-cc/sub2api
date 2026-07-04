@@ -548,6 +548,7 @@ export default {
     redeemCodes: 'Redeem Codes',
     ops: 'Ops',
     promoCodes: 'Promo Codes',
+    license: 'Licenses',
     settings: 'Settings',
     myAccount: 'My Account',
     lightMode: 'Light Mode',
@@ -1674,6 +1675,45 @@ export default {
       requestsShort: 'Req',
       tokensShort: 'Tok',
       failedToLoad: 'Failed to load dashboard statistics'
+    },
+
+    license: {
+      title: 'License Management',
+      description: 'Generate and manage offline client license codes',
+      createCodes: 'Generate Codes',
+      searchPlaceholder: 'Search code, license ID, product, or USB fingerprint',
+      allStatuses: 'All Statuses',
+      neverExpires: 'Never expires',
+      code: 'Code',
+      licenseId: 'License ID',
+      product: 'Product',
+      productBatch: 'Batch',
+      features: 'Features',
+      status: 'Status',
+      usbFingerprint: 'USB Fingerprint',
+      createdAt: 'Created At',
+      expiresAt: 'Expires At',
+      count: 'Count',
+      prefix: 'Prefix',
+      total: 'Total',
+      enable: 'Enable',
+      disable: 'Disable',
+      refund: 'Refund',
+      revokeLicense: 'Revoke License',
+      confirmRefund: 'Mark this license code as refunded?',
+      confirmRevoke: 'Revoke this client license?',
+      created: 'License codes generated',
+      editFeatures: 'Edit Features',
+      featuresHint: 'Comma-separated, e.g. openmontage, video-use',
+      featuresUpdated: 'Features updated',
+      statuses: {
+        unused: 'Unused',
+        active: 'Active',
+        disabled: 'Disabled',
+        expired: 'Expired',
+        revoked: 'Revoked',
+        refunded: 'Refunded'
+      }
     },
 
     backup: {
