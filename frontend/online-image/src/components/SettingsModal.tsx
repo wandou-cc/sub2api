@@ -1270,7 +1270,7 @@ export default function SettingsModal() {
                 <div>
                   <div className="mb-1.5 flex items-center gap-1.5">
                     <span className="block text-sm text-gray-600 dark:text-gray-300">当前配置</span>
-                    <span className="relative inline-flex">
+                    {!defaultConfigOnly && <span className="relative inline-flex">
                       <button
                         type="button"
                         onClick={() => confirmCopyProfileImportUrl(activeProfile)}
@@ -1295,7 +1295,7 @@ export default function SettingsModal() {
                       <ViewportTooltip visible={profileImportUrlTooltipVisible} className="whitespace-nowrap">
                         复制导入 URL
                       </ViewportTooltip>
-                    </span>
+                    </span>}
                     {!defaultConfigOnly && <span className="relative inline-flex">
                       <button
                         type="button"
@@ -1458,7 +1458,8 @@ export default function SettingsModal() {
                   onChange={(e) => updateActiveProfile({ name: e.target.value })}
                   onBlur={(e) => commitActiveProfilePatch({ name: e.target.value })}
                   type="text"
-                  className="w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50"
+                  disabled={defaultConfigOnly}
+                  className={`w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50 ${defaultConfigOnly ? 'cursor-not-allowed opacity-70' : ''}`}
                 />
               </label>
 
@@ -1486,12 +1487,14 @@ export default function SettingsModal() {
                     onChange={(e) => updateActiveProfile({ baseUrl: e.target.value })}
                     onBlur={(e) => commitActiveProfilePatch({ baseUrl: e.target.value })}
                     type="text"
-                    disabled={apiProxyEnabled}
+                    disabled={defaultConfigOnly || apiProxyEnabled}
                     placeholder={activeProfile.provider === 'fal' ? DEFAULT_FAL_BASE_URL : DEFAULT_SETTINGS.baseUrl}
-                    className={`w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50 ${apiProxyEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50 ${defaultConfigOnly || apiProxyEnabled ? 'cursor-not-allowed opacity-70' : ''}`}
                   />
                   <div data-selectable-text className="mt-1.5 min-h-[22px] flex items-center text-xs text-gray-500 dark:text-gray-500">
-                    {apiProxyEnabled ? (
+                    {defaultConfigOnly ? (
+                      <span>固定使用 <code className="bg-gray-100 dark:bg-white/[0.06] px-1 py-0.5 rounded">{DEFAULT_SETTINGS.baseUrl}</code>，请求直接发送到 Codeingforce 服务。</span>
+                    ) : apiProxyEnabled ? (
                       <span className="text-yellow-600 dark:text-yellow-500">已开启代理，实际请求目标由部署端决定，此处设置被忽略。</span>
                     ) : activeProfile.provider === 'fal' ? (
                       <span>默认使用 <code className="bg-gray-100 dark:bg-white/[0.06] px-1 py-0.5 rounded">{DEFAULT_FAL_BASE_URL}</code>；填写自定义地址时将作为 fal.ai 代理 URL。</span>
@@ -1503,7 +1506,7 @@ export default function SettingsModal() {
               )}
 
               {/* 4. API 代理（紧跟 URL） */}
-              {apiProxyAvailable && activeProviderIsOpenAICompatible && !activeCustomProviderAsync && (
+              {!defaultConfigOnly && apiProxyAvailable && activeProviderIsOpenAICompatible && !activeCustomProviderAsync && (
                 <div className="block">
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="block text-sm text-gray-600 dark:text-gray-300">API 代理</span>

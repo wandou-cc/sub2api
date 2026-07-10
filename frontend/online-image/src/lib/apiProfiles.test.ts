@@ -42,6 +42,84 @@ describe('validateApiProfile', () => {
 })
 
 describe('default API URL env', () => {
+  it('uses Codeingforce direct API by default', () => {
+    expect(createDefaultOpenAIProfile()).toMatchObject({
+      name: 'Codeingforce',
+      baseUrl: 'https://codeingforce.com/v1',
+      apiProxy: false,
+    })
+    expect(DEFAULT_SETTINGS).toMatchObject({
+      baseUrl: 'https://codeingforce.com/v1',
+      apiProxy: false,
+    })
+    expect(DEFAULT_SETTINGS.profiles[0]).toMatchObject({
+      name: 'Codeingforce',
+      baseUrl: 'https://codeingforce.com/v1',
+      apiProxy: false,
+    })
+  })
+
+  it('locks default config mode to Codeingforce while preserving generation options', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_SHOW_DEFAULT_CONFIG_ONLY', 'true')
+    vi.stubEnv('VITE_DEFAULT_API_URL', 'https://other.example.com/v1')
+    vi.stubEnv('VITE_API_PROXY_AVAILABLE', 'true')
+
+    const { getActiveApiProfile, normalizeSettings } = await import('./apiProfiles')
+    const settings = normalizeSettings({
+      profiles: [
+        createDefaultOpenAIProfile({
+          baseUrl: 'https://other.example.com/v1',
+          apiKey: 'test-key',
+          model: 'test-model',
+          timeout: 120,
+          apiMode: 'responses',
+          codexCli: true,
+          apiProxy: true,
+          responseFormatB64Json: true,
+          streamImages: false,
+          streamPartialImages: 3,
+        }),
+        createDefaultFalProfile({ id: 'fal-profile' }),
+      ],
+      activeProfileId: DEFAULT_OPENAI_PROFILE_ID,
+    })
+
+    expect(settings.profiles).toHaveLength(1)
+    expect(settings.profiles[0]).toMatchObject({
+      id: DEFAULT_OPENAI_PROFILE_ID,
+      name: 'Codeingforce',
+      provider: 'openai',
+      baseUrl: 'https://codeingforce.com/v1',
+      apiKey: 'test-key',
+      model: 'test-model',
+      timeout: 120,
+      apiMode: 'responses',
+      codexCli: true,
+      apiProxy: false,
+      responseFormatB64Json: true,
+      streamImages: false,
+      streamPartialImages: 3,
+    })
+
+    expect(getActiveApiProfile({
+      ...settings,
+      baseUrl: 'https://ignored.example.com/v1',
+      apiProxy: true,
+      apiKey: 'next-key',
+      model: 'next-model',
+      streamImages: true,
+      streamPartialImages: 2,
+    })).toMatchObject({
+      baseUrl: 'https://codeingforce.com/v1',
+      apiProxy: false,
+      apiKey: 'next-key',
+      model: 'next-model',
+      streamImages: true,
+      streamPartialImages: 2,
+    })
+  })
+
   it('applies shared URL params from VITE_DEFAULT_API_URL to the default profile', async () => {
     vi.resetModules()
     vi.stubEnv('VITE_DEFAULT_API_URL', 'https://app.example.com/?apiUrl=https%3A%2F%2Fapi.example.com&apiMode=images&model=test-image-model&profileName=URL%20Profile&codexCli=true&streamImages=true&streamPartialImages=3')

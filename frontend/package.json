@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --dir online-image install --frozen-lockfile && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true pnpm --dir online-image run build && vite --config vite.config.ts",
-    "build": "vue-tsc -b && vite build --config vite.config.ts && pnpm --dir online-image install --frozen-lockfile && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true pnpm --dir online-image run build",
-    "build:online-image": "pnpm --dir online-image install --frozen-lockfile && VITE_API_PROXY_AVAILABLE=true VITE_API_PROXY_LOCKED=true pnpm --dir online-image run build",
+    "dev": "pnpm run build:online-image && vite --config vite.config.ts",
+    "build": "vue-tsc -b && vite build --config vite.config.ts && pnpm run build:online-image",
+    "build:online-image": "pnpm --dir online-image install --frozen-lockfile && VITE_DEFAULT_API_URL=https://codeingforce.com/v1 VITE_API_PROXY_AVAILABLE=false VITE_API_PROXY_LOCKED=false VITE_SHOW_DEFAULT_CONFIG_ONLY=true pnpm --dir online-image run build && pnpm run embed:online-image",
+    "embed:online-image": "rm -rf ../backend/internal/web/dist/online-image && mkdir -p ../backend/internal/web/dist/online-image && cp -R online-image/dist/. ../backend/internal/web/dist/online-image",
     "preview": "vite preview --config vite.config.ts",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "lint:check": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",

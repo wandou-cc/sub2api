@@ -570,6 +570,7 @@ export function migratePersistedState(persistedState: unknown): unknown {
   if (!isRecord(persistedState)) return persistedState
   return {
     ...persistedState,
+    settings: persistedState.settings == null ? persistedState.settings : normalizeSettings(persistedState.settings),
     agentConversations: stripPersistedAgentConversations(persistedState.agentConversations),
   }
 }
@@ -1621,7 +1622,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'gpt-image-playground',
-      version: 2,
+      version: 3,
       migrate: (persistedState) => migratePersistedState(persistedState),
       partialize: getPersistedState,
       merge: mergePersistedState,
@@ -5596,4 +5597,3 @@ export async function addImageFromUrl(src: string): Promise<void> {
   cacheImage(id, dataUrl)
   useStore.getState().addInputImage({ id, dataUrl })
 }
-

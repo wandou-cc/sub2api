@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { buildApiUrl } from './devProxy'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { buildApiUrl, isApiProxyAvailable, shouldUseApiProxy } from './devProxy'
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 describe('buildApiUrl', () => {
   it('uses the same-origin proxy prefix when API proxy is enabled', () => {
@@ -35,5 +39,14 @@ describe('buildApiUrl', () => {
     expect(buildApiUrl('http://api.example.com/v1', 'responses', null, false)).toBe(
       'http://api.example.com/v1/responses',
     )
+  })
+
+  it('disables the API proxy in fixed Codeingforce mode', () => {
+    vi.stubEnv('VITE_SHOW_DEFAULT_CONFIG_ONLY', 'true')
+    vi.stubEnv('VITE_API_PROXY_AVAILABLE', 'true')
+    vi.stubEnv('VITE_API_PROXY_LOCKED', 'true')
+
+    expect(isApiProxyAvailable()).toBe(false)
+    expect(shouldUseApiProxy(true)).toBe(false)
   })
 })

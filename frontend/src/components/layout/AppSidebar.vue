@@ -732,6 +732,7 @@ function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
       key: withDashboard ? 'user-other' : 'personal-other',
       label: t('nav.groupOther'),
       items: [
+        { path: '/uclaw', label: 'UClaw', icon: GiftIcon },
         { path: '/docs', label: t('nav.docs'), icon: DocumentIcon },
       ],
     },

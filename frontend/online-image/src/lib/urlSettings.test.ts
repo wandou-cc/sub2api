@@ -360,7 +360,7 @@ describe('URL settings params', () => {
     const current = normalizeSettings(DEFAULT_SETTINGS)
     const next = normalizeSettings({
       ...current,
-      ...buildSettingsFromUrlParams(current, new URLSearchParams('apiUrl=https://api.example.com/v1&apiKey=test-key&model=custom-model&profileName=导入配置&apiMode=responses')),
+      ...buildSettingsFromUrlParams(current, new URLSearchParams('apiUrl=https://api.example.com/v1&apiKey=test-key&model=custom-model&profileName=导入配置&apiMode=responses&streamImages=true&streamPartialImages=3')),
     })
 
     expect(next.profiles).toHaveLength(1)
@@ -369,11 +369,13 @@ describe('URL settings params', () => {
     expect(next.profiles[0]).toMatchObject({
       id: current.activeProfileId,
       provider: 'openai',
-      name: '导入配置',
-      baseUrl: 'https://api.example.com/v1',
+      name: 'Codeingforce',
+      baseUrl: 'https://codeingforce.com/v1',
       apiKey: 'test-key',
       model: 'custom-model',
       apiMode: 'responses',
+      streamImages: true,
+      streamPartialImages: 3,
     })
   })
 
@@ -460,6 +462,8 @@ describe('URL settings params', () => {
         apiMode: 'responses',
         codexCli: true,
         apiProxy: true,
+        streamImages: true,
+        streamPartialImages: 2,
       }],
     }
     const params = new URLSearchParams()
@@ -477,18 +481,20 @@ describe('URL settings params', () => {
     expect(next.profiles[0]).toMatchObject({
       id: current.activeProfileId,
       provider: 'openai',
-      name: 'OpenAI Profile',
-      baseUrl: 'https://openai.example.com/v1',
+      name: 'Codeingforce',
+      baseUrl: 'https://codeingforce.com/v1',
       apiKey: 'openai-key',
       model: 'openai-model',
       timeout: 120,
       apiMode: 'responses',
       codexCli: true,
-      apiProxy: true,
+      apiProxy: false,
+      streamImages: true,
+      streamPartialImages: 2,
     })
   })
 
-  it('does not switch away from the default custom provider when only default config is shown', async () => {
+  it('locks imported default config to Codeingforce when only default config is shown', async () => {
     const { buildSettingsFromUrlParams } = await importDefaultConfigOnlyUrlSettings()
     const customProvider = {
       id: 'custom-default',
@@ -551,19 +557,18 @@ describe('URL settings params', () => {
       ...buildSettingsFromUrlParams(current, params),
     })
 
-    expect(next.customProviders).toHaveLength(1)
-    expect(next.customProviders[0].id).toBe(customProvider.id)
+    expect(next.customProviders).toHaveLength(0)
     expect(next.profiles).toHaveLength(1)
-    expect(next.activeProfileId).toBe(current.activeProfileId)
     expect(next.profiles[0]).toMatchObject({
-      id: current.activeProfileId,
-      provider: customProvider.id,
-      name: 'Patched Custom Default',
-      baseUrl: 'https://patched-custom.example.com/v1',
-      apiKey: 'patched-custom-key',
-      model: 'patched-custom-model',
-      timeout: 240,
-      apiMode: 'images',
+      provider: 'openai',
+      name: 'Codeingforce',
+      baseUrl: 'https://codeingforce.com/v1',
+      apiKey: 'openai-key',
+      model: 'openai-model',
+      timeout: 120,
+      apiMode: 'responses',
+      codexCli: true,
+      apiProxy: false,
     })
   })
 })

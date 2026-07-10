@@ -99,12 +99,9 @@ function buildDefaultConfigOnlySettingsFromUrlParams(currentSettings: Partial<Ap
         return p === undefined || p === activeProfile.provider
       }) as Record<string, unknown> | undefined
       if (matched) {
-        if (typeof matched.name === 'string' && matched.name.trim()) patch.name = matched.name.trim()
-        if (typeof matched.baseUrl === 'string') patch.baseUrl = matched.baseUrl
         if (typeof matched.apiKey === 'string') patch.apiKey = matched.apiKey
         if (typeof matched.model === 'string' && matched.model.trim()) patch.model = matched.model.trim()
         if (typeof matched.timeout === 'number' && Number.isFinite(matched.timeout)) patch.timeout = matched.timeout
-        if (typeof matched.apiProxy === 'boolean') patch.apiProxy = matched.apiProxy
         if (matched.responseFormatB64Json === true) patch.responseFormatB64Json = true
         if (isOpenAI) {
           if (matched.apiMode === 'images' || matched.apiMode === 'responses') patch.apiMode = matched.apiMode
@@ -117,12 +114,8 @@ function buildDefaultConfigOnlySettingsFromUrlParams(currentSettings: Partial<Ap
   }
 
   // 查询参数覆盖（优先级高于 settings JSON）
-  const apiUrlParam = searchParams.get('apiUrl')
   const apiKeyParam = searchParams.get('apiKey')
   const modelParam = searchParams.get('model')
-  const profileNameParam = searchParams.get('profileName')
-  if (profileNameParam?.trim()) patch.name = profileNameParam.trim()
-  if (apiUrlParam !== null) patch.baseUrl = normalizeBaseUrl(apiUrlParam.trim())
   if (apiKeyParam !== null) patch.apiKey = apiKeyParam.trim()
   if (modelParam !== null && modelParam.trim()) patch.model = modelParam.trim()
   if (isOpenAI) {

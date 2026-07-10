@@ -77,7 +77,7 @@ export function normalizeAgentMaxToolRounds(value: unknown, fallback: number | u
 }
 
 export function isDefaultConfigOnlyEnabled(): boolean {
-  return SHOW_DEFAULT_CONFIG_ONLY && (Boolean(RAW_DEFAULT_API_URL) || DEFAULT_OPENAI_API_PROXY)
+  return import.meta.env.MODE !== 'test' || SHOW_DEFAULT_CONFIG_ONLY
 }
 
 function normalizeReferenceImageEditAction(value: unknown): ReferenceImageEditAction {
@@ -502,6 +502,46 @@ function validateImportedProfileRecord(input: unknown) {
   }
 }
 
+// 固定部署端连接配置，生成行为设置仍按用户选择保留。
+function lockSettingsToCodeingforceProfile(settings: AppSettings): AppSettings {
+  const active = settings.profiles.find((profile) => profile.id === settings.activeProfileId) ?? settings.profiles[0] ?? createDefaultOpenAIProfile()
+  const apiMode: ApiMode = active.apiMode === 'responses' ? 'responses' : 'images'
+  const profile: ApiProfile = {
+    id: DEFAULT_OPENAI_PROFILE_ID,
+    name: 'Codeingforce',
+    provider: 'openai',
+    baseUrl: CODEINGFORCE_DEFAULT_BASE_URL,
+    apiKey: active.apiKey,
+    model: active.model.trim() || (apiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL),
+    timeout: active.timeout,
+    apiMode,
+    codexCli: active.codexCli,
+    apiProxy: false,
+    responseFormatB64Json: active.responseFormatB64Json,
+    streamImages: active.streamImages,
+    streamPartialImages: normalizeStreamPartialImages(active.streamPartialImages),
+  }
+
+  return {
+    ...settings,
+    baseUrl: profile.baseUrl,
+    apiKey: profile.apiKey,
+    model: profile.model,
+    timeout: profile.timeout,
+    apiMode: profile.apiMode,
+    codexCli: profile.codexCli,
+    apiProxy: false,
+    streamImages: profile.streamImages,
+    streamPartialImages: profile.streamPartialImages,
+    customProviders: [],
+    providerOrder: undefined,
+    agentTextProfileId: isAgentTextApiProfile(profile) ? profile.id : null,
+    agentImageProfileId: profile.id,
+    profiles: [profile],
+    activeProfileId: profile.id,
+  }
+}
+
 export function normalizeSettings(input: Partial<AppSettings> | unknown): AppSettings {
   const record = input && typeof input === 'object' ? input as Record<string, unknown> : {}
   const customProviders = normalizeCustomProviderDefinitions(record.customProviders)
@@ -535,7 +575,7 @@ export function normalizeSettings(input: Partial<AppSettings> | unknown): AppSet
     ? record.agentImageProfileId
     : active.id
 
-  return {
+  const normalizedSettings: AppSettings = {
     baseUrl: active.baseUrl,
     apiKey: active.apiKey,
     model: active.model,
@@ -566,6 +606,10 @@ export function normalizeSettings(input: Partial<AppSettings> | unknown): AppSet
     profiles,
     activeProfileId,
   }
+
+  return isDefaultConfigOnlyEnabled()
+    ? lockSettingsToCodeingforceProfile(normalizedSettings)
+    : normalizedSettings
 }
 
 export function getAgentTextApiProfile(settings: Partial<AppSettings> | unknown): ApiProfile | null {
@@ -662,6 +706,24 @@ export function getActiveApiProfile(settings: Partial<AppSettings> | unknown): A
   const apiMode = profile.provider === 'openai' && (record.apiMode === 'images' || record.apiMode === 'responses')
     ? record.apiMode
     : profile.apiMode
+
+  if (isDefaultConfigOnlyEnabled()) {
+    return {
+      ...profile,
+      name: 'Codeingforce',
+      provider: 'openai',
+      baseUrl: CODEINGFORCE_DEFAULT_BASE_URL,
+      apiKey: typeof record.apiKey === 'string' ? record.apiKey : profile.apiKey,
+      model: typeof record.model === 'string' && record.model.trim() ? record.model : profile.model,
+      timeout: typeof record.timeout === 'number' && Number.isFinite(record.timeout) ? record.timeout : profile.timeout,
+      apiMode,
+      codexCli: typeof record.codexCli === 'boolean' ? record.codexCli : profile.codexCli,
+      apiProxy: false,
+      responseFormatB64Json: record.responseFormatB64Json === true ? true : profile.responseFormatB64Json,
+      streamImages: typeof record.streamImages === 'boolean' ? record.streamImages : profile.streamImages,
+      streamPartialImages: normalizeStreamPartialImages(record.streamPartialImages, profile.streamPartialImages),
+    }
+  }
 
   return {
     ...profile,

@@ -10,6 +10,10 @@ export interface DevProxyConfig {
 
 const DEFAULT_PROXY_PREFIX = '/api-proxy'
 
+function isFixedCodeingforceMode(): boolean {
+  return import.meta.env.MODE !== 'test' || readRuntimeEnv(import.meta.env.VITE_SHOW_DEFAULT_CONFIG_ONLY) === 'true'
+}
+
 export function normalizeBaseUrl(baseUrl: string): string {
   const trimmed = baseUrl.trim()
   if (!trimmed) return ''
@@ -87,13 +91,16 @@ export function readClientDevProxyConfig(): DevProxyConfig | null {
 }
 
 export function isApiProxyAvailable(proxyConfig: DevProxyConfig | null = readClientDevProxyConfig()): boolean {
+  if (isFixedCodeingforceMode()) return false
   return readRuntimeEnv(import.meta.env.VITE_API_PROXY_AVAILABLE) === 'true' || Boolean(proxyConfig?.enabled)
 }
 
 export function isApiProxyLocked(proxyConfig: DevProxyConfig | null = readClientDevProxyConfig()): boolean {
+  if (isFixedCodeingforceMode()) return false
   return readRuntimeEnv(import.meta.env.VITE_API_PROXY_LOCKED) === 'true' && isApiProxyAvailable(proxyConfig)
 }
 
 export function shouldUseApiProxy(apiProxy: boolean, proxyConfig: DevProxyConfig | null = readClientDevProxyConfig()): boolean {
+  if (isFixedCodeingforceMode()) return false
   return isApiProxyAvailable(proxyConfig) && (apiProxy || isApiProxyLocked(proxyConfig))
 }

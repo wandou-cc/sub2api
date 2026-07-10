@@ -28,6 +28,10 @@
         </router-link>
 
         <div class="nav-actions">
+          <router-link to="/uclaw" class="nav-link nav-link-uclaw">
+            UClaw
+          </router-link>
+
           <a
             v-if="docUrl"
             :href="docUrl"
@@ -247,6 +251,9 @@
       <div>
         <p>&copy; {{ currentYear }} {{ siteName }}. {{ t('home.footer.allRightsReserved') }}</p>
         <nav>
+          <router-link to="/uclaw">
+            UClaw
+          </router-link>
           <a
             v-if="docUrl"
             :href="docUrl"
@@ -1140,6 +1147,10 @@ onMounted(() => {
 
   .nav-link {
     display: none;
+  }
+
+  .nav-link-uclaw {
+    display: inline-flex;
   }
 
   .hero-title {

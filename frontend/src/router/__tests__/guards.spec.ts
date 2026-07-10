@@ -84,7 +84,7 @@ function simulateGuard(
       return authState.isAdmin ? '/admin/dashboard' : '/dashboard'
     }
     if (authState.backendModeEnabled && !authState.isAuthenticated) {
-      const allowed = ['/login', '/key-usage', '/setup', '/payment/result']
+      const allowed = ['/login', '/key-usage', '/setup', '/payment/result', '/uclaw']
       const callbackPaths = [
         '/auth/callback',
         '/auth/linuxdo/callback',
@@ -133,7 +133,7 @@ function simulateGuard(
     if (authState.isAuthenticated && authState.isAdmin) {
       return null
     }
-    const allowed = ['/login', '/key-usage', '/setup', '/payment/result']
+    const allowed = ['/login', '/key-usage', '/setup', '/payment/result', '/uclaw']
     const callbackPaths = [
       '/auth/callback',
       '/auth/linuxdo/callback',
@@ -187,6 +187,11 @@ describe('路由守卫逻辑', () => {
 
     it('访问 /home 公开页面允许通过', () => {
       const redirect = simulateGuard('/home', { requiresAuth: false }, authState)
+      expect(redirect).toBeNull()
+    })
+
+    it('访问 /uclaw 公开页面允许通过', () => {
+      const redirect = simulateGuard('/uclaw', { requiresAuth: false }, authState)
       expect(redirect).toBeNull()
     })
   })
@@ -369,6 +374,18 @@ describe('路由守卫逻辑', () => {
         hasPendingAuthSession: false,
       }
       const redirect = simulateGuard('/key-usage', { requiresAuth: false }, authState)
+      expect(redirect).toBeNull()
+    })
+
+    it('unauthenticated: /uclaw is allowed', () => {
+      const authState: MockAuthState = {
+        isAuthenticated: false,
+        isAdmin: false,
+        isSimpleMode: false,
+        backendModeEnabled: true,
+        hasPendingAuthSession: false,
+      }
+      const redirect = simulateGuard('/uclaw', { requiresAuth: false }, authState)
       expect(redirect).toBeNull()
     })
 

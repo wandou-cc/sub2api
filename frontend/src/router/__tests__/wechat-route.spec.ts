@@ -61,4 +61,13 @@ describe('router WeChat OAuth route', () => {
     expect(route?.meta.requiresAuth).toBe(false)
     expect(route?.meta.title).toBe('WeChat Payment Callback')
   })
+
+  it('registers the UClaw product route as a public route', async () => {
+    const { default: router } = await import('@/router')
+    const route = router.getRoutes().find((record) => record.name === 'UClaw')
+
+    expect(route?.path).toBe('/uclaw')
+    expect(route?.meta.requiresAuth).toBe(false)
+    expect(route?.meta.title).toBe('UClaw')
+  })
 })

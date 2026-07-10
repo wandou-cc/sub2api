@@ -185,6 +185,15 @@ const routes: RouteRecordRaw[] = [
       titleKey: 'nav.docs'
     }
   },
+  {
+    path: '/uclaw',
+    name: 'UClaw',
+    component: () => import('@/views/public/UClawView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'UClaw'
+    }
+  },
 
   // ==================== User Routes ====================
   {
@@ -724,7 +733,7 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal', '/docs']
+const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal', '/docs', '/uclaw']
 const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/callback',
   '/auth/linuxdo/callback',
