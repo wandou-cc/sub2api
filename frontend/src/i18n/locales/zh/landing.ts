@@ -8,6 +8,9 @@ export default {
     viewOnGithub: '在 GitHub 上查看',
     viewDocs: '查看文档',
     docs: '文档',
+    homeAriaLabel: '首页',
+    logoAlt: '站点标识',
+    brandTagline: 'AI 网关',
     switchToLight: '切换到浅色模式',
     switchToDark: '切换到深色模式',
     dashboard: '控制台',
@@ -16,11 +19,26 @@ export default {
     goToDashboard: '进入控制台',
     // 新增：面向用户的价值主张
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
-    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
+    defaultSubtitle: 'AI API 网关平台',
+    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、GPT Image 2 等主流 AI 服务',
+    statsLabel: '平台亮点',
+    gateway: {
+      routeLabel: 'API 路由',
+      liveStatus: '运行中',
+      requestPath: 'POST /v1/messages',
+      okStatus: '200 OK',
+      readyStatus: '就绪',
+      syncStatus: '同步中',
+      singleKey: '统一密钥',
+      payAsYouGo: '按量计费'
+    },
     tags: {
       subscriptionToApi: '订阅转 API',
       stickySession: '会话保持',
-      realtimeBilling: '按量计费'
+      realtimeBilling: '按量计费',
+      subscription: '订阅',
+      affinity: '亲和调度',
+      billing: '计费'
     },
     // 用户痛点区块
     painPoints: {
@@ -99,8 +117,8 @@ export default {
       supported: '已支持',
       soon: '即将推出',
       claude: 'Claude',
-      gemini: 'Gemini',
-      antigravity: 'Antigravity',
+      gpt: 'GPT',
+      gptImage2: 'GPT Image 2',
       more: '更多'
     },
     // CTA 区块

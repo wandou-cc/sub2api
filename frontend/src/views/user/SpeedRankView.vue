@@ -61,10 +61,9 @@
                   <span :class="`speed-rank-place-${entry.rank}`">{{ entry.rank }}</span>
                 </div>
                 <div class="speed-rank-player">
-                  <div class="speed-rank-avatar" aria-hidden="true">{{ entry.rank }}</div>
                   <div>
                     <h3>{{ displayName(entry) }}</h3>
-                    <p>{{ maskEmail(entry.email) }}</p>
+                    <p>{{ entry.email }}</p>
                   </div>
                 </div>
                 <div class="speed-rank-consume">
@@ -93,8 +92,7 @@
               {{ t('speedRank.historyEmpty') }}
             </div>
             <div v-else class="speed-rank-history-list">
-              <article v-for="entry in history" :key="entry.reward_date" class="speed-rank-history-row">
-                <div class="speed-rank-history-cup" aria-hidden="true">1</div>
+              <article v-for="entry in paginatedHistory" :key="entry.reward_date" class="speed-rank-history-row">
                 <div class="speed-rank-player">
                   <div>
                     <h3>{{ displayName(entry) }}</h3>
@@ -103,13 +101,22 @@
                 </div>
                 <div class="speed-rank-consume">
                   <strong>{{ formatNumber(entry.total_tokens) }}</strong>
-                  <span>{{ maskEmail(entry.email) }}</span>
+                  <span>{{ entry.email }}</span>
                 </div>
                 <div class="speed-rank-reward">
                   <strong>+{{ formatReward(entry.reward) }}</strong>
                 </div>
               </article>
             </div>
+            <Pagination
+              v-if="history.length > historyPageSize"
+              class="speed-rank-history-pagination"
+              :page="historyPage"
+              :page-size="historyPageSize"
+              :total="history.length"
+              :show-page-size-selector="false"
+              @update:page="historyPage = $event"
+            />
           </section>
         </template>
 
@@ -126,6 +133,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import { usageAPI, type SpeedRankEntry } from '@/api/usage'
 import { useAppStore } from '@/stores'
 import { extractApiErrorMessage } from '@/utils/apiError'
@@ -136,6 +144,8 @@ const appStore = useAppStore()
 const loading = ref(false)
 const entries = ref<SpeedRankEntry[]>([])
 const history = ref<SpeedRankEntry[]>([])
+const historyPage = ref(1)
+const historyPageSize = 7
 const nextRewardAt = ref<Date | null>(null)
 const rankingDate = ref('')
 const now = ref(Date.now())
@@ -163,6 +173,11 @@ const countdownProgress = computed(() => {
   return `${Math.round(progress * 360)}deg`
 })
 
+const paginatedHistory = computed(() => {
+  const start = (historyPage.value - 1) * historyPageSize
+  return history.value.slice(start, start + historyPageSize)
+})
+
 // loadRank 加载今日排行榜和下一次发奖时间。
 async function loadRank() {
   loading.value = true
@@ -170,6 +185,7 @@ async function loadRank() {
     const data = await usageAPI.getSpeedRank()
     entries.value = data.entries
     history.value = data.history
+    historyPage.value = 1
     nextRewardAt.value = new Date(data.next_reward_at)
     rankingDate.value = data.ranking_date
   } catch (error) {
@@ -179,16 +195,9 @@ async function loadRank() {
   }
 }
 
-// displayName 返回榜单里优先展示的用户身份。
+// displayName 返回后端已脱敏的用户名，未设置用户名时展示脱敏邮箱。
 function displayName(entry: SpeedRankEntry) {
   return entry.username || entry.email
-}
-
-// maskEmail 隐去邮箱中间部分，避免榜单直接暴露完整账号。
-function maskEmail(email: string) {
-  const at = email.indexOf('@')
-  if (at <= 1) return email
-  return `${email.slice(0, 2)}***${email.slice(at)}`
 }
 
 // formatCompactToken 将 Token 数压缩成适合场景标签展示的短数字。
@@ -247,6 +256,11 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, color-mix(in srgb, var(--app-surface) 88%, var(--app-accent) 12%), var(--app-surface)),
     var(--app-surface);
   box-shadow: 0 18px 46px color-mix(in srgb, var(--app-ink) 7%, transparent);
+}
+
+.speed-rank-board,
+.speed-rank-history {
+  overflow: hidden;
 }
 
 .speed-rank-countdown {
@@ -436,13 +450,14 @@ onBeforeUnmount(() => {
 
 .speed-rank-row {
   display: grid;
-  grid-template-columns: 5.8rem minmax(13rem, 1fr) minmax(12rem, 0.95fr) 8.5rem;
+  grid-template-columns: 4.5rem minmax(12rem, 1fr) minmax(12rem, 0.95fr) 8.5rem;
   align-items: center;
-  min-width: 48rem;
+  min-width: 45rem;
   min-height: 4.65rem;
   border-top: 1px solid color-mix(in srgb, var(--app-line) 72%, transparent);
   padding: 0 1.55rem;
   color: var(--app-ink);
+  transition: background-color 160ms ease;
 }
 
 .speed-rank-row-head {
@@ -454,8 +469,7 @@ onBeforeUnmount(() => {
   font-weight: 900;
 }
 
-.speed-rank-place span,
-.speed-rank-avatar {
+.speed-rank-place span {
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -466,6 +480,7 @@ onBeforeUnmount(() => {
 .speed-rank-place span {
   width: 2.25rem;
   height: 2.25rem;
+  border: 1px solid color-mix(in srgb, var(--app-line) 70%, transparent);
   background: var(--app-surface-muted);
   color: var(--app-muted);
 }
@@ -486,19 +501,24 @@ onBeforeUnmount(() => {
   color: #c66c42 !important;
 }
 
-.speed-rank-player {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  min-width: 0;
+.speed-rank-row-1 {
+  background: linear-gradient(90deg, rgba(255, 212, 95, 0.13), transparent 42%);
 }
 
-.speed-rank-avatar {
-  width: 2.55rem;
-  height: 2.55rem;
-  flex: 0 0 auto;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--app-accent) 12%, var(--app-surface)), color-mix(in srgb, var(--app-accent) 28%, var(--app-surface)));
-  color: var(--app-accent);
+.speed-rank-row-2 {
+  background: linear-gradient(90deg, rgba(139, 154, 177, 0.09), transparent 42%);
+}
+
+.speed-rank-row-3 {
+  background: linear-gradient(90deg, rgba(198, 108, 66, 0.08), transparent 42%);
+}
+
+.speed-rank-row:not(.speed-rank-row-head):hover {
+  background-color: color-mix(in srgb, var(--app-accent) 5%, transparent);
+}
+
+.speed-rank-player {
+  min-width: 0;
 }
 
 .speed-rank-player h3 {
@@ -574,18 +594,6 @@ onBeforeUnmount(() => {
   font-weight: 800;
 }
 
-.speed-rank-history-cup {
-  display: grid;
-  width: 2.8rem;
-  height: 2.8rem;
-  place-items: center;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, #ffd45f, #ffae2b);
-  color: #fffdf8;
-  font-family: var(--app-font-mono);
-  font-weight: 900;
-}
-
 .speed-rank-history-empty {
   min-height: 8rem;
 }
@@ -599,9 +607,9 @@ onBeforeUnmount(() => {
 
 .speed-rank-history-row {
   display: grid;
-  grid-template-columns: 4.2rem minmax(13rem, 1fr) minmax(12rem, 0.95fr) 8.5rem;
+  grid-template-columns: minmax(13rem, 1fr) minmax(12rem, 0.95fr) 8.5rem;
   align-items: center;
-  min-width: 44rem;
+  min-width: 40rem;
   min-height: 4.8rem;
   gap: 1rem;
   border-bottom: 1px solid color-mix(in srgb, var(--app-line) 72%, transparent);
@@ -610,6 +618,10 @@ onBeforeUnmount(() => {
 
 .speed-rank-history-list .speed-rank-history-row:last-child {
   border-bottom: 0;
+}
+
+.speed-rank-history-pagination {
+  background: transparent !important;
 }
 
 .speed-rank-rules-note {

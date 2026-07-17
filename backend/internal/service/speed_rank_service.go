@@ -93,6 +93,12 @@ func (s *SpeedRankService) GetTodayRanking(ctx context.Context, now time.Time) (
 	}
 	for i := range entries {
 		entries[i].Reward = speedRankRewardByRank[entries[i].Rank]
+		entries[i].Username = maskOpaqueIdentity(entries[i].Username)
+		entries[i].Email = maskEmailIdentity(entries[i].Email)
+	}
+	for i := range history {
+		history[i].Username = maskOpaqueIdentity(history[i].Username)
+		history[i].Email = maskEmailIdentity(history[i].Email)
 	}
 	return &SpeedRankResponse{
 		Entries:      entries,

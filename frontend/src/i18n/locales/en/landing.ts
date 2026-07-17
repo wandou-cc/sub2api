@@ -8,6 +8,9 @@ export default {
     viewOnGithub: 'View on GitHub',
     viewDocs: 'View Documentation',
     docs: 'Docs',
+    homeAriaLabel: 'Home',
+    logoAlt: 'Site logo',
+    brandTagline: 'AI Gateway',
     switchToLight: 'Switch to Light Mode',
     switchToDark: 'Switch to Dark Mode',
     dashboard: 'Dashboard',
@@ -16,11 +19,26 @@ export default {
     goToDashboard: 'Go to Dashboard',
     // User-focused value proposition
     heroSubtitle: 'One Key, All AI Models',
-    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Gemini and more with a single API key',
+    defaultSubtitle: 'AI API Gateway Platform',
+    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, GPT Image 2 and more with a single API key',
+    statsLabel: 'Platform highlights',
+    gateway: {
+      routeLabel: 'API Route',
+      liveStatus: 'Live',
+      requestPath: 'POST /v1/messages',
+      okStatus: '200 OK',
+      readyStatus: 'Ready',
+      syncStatus: 'Sync',
+      singleKey: 'Single Key',
+      payAsYouGo: 'Pay As You Go'
+    },
     tags: {
       subscriptionToApi: 'Subscription to API',
       stickySession: 'Session Persistence',
-      realtimeBilling: 'Pay As You Go'
+      realtimeBilling: 'Pay As You Go',
+      subscription: 'Subscription',
+      affinity: 'Affinity',
+      billing: 'Billing'
     },
     // Pain points section
     painPoints: {
@@ -99,8 +117,8 @@ export default {
       supported: 'Supported',
       soon: 'Soon',
       claude: 'Claude',
-      gemini: 'Gemini',
-      antigravity: 'Antigravity',
+      gpt: 'GPT',
+      gptImage2: 'GPT Image 2',
       more: 'More'
     },
     // CTA section
