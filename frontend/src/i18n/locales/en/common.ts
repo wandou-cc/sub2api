@@ -209,6 +209,7 @@ export default {
     groupChannel: 'CHANNEL',
     groupSystem: 'SYSTEM',
     groupOther: 'OTHER',
+    auditLogs: 'Audit Logs',
   },
 
   // Auth
@@ -430,6 +431,15 @@ export default {
     invalidResetLinkHint: 'This password reset link is invalid or has expired. Please request a new one.',
     requestNewResetLink: 'Request New Reset Link',
     invalidOrExpiredToken: 'The password reset link is invalid or has expired. Please request a new one.'
+  },
+
+  // Step-up (sudo) 2FA prompt
+  stepUp: {
+    title: 'Two-Factor Verification Required',
+    hint: 'Enter the 6-digit code from your authenticator app to continue this sensitive operation.',
+    verifyFailed: 'Verification failed, please try again',
+    notEnabled: 'This operation requires two-factor authentication. Please enable TOTP in your profile first.',
+    adminApiKeyForbidden: 'Admin API keys cannot perform this operation. Use a two-factor verified admin session.'
   },
 
   // Dashboard

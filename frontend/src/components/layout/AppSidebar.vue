@@ -905,6 +905,7 @@ const adminNavGroups = computed((): NavGroup[] => {
           icon: null,
           iconSvg: cm.icon_svg,
         })),
+        { path: '/admin/audit-logs', label: t('nav.auditLogs'), icon: ShieldIcon, hideInSimpleMode: true },
       ],
     },
   ]
