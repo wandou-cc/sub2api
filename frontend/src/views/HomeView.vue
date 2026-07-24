@@ -19,7 +19,7 @@
       <nav class="home-nav">
         <router-link to="/home" class="brand-link" :aria-label="t('home.homeAriaLabel')">
           <span class="brand-mark">
-            <img :src="siteLogo || '/logo.png'" :alt="t('home.logoAlt')" />
+            <img :src="siteLogo || '/logo.svg'" :alt="t('home.logoAlt')" />
           </span>
           <span class="brand-copy">
             <span>{{ siteName }}</span>
