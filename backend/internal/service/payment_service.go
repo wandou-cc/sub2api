@@ -43,7 +43,6 @@ const (
 
 	defaultPageSize    = 20
 	maxPageSize        = 100
-	topUsersLimit      = 10
 	amountToleranceCNY = 0.01
 
 	orderIDPrefix = "sub2_"
@@ -148,6 +147,7 @@ type DashboardStats struct {
 	TodayCount    int     `json:"today_count"`
 	TotalCount    int     `json:"total_count"`
 	AvgAmount     float64 `json:"avg_amount"`
+	UserCount     int     `json:"user_count"`
 	PendingOrders int     `json:"pending_orders"`
 
 	DailySeries    []DailyStats        `json:"daily_series"`

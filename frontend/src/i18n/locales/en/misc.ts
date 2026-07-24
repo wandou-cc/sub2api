@@ -1,7 +1,8 @@
 export default {
   speedRank: {
-    title: 'Speed Rank',
-    description: 'Top three users by today input and output tokens',
+    title: 'Token Arena',
+    description: 'Race the token track and see who leads today.',
+    limitedEvent: 'Limited Event',
     rewardAt: 'Daily reward countdown',
     countdownLabel: 'Round ends in',
     dailyOpen: 'New round opens daily at 00:00',
@@ -502,6 +503,9 @@ export default {
         plans: 'Plans',
       },
       todayRevenue: 'Today Revenue',
+      rangeRevenue: 'Revenue in Range',
+      rangeOrders: 'Paid Orders',
+      payingUsers: 'Paying Users',
       totalRevenue: 'Total Revenue',
       todayOrders: 'Today Orders',
       orderCount: 'Order Count',
@@ -511,6 +515,7 @@ export default {
       paymentDistribution: 'Payment Distribution',
       colUser: 'User',
       topUsers: 'Top Users',
+      userRechargeRanking: 'User Recharge Ranking',
       noData: 'No data',
       days: 'days',
       weeks: 'weeks',

@@ -43,6 +43,18 @@ func IsRegistrationEmailSuffixAllowed(email string, whitelist []string) bool {
 	return false
 }
 
+// IsRegistrationEmailAlias reports addresses that can create multiple accounts for one mailbox.
+func IsRegistrationEmailAlias(email string) bool {
+	local, domain, ok := splitEmailForPolicy(email)
+	if !ok {
+		return false
+	}
+	if strings.Contains(local, "+") {
+		return true
+	}
+	return (domain == "gmail.com" || domain == "googlemail.com") && strings.Contains(local, ".")
+}
+
 // NormalizeRegistrationEmailSuffixWhitelist normalizes and validates suffix whitelist items.
 func NormalizeRegistrationEmailSuffixWhitelist(raw []string) ([]string, error) {
 	return normalizeRegistrationEmailSuffixWhitelist(raw, true)

@@ -161,11 +161,13 @@ describe('callImageApi', () => {
       settings: {
         ...DEFAULT_SETTINGS,
         apiKey: 'test-key',
+        responseFormatB64Json: true,
         streamImages: true,
         streamPartialImages: 3,
         profiles: DEFAULT_SETTINGS.profiles.map((profile) => ({
           ...profile,
           apiKey: 'test-key',
+          responseFormatB64Json: true,
           streamImages: true,
           streamPartialImages: 3,
         })),
@@ -181,6 +183,7 @@ describe('callImageApi', () => {
     expect(body).toMatchObject({
       stream: true,
       partial_images: 3,
+      response_format: 'b64_json',
     })
     expect(partialImages).toEqual(['data:image/png;base64,cGFydGlhbA=='])
     expect(result).toMatchObject({

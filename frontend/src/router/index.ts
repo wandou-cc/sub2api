@@ -293,7 +293,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
-      title: 'Available Channels',
+      title: 'Models & Pricing',
       titleKey: 'availableChannels.title',
       descriptionKey: 'availableChannels.description'
     }
@@ -693,8 +693,8 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
-      title: 'Payment Dashboard',
-      titleKey: 'nav.paymentDashboard',
+      title: 'Income Management',
+      titleKey: 'nav.incomeManagement',
       requiresPayment: true
     }
   },

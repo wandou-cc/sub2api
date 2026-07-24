@@ -385,6 +385,17 @@ func TestAuthService_Register_ReservedEmail(t *testing.T) {
 	require.ErrorIs(t, err, ErrEmailReserved)
 }
 
+func TestAuthService_Register_EmailAliasNotAllowed(t *testing.T) {
+	repo := &userRepoStub{}
+	service := newAuthService(repo, map[string]string{
+		SettingKeyRegistrationEnabled: "true",
+	}, nil, nil)
+
+	_, _, err := service.Register(context.Background(), "vjz.h.zhdbb.dud.hjd.b@gmail.com", "password")
+	require.ErrorIs(t, err, ErrEmailAliasNotAllowed)
+	require.Empty(t, repo.created)
+}
+
 func TestAuthService_Register_EmailSuffixNotAllowed(t *testing.T) {
 	repo := &userRepoStub{}
 	service := newAuthService(repo, map[string]string{

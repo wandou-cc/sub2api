@@ -6,6 +6,7 @@ import (
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -30,13 +31,32 @@ func NewPaymentHandler(paymentService *service.PaymentService, configService *se
 // GetDashboard returns payment dashboard statistics.
 // GET /api/v1/admin/payment/dashboard
 func (h *PaymentHandler) GetDashboard(c *gin.Context) {
-	days := 30
-	if d := c.Query("days"); d != "" {
-		if v, err := strconv.Atoi(d); err == nil && v > 0 {
-			days = v
+	userTZ := c.Query("timezone")
+	now := timezone.NowInUserLocation(userTZ)
+	end := timezone.StartOfDayInUserLocation(now, userTZ).AddDate(0, 0, 1)
+	start := end.AddDate(0, 0, -30)
+
+	if value := c.Query("start_date"); value != "" {
+		parsed, err := timezone.ParseInUserLocation("2006-01-02", value, userTZ)
+		if err != nil {
+			response.BadRequest(c, "Invalid start_date format, use YYYY-MM-DD")
+			return
 		}
+		start = parsed
 	}
-	stats, err := h.paymentService.GetDashboardStats(c.Request.Context(), days)
+	if value := c.Query("end_date"); value != "" {
+		parsed, err := timezone.ParseInUserLocation("2006-01-02", value, userTZ)
+		if err != nil {
+			response.BadRequest(c, "Invalid end_date format, use YYYY-MM-DD")
+			return
+		}
+		end = parsed.AddDate(0, 0, 1)
+	}
+	if !start.Before(end) {
+		response.BadRequest(c, "start_date must not be after end_date")
+		return
+	}
+	stats, err := h.paymentService.GetDashboardStats(c.Request.Context(), start, end)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return

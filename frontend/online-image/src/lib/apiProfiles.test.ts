@@ -59,7 +59,7 @@ describe('default API URL env', () => {
     })
   })
 
-  it('locks default config mode to Codeingforce while preserving generation options', async () => {
+  it('locks default config mode to Codeingforce and streams Responses requests', async () => {
     vi.resetModules()
     vi.stubEnv('VITE_SHOW_DEFAULT_CONFIG_ONLY', 'true')
     vi.stubEnv('VITE_DEFAULT_API_URL', 'https://other.example.com/v1')
@@ -98,7 +98,7 @@ describe('default API URL env', () => {
       codexCli: true,
       apiProxy: false,
       responseFormatB64Json: true,
-      streamImages: false,
+      streamImages: true,
       streamPartialImages: 3,
     })
 
@@ -108,15 +108,33 @@ describe('default API URL env', () => {
       apiProxy: true,
       apiKey: 'next-key',
       model: 'next-model',
-      streamImages: true,
+      responseFormatB64Json: false,
+      streamImages: false,
       streamPartialImages: 2,
     })).toMatchObject({
       baseUrl: 'https://codeingforce.com/v1',
       apiProxy: false,
       apiKey: 'next-key',
       model: 'next-model',
+      responseFormatB64Json: true,
       streamImages: true,
       streamPartialImages: 2,
+    })
+
+    const defaultResponsesSettings = normalizeSettings({
+      apiMode: 'responses',
+      model: '',
+      responseFormatB64Json: false,
+      streamImages: false,
+    })
+    expect(defaultResponsesSettings).toMatchObject({
+      model: DEFAULT_IMAGES_MODEL,
+      streamImages: true,
+    })
+    expect(defaultResponsesSettings.profiles[0]).toMatchObject({
+      model: DEFAULT_IMAGES_MODEL,
+      responseFormatB64Json: true,
+      streamImages: true,
     })
   })
 

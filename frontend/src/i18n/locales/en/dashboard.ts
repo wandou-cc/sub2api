@@ -481,23 +481,23 @@ export default {
     }
   },
 
-  // Available Channels (user-facing)
+  // Models and Pricing (user-facing)
   availableChannels: {
-    title: 'Available Channels',
-    description: 'Channels you can access, along with their supported models and pricing',
-    searchPlaceholder: 'Search channels or models...',
-    empty: 'No available channels',
+    title: 'Models & Pricing',
+    description: 'All active groups with their supported models and pricing',
+    searchPlaceholder: 'Search channels, groups, or models...',
+    empty: 'No model or pricing information',
     noModels: 'No models configured',
     noPricing: 'Pricing not configured',
     exclusive: 'Exclusive',
     public: 'Public',
-    exclusiveTooltip: 'Exclusive groups granted to you by an admin',
+    exclusiveTooltip: 'Available only to authorized users',
     publicTooltip: 'Groups open to all users',
     columns: {
       name: 'Channel',
       description: 'Description',
       platform: 'Platform',
-      groups: 'Your Accessible Groups',
+      groups: 'Groups',
       supportedModels: 'Supported Models'
     },
     pricing: {

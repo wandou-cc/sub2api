@@ -486,23 +486,23 @@ export default {
     }
   },
 
-  // Available Channels (user-facing)
+  // Models and Pricing (user-facing)
   availableChannels: {
-    title: '可用渠道',
-    description: '查看您可访问的渠道与其支持的模型、定价',
-    searchPlaceholder: '搜索渠道或模型...',
-    empty: '暂无可用渠道',
+    title: '模型与价格',
+    description: '查看全部启用分组、支持的模型与价格',
+    searchPlaceholder: '搜索渠道、分组或模型...',
+    empty: '暂无模型与价格信息',
     noModels: '未配置模型',
     noPricing: '未配置定价',
     exclusive: '专属',
     public: '公开',
-    exclusiveTooltip: '管理员授权给你的专属分组',
+    exclusiveTooltip: '仅限获得授权的用户使用',
     publicTooltip: '对所有用户公开的分组',
     columns: {
       name: '渠道名',
       description: '描述',
       platform: '平台',
-      groups: '我可访问的分组',
+      groups: '分组',
       supportedModels: '支持模型'
     },
     pricing: {

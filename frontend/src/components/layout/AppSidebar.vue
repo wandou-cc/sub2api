@@ -727,7 +727,6 @@ const ChevronDownIcon = {
 // yet. Admin-only flags (not in public settings) stay inline below.
 const flagChannelMonitor = makeSidebarFlag(FeatureFlags.channelMonitor)
 const flagPayment = makeSidebarFlag(FeatureFlags.payment)
-const flagAvailableChannels = makeSidebarFlag(FeatureFlags.availableChannels)
 const flagAffiliate = makeSidebarFlag(FeatureFlags.affiliate)
 const flagRiskControl = makeSidebarFlag(FeatureFlags.riskControl)
 const flagOpsMonitoring = () => adminSettingsStore.opsMonitoringEnabled
@@ -744,7 +743,7 @@ function finalizeNavGroups(groups: NavGroup[]): NavGroup[] {
 // buildSelfNavGroups 构造用户自己的导航分组（用户端主菜单和管理员的个人菜单共享这组声明）。
 // withDashboard=true 时包含仪表盘（用户端），false 时不含（管理员的个人区已经有独立仪表盘入口）。
 //
-// 可用渠道紧挨渠道状态之上，让用户"先看自己能用什么、再看对应状态"。
+// 模型与价格紧挨渠道状态之上，方便用户先确认分组能力和价格，再查看运行状态。
 function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
   const spaceItems: NavItem[] = []
   if (withDashboard) {
@@ -755,7 +754,7 @@ function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
     { path: '/batch-image', label: t('nav.batchImage'), icon: BatchImageIcon, hideInSimpleMode: true, featureFlag: flagBatchImageAccess },
     { path: '/usage', label: t('nav.usage'), icon: ChartIcon, hideInSimpleMode: true },
     { path: '/speed-rank', label: t('nav.speedRank'), icon: SpeedIcon, hideInSimpleMode: true },
-    { path: '/available-channels', label: t('nav.availableChannels'), icon: ChannelIcon, hideInSimpleMode: true, featureFlag: flagAvailableChannels },
+    { path: '/available-channels', label: t('nav.availableChannels'), icon: ChannelIcon },
     { path: '/monitor', label: t('nav.channelStatus'), icon: SignalIcon, featureFlag: flagChannelMonitor },
     { path: '/online-image/', label: t('nav.onlineImage'), icon: ImageIcon, external: true },
     { path: '/profile', label: t('nav.profile'), icon: UserIcon },
@@ -885,7 +884,7 @@ const adminNavGroups = computed((): NavGroup[] => {
           expandOnly: true,
           featureFlag: flagAdminPayment,
           children: [
-            { path: '/admin/orders/dashboard', label: t('nav.paymentDashboard'), icon: ChartIcon },
+            { path: '/admin/orders/dashboard', label: t('nav.incomeManagement'), icon: ChartIcon },
             { path: '/admin/orders', label: t('nav.orderManagement'), icon: OrderIcon },
             { path: '/admin/orders/plans', label: t('nav.paymentPlans'), icon: CreditCardIcon },
           ],

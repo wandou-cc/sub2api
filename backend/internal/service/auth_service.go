@@ -28,6 +28,7 @@ var (
 	ErrUserNotActive           = infraerrors.Forbidden("USER_NOT_ACTIVE", "user is not active")
 	ErrEmailExists             = infraerrors.Conflict("EMAIL_EXISTS", "email already exists")
 	ErrEmailReserved           = infraerrors.BadRequest("EMAIL_RESERVED", "email is reserved")
+	ErrEmailAliasNotAllowed    = infraerrors.BadRequest("EMAIL_ALIAS_NOT_ALLOWED", "email aliases are not allowed for registration")
 	ErrInvalidToken            = infraerrors.Unauthorized("INVALID_TOKEN", "invalid token")
 	ErrTokenExpired            = infraerrors.Unauthorized("TOKEN_EXPIRED", "token has expired")
 	ErrAccessTokenExpired      = infraerrors.Unauthorized("ACCESS_TOKEN_EXPIRED", "access token has expired")
@@ -1102,6 +1103,9 @@ func inferLegacySignupSource(email string) string {
 }
 
 func (s *AuthService) validateRegistrationEmailPolicy(ctx context.Context, email string) error {
+	if IsRegistrationEmailAlias(email) {
+		return ErrEmailAliasNotAllowed
+	}
 	if s.settingService == nil {
 		return nil
 	}

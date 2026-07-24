@@ -401,7 +401,7 @@ export default function SettingsModal() {
   ]
 
   const getDefaultModelForMode = (apiMode: AppSettings['apiMode']) =>
-    apiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL
+    defaultConfigOnly ? DEFAULT_IMAGES_MODEL : apiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL
 
   const enabledZipDownloadRouteCount = ZIP_DOWNLOAD_ROUTE_OPTIONS
     .filter((option) => draft.zipDownloadRoutes.includes(option.route))
@@ -1580,7 +1580,11 @@ export default function SettingsModal() {
                         activeProfile.model === DEFAULT_IMAGES_MODEL || activeProfile.model === DEFAULT_RESPONSES_MODEL
                           ? getDefaultModelForMode(apiMode)
                           : activeProfile.model
-                      updateActiveProfile({ apiMode, model: nextModel }, true)
+                      updateActiveProfile({
+                        apiMode,
+                        model: nextModel,
+                        streamImages: apiMode === 'responses' || activeProfile.streamImages,
+                      }, true)
                     }}
                     options={[
                       { label: 'Images API (/v1/images)', value: 'images' },
@@ -1632,7 +1636,8 @@ export default function SettingsModal() {
                       <button
                         type="button"
                         onClick={() => updateActiveProfile({ streamImages: !activeProfile.streamImages }, true)}
-                        className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${activeProfile.streamImages ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                        disabled={defaultConfigOnly}
+                        className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${activeProfile.streamImages ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'} ${defaultConfigOnly ? 'cursor-not-allowed opacity-70' : ''}`}
                         role="switch"
                         aria-checked={!!activeProfile.streamImages}
                         aria-label="流式传输"
@@ -1677,7 +1682,8 @@ export default function SettingsModal() {
                     <button
                       type="button"
                       onClick={() => updateActiveProfile({ responseFormatB64Json: !activeProfile.responseFormatB64Json }, true)}
-                      className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${activeProfile.responseFormatB64Json ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                      disabled={defaultConfigOnly}
+                      className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${activeProfile.responseFormatB64Json ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'} ${defaultConfigOnly ? 'cursor-not-allowed opacity-70' : ''}`}
                       role="switch"
                       aria-checked={!!activeProfile.responseFormatB64Json}
                       aria-label="返回 Base64 图片数据"

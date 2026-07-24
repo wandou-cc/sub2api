@@ -42,3 +42,11 @@ func TestIsRegistrationEmailSuffixAllowed(t *testing.T) {
 	require.False(t, IsRegistrationEmailSuffixAllowed("user@c.cn", []string{"@a.com", "*.b.cn"}))
 	require.True(t, IsRegistrationEmailSuffixAllowed("user@any.com", []string{}))
 }
+
+func TestIsRegistrationEmailAlias(t *testing.T) {
+	require.True(t, IsRegistrationEmailAlias("vjz.h.zhdbb.dud.hjd.b@gmail.com"))
+	require.True(t, IsRegistrationEmailAlias("user.name@googlemail.com"))
+	require.True(t, IsRegistrationEmailAlias("user+tag@example.com"))
+	require.False(t, IsRegistrationEmailAlias("username@gmail.com"))
+	require.False(t, IsRegistrationEmailAlias("user.name@example.com"))
+}

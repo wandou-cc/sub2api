@@ -42,6 +42,16 @@ describe('AppSidebar scroll position persistence', () => {
   })
 })
 
+describe('AppSidebar models and pricing entry', () => {
+  it('is visible without a feature flag or simple-mode restriction', () => {
+    const entry = componentSource.match(/\{ path: '\/available-channels'[^\n]+\}/)?.[0]
+
+    expect(entry).toBeDefined()
+    expect(entry).not.toContain('featureFlag')
+    expect(entry).not.toContain('hideInSimpleMode')
+  })
+})
+
 describe('AppSidebar header styles', () => {
   it('does not clip the version badge dropdown', () => {
     const sidebarHeaderBlockMatch = styleSource.match(/\.sidebar-header\s*\{[\s\S]*?\n {2}\}/)

@@ -1,7 +1,8 @@
 export default {
   speedRank: {
-    title: '消耗排行榜',
-    description: '按今日输入和输出 Token 统计前三名',
+    title: 'Token 竞技场',
+    description: 'Token 赛道，能跑你就来，看看谁是今日的消耗之王。',
+    limitedEvent: '限时活动',
     rewardAt: '每日 0 点发奖倒计时',
     countdownLabel: '距本局结束',
     dailyOpen: '每日 00:00 开新局',
@@ -526,6 +527,9 @@ export default {
         plans: '订阅套餐',
       },
       todayRevenue: '今日收入',
+      rangeRevenue: '所选区间收入',
+      rangeOrders: '充值订单数',
+      payingUsers: '充值用户数',
       totalRevenue: '总收入',
       todayOrders: '今日订单',
       orderCount: '订单数',
@@ -535,6 +539,7 @@ export default {
       paymentDistribution: '支付方式分布',
       colUser: '用户',
       topUsers: '消费排行',
+      userRechargeRanking: '用户充值排行',
       noData: '暂无数据',
       days: '天',
       weeks: '周',

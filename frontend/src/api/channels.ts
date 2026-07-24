@@ -1,6 +1,6 @@
 /**
  * User Channels API endpoints (non-admin)
- * 用户侧「可用渠道」聚合查询：渠道 + 用户可访问的分组 + 支持模型（含定价）。
+ * 用户侧「模型与价格」聚合查询：渠道 + 全部启用分组 + 支持模型（含定价）。
  */
 
 import { apiClient } from './client'
@@ -68,7 +68,7 @@ export interface UserAvailableChannel {
   platforms: UserChannelPlatformSection[]
 }
 
-/** 列出当前用户可见的「可用渠道」（与 /groups/available 保持一致，返回平数组）。 */
+/** 列出全部用户可查看的启用渠道、分组、模型与价格。 */
 export async function getAvailable(options?: { signal?: AbortSignal }): Promise<UserAvailableChannel[]> {
   const { data } = await apiClient.get<UserAvailableChannel[]>('/channels/available', {
     signal: options?.signal

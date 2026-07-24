@@ -27,19 +27,17 @@ func TestUserAvailableChannel_Unauthenticated401(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
-func TestFilterUserVisibleGroups_IntersectionOnly(t *testing.T) {
-	// 渠道挂在 {g1, g2, g3}，用户只允许 {g1, g3} —— 响应必须仅含 g1/g3。
+func TestToUserAvailableGroups_IncludesAllActiveGroupRefs(t *testing.T) {
+	// ChannelService 已排除停用分组；handler 必须完整展示其返回的全部分组。
 	groups := []service.AvailableGroupRef{
 		{ID: 1, Name: "g1", Platform: "anthropic"},
 		{ID: 2, Name: "g2", Platform: "anthropic"},
 		{ID: 3, Name: "g3", Platform: "openai"},
 	}
-	allowed := map[int64]struct{}{1: {}, 3: {}}
 
-	visible := filterUserVisibleGroups(groups, allowed)
-	require.Len(t, visible, 2)
-	ids := []int64{visible[0].ID, visible[1].ID}
-	require.ElementsMatch(t, []int64{1, 3}, ids)
+	visible := toUserAvailableGroups(groups)
+	require.Len(t, visible, 3)
+	require.Equal(t, []int64{1, 2, 3}, []int64{visible[0].ID, visible[1].ID, visible[2].ID})
 }
 
 func TestToUserSupportedModels_FiltersByAllowedPlatforms(t *testing.T) {

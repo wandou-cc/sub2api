@@ -502,7 +502,7 @@ function validateImportedProfileRecord(input: unknown) {
   }
 }
 
-// 固定部署端连接配置，生成行为设置仍按用户选择保留。
+// Codeingforce 在线服务固定使用流式 Base64 响应，避免 CDN 等待完整图片时断开。
 function lockSettingsToCodeingforceProfile(settings: AppSettings): AppSettings {
   const active = settings.profiles.find((profile) => profile.id === settings.activeProfileId) ?? settings.profiles[0] ?? createDefaultOpenAIProfile()
   const apiMode: ApiMode = active.apiMode === 'responses' ? 'responses' : 'images'
@@ -512,13 +512,13 @@ function lockSettingsToCodeingforceProfile(settings: AppSettings): AppSettings {
     provider: 'openai',
     baseUrl: CODEINGFORCE_DEFAULT_BASE_URL,
     apiKey: active.apiKey,
-    model: active.model.trim() || (apiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL),
+    model: active.model.trim() || DEFAULT_IMAGES_MODEL,
     timeout: active.timeout,
     apiMode,
     codexCli: active.codexCli,
     apiProxy: false,
-    responseFormatB64Json: active.responseFormatB64Json,
-    streamImages: active.streamImages,
+    responseFormatB64Json: true,
+    streamImages: true,
     streamPartialImages: normalizeStreamPartialImages(active.streamPartialImages),
   }
 
@@ -719,8 +719,8 @@ export function getActiveApiProfile(settings: Partial<AppSettings> | unknown): A
       apiMode,
       codexCli: typeof record.codexCli === 'boolean' ? record.codexCli : profile.codexCli,
       apiProxy: false,
-      responseFormatB64Json: record.responseFormatB64Json === true ? true : profile.responseFormatB64Json,
-      streamImages: typeof record.streamImages === 'boolean' ? record.streamImages : profile.streamImages,
+      responseFormatB64Json: true,
+      streamImages: true,
       streamPartialImages: normalizeStreamPartialImages(record.streamPartialImages, profile.streamPartialImages),
     }
   }
