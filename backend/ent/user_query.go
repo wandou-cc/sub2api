@@ -21,6 +21,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/pendingauthsession"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -47,6 +48,7 @@ type UserQuery struct {
 	withAttributeValues       *UserAttributeValueQuery
 	withPromoCodeUsages       *PromoCodeUsageQuery
 	withPaymentOrders         *PaymentOrderQuery
+	withRechargeLotteryDraws  *RechargeLotteryDrawQuery
 	withAuthIdentities        *AuthIdentityQuery
 	withPendingAuthSessions   *PendingAuthSessionQuery
 	withPlatformQuotas        *UserPlatformQuotaQuery
@@ -301,6 +303,28 @@ func (_q *UserQuery) QueryPaymentOrders() *PaymentOrderQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.PaymentOrdersTable, user.PaymentOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRechargeLotteryDraws chains the current query on the "recharge_lottery_draws" edge.
+func (_q *UserQuery) QueryRechargeLotteryDraws() *RechargeLotteryDrawQuery {
+	query := (&RechargeLotteryDrawClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(rechargelotterydraw.Table, rechargelotterydraw.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RechargeLotteryDrawsTable, user.RechargeLotteryDrawsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -598,6 +622,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withAttributeValues:       _q.withAttributeValues.Clone(),
 		withPromoCodeUsages:       _q.withPromoCodeUsages.Clone(),
 		withPaymentOrders:         _q.withPaymentOrders.Clone(),
+		withRechargeLotteryDraws:  _q.withRechargeLotteryDraws.Clone(),
 		withAuthIdentities:        _q.withAuthIdentities.Clone(),
 		withPendingAuthSessions:   _q.withPendingAuthSessions.Clone(),
 		withPlatformQuotas:        _q.withPlatformQuotas.Clone(),
@@ -715,6 +740,17 @@ func (_q *UserQuery) WithPaymentOrders(opts ...func(*PaymentOrderQuery)) *UserQu
 		opt(query)
 	}
 	_q.withPaymentOrders = query
+	return _q
+}
+
+// WithRechargeLotteryDraws tells the query-builder to eager-load the nodes that are connected to
+// the "recharge_lottery_draws" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRechargeLotteryDraws(opts ...func(*RechargeLotteryDrawQuery)) *UserQuery {
+	query := (&RechargeLotteryDrawClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRechargeLotteryDraws = query
 	return _q
 }
 
@@ -840,7 +876,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [14]bool{
+		loadedTypes = [15]bool{
 			_q.withAPIKeys != nil,
 			_q.withRedeemCodes != nil,
 			_q.withSubscriptions != nil,
@@ -851,6 +887,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withAttributeValues != nil,
 			_q.withPromoCodeUsages != nil,
 			_q.withPaymentOrders != nil,
+			_q.withRechargeLotteryDraws != nil,
 			_q.withAuthIdentities != nil,
 			_q.withPendingAuthSessions != nil,
 			_q.withPlatformQuotas != nil,
@@ -947,6 +984,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadPaymentOrders(ctx, query, nodes,
 			func(n *User) { n.Edges.PaymentOrders = []*PaymentOrder{} },
 			func(n *User, e *PaymentOrder) { n.Edges.PaymentOrders = append(n.Edges.PaymentOrders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRechargeLotteryDraws; query != nil {
+		if err := _q.loadRechargeLotteryDraws(ctx, query, nodes,
+			func(n *User) { n.Edges.RechargeLotteryDraws = []*RechargeLotteryDraw{} },
+			func(n *User, e *RechargeLotteryDraw) {
+				n.Edges.RechargeLotteryDraws = append(n.Edges.RechargeLotteryDraws, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1305,6 +1351,36 @@ func (_q *UserQuery) loadPaymentOrders(ctx context.Context, query *PaymentOrderQ
 	}
 	query.Where(predicate.PaymentOrder(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.PaymentOrdersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRechargeLotteryDraws(ctx context.Context, query *RechargeLotteryDrawQuery, nodes []*User, init func(*User), assign func(*User, *RechargeLotteryDraw)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(rechargelotterydraw.FieldUserID)
+	}
+	query.Where(predicate.RechargeLotteryDraw(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RechargeLotteryDrawsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

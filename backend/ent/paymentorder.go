@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/user"
 )
 
@@ -107,9 +108,11 @@ type PaymentOrder struct {
 type PaymentOrderEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// RechargeLotteryDraw holds the value of the recharge_lottery_draw edge.
+	RechargeLotteryDraw *RechargeLotteryDraw `json:"recharge_lottery_draw,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -121,6 +124,17 @@ func (e PaymentOrderEdges) UserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
+}
+
+// RechargeLotteryDrawOrErr returns the RechargeLotteryDraw value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PaymentOrderEdges) RechargeLotteryDrawOrErr() (*RechargeLotteryDraw, error) {
+	if e.RechargeLotteryDraw != nil {
+		return e.RechargeLotteryDraw, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: rechargelotterydraw.Label}
+	}
+	return nil, &NotLoadedError{edge: "recharge_lottery_draw"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -432,6 +446,11 @@ func (_m *PaymentOrder) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the PaymentOrder entity.
 func (_m *PaymentOrder) QueryUser() *UserQuery {
 	return NewPaymentOrderClient(_m.config).QueryUser(_m)
+}
+
+// QueryRechargeLotteryDraw queries the "recharge_lottery_draw" edge of the PaymentOrder entity.
+func (_m *PaymentOrder) QueryRechargeLotteryDraw() *RechargeLotteryDrawQuery {
+	return NewPaymentOrderClient(_m.config).QueryRechargeLotteryDraw(_m)
 }
 
 // Update returns a builder for updating this PaymentOrder.

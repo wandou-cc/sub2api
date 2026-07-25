@@ -11,9 +11,36 @@ REMOTE_BUILD_DIR="${REMOTE_BUILD_DIR:-/opt/sub2api-build}"
 REMOTE_RUN_DIR="${REMOTE_RUN_DIR:-/opt/sub2api}"
 TAG="${TAG:-deploy-$(date -u +%Y%m%dT%H%M%SZ)}"
 IMAGE="sub2api:${TAG}"
+REMOTE_DEPLOY_LOCK="${REMOTE_RUN_DIR}/.server-deploy.lock"
+deploy_lock_acquired=false
+
+# Releases the server-side lock held by this deployment process.
+release_deploy_lock() {
+  if [ "${deploy_lock_acquired}" = true ]; then
+    echo "Releasing deployment lock..."
+    ssh "${SERVER}" "rmdir '${REMOTE_DEPLOY_LOCK}'"
+  fi
+}
+
+trap release_deploy_lock EXIT
 
 echo "Deploy target: ${SERVER}"
 echo "Image: ${IMAGE}"
+
+echo "Acquiring deployment lock..."
+if ssh "${SERVER}" "if mkdir '${REMOTE_DEPLOY_LOCK}' 2>/dev/null; then exit 0; elif [ -d '${REMOTE_DEPLOY_LOCK}' ]; then exit 73; else exit 74; fi"; then
+  deploy_lock_acquired=true
+else
+  lock_status=$?
+  if [ "${lock_status}" -eq 73 ]; then
+    echo "Another deployment is running, or the deployment lock is stale: ${REMOTE_DEPLOY_LOCK}" >&2
+  elif [ "${lock_status}" -eq 74 ]; then
+    echo "Could not create deployment lock: ${REMOTE_DEPLOY_LOCK}" >&2
+  else
+    echo "Could not reach ${SERVER} to acquire the deployment lock (ssh exit ${lock_status})." >&2
+  fi
+  exit "${lock_status}"
+fi
 
 echo "Checking server containers..."
 ssh "${SERVER}" "docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' | sed -n '1,10p'"

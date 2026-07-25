@@ -534,17 +534,7 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 func (s *RedeemService) invalidateRedeemCaches(ctx context.Context, userID int64, redeemCode *RedeemCode) {
 	switch redeemCode.Type {
 	case RedeemTypeBalance:
-		if s.authCacheInvalidator != nil {
-			s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, userID)
-		}
-		if s.billingCacheService == nil {
-			return
-		}
-		go func() {
-			cacheCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			_ = s.billingCacheService.InvalidateUserBalance(cacheCtx, userID)
-		}()
+		s.invalidateBalanceCaches(ctx, userID)
 	case RedeemTypeConcurrency:
 		if s.authCacheInvalidator != nil {
 			s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, userID)
@@ -568,6 +558,21 @@ func (s *RedeemService) invalidateRedeemCaches(ctx context.Context, userID int64
 			}()
 		}
 	}
+}
+
+// invalidateBalanceCaches makes a committed balance credit visible to authentication and billing checks.
+func (s *RedeemService) invalidateBalanceCaches(ctx context.Context, userID int64) {
+	if s.authCacheInvalidator != nil {
+		s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, userID)
+	}
+	if s.billingCacheService == nil {
+		return
+	}
+	go func() {
+		cacheCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = s.billingCacheService.InvalidateUserBalance(cacheCtx, userID)
+	}()
 }
 
 func (s *RedeemService) tryAccrueAffiliateRebateForRedeem(ctx context.Context, userID int64, amount float64) {

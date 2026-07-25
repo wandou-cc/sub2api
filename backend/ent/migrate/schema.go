@@ -1429,6 +1429,56 @@ var (
 			},
 		},
 	}
+	// RechargeLotteryDrawsColumns holds the columns for the "recharge_lottery_draws" table.
+	RechargeLotteryDrawsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "recharge_amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "max_rarity", Type: field.TypeString, Size: 20},
+		{Name: "rarity", Type: field.TypeString, Size: 20, Default: ""},
+		{Name: "reward_amount", Type: field.TypeFloat64, Default: 0, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "balance_after", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "claimed_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "order_id", Type: field.TypeInt64, Unique: true},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// RechargeLotteryDrawsTable holds the schema information for the "recharge_lottery_draws" table.
+	RechargeLotteryDrawsTable = &schema.Table{
+		Name:       "recharge_lottery_draws",
+		Columns:    RechargeLotteryDrawsColumns,
+		PrimaryKey: []*schema.Column{RechargeLotteryDrawsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "recharge_lottery_draws_payment_orders_recharge_lottery_draw",
+				Columns:    []*schema.Column{RechargeLotteryDrawsColumns[8]},
+				RefColumns: []*schema.Column{PaymentOrdersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "recharge_lottery_draws_users_recharge_lottery_draws",
+				Columns:    []*schema.Column{RechargeLotteryDrawsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "rechargelotterydraw_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{RechargeLotteryDrawsColumns[9]},
+			},
+			{
+				Name:    "rechargelotterydraw_user_id_claimed_at",
+				Unique:  false,
+				Columns: []*schema.Column{RechargeLotteryDrawsColumns[9], RechargeLotteryDrawsColumns[6]},
+			},
+			{
+				Name:    "rechargelotterydraw_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{RechargeLotteryDrawsColumns[7]},
+			},
+		},
+	}
 	// RedeemCodesColumns holds the columns for the "redeem_codes" table.
 	RedeemCodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2089,6 +2139,7 @@ var (
 		PromoCodesTable,
 		PromoCodeUsagesTable,
 		ProxiesTable,
+		RechargeLotteryDrawsTable,
 		RedeemCodesTable,
 		SecuritySecretsTable,
 		SettingsTable,
@@ -2204,6 +2255,11 @@ func init() {
 	ProxiesTable.ForeignKeys[0].RefTable = ProxiesTable
 	ProxiesTable.Annotation = &entsql.Annotation{
 		Table: "proxies",
+	}
+	RechargeLotteryDrawsTable.ForeignKeys[0].RefTable = PaymentOrdersTable
+	RechargeLotteryDrawsTable.ForeignKeys[1].RefTable = UsersTable
+	RechargeLotteryDrawsTable.Annotation = &entsql.Annotation{
+		Table: "recharge_lottery_draws",
 	}
 	RedeemCodesTable.ForeignKeys[0].RefTable = GroupsTable
 	RedeemCodesTable.ForeignKeys[1].RefTable = UsersTable

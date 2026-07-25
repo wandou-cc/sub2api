@@ -155,28 +155,54 @@ func psLegacyOrderMatchesInstance(orderPaymentType string, inst *dbent.PaymentPr
 }
 
 func (s *PaymentService) RequestRefund(ctx context.Context, oid, uid int64, reason string) error {
-	o, err := s.validateRefundRequest(ctx, oid, uid)
+	if _, err := s.validateRefundRequest(ctx, oid, uid); err != nil {
+		return err
+	}
+	tx, err := s.entClient.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("begin refund request transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	lockedOrder, err := tx.PaymentOrder.Query().
+		Where(
+			paymentorder.IDEQ(oid),
+			paymentorder.UserIDEQ(uid),
+			paymentorder.StatusEQ(OrderStatusCompleted),
+			paymentorder.OrderTypeEQ(payment.OrderTypeBalance),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		if dbent.IsNotFound(err) {
+			return infraerrors.Conflict("CONFLICT", "order status changed")
+		}
+		return fmt.Errorf("lock refund request order: %w", err)
+	}
+	rewardDeduction, err := s.rechargeLotteryRefundDeduction(ctx, tx.Client(), oid, lockedOrder.Amount, lockedOrder.Amount)
 	if err != nil {
 		return err
 	}
-	u, err := s.userRepo.GetByID(ctx, o.UserID)
+	u, err := tx.User.Get(ctx, lockedOrder.UserID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}
-	if u.Balance < o.Amount {
+	if u.Balance < lockedOrder.Amount+rewardDeduction {
 		return infraerrors.BadRequest("BALANCE_NOT_ENOUGH", "refund amount exceeds balance")
 	}
 	nr := strings.TrimSpace(reason)
 	now := time.Now()
 	by := fmt.Sprintf("%d", uid)
-	c, err := s.entClient.PaymentOrder.Update().Where(paymentorder.IDEQ(oid), paymentorder.UserIDEQ(uid), paymentorder.StatusEQ(OrderStatusCompleted), paymentorder.OrderTypeEQ(payment.OrderTypeBalance)).SetStatus(OrderStatusRefundRequested).SetRefundRequestedAt(now).SetRefundRequestReason(nr).SetRefundRequestedBy(by).SetRefundAmount(o.Amount).Save(ctx)
+	c, err := tx.PaymentOrder.Update().Where(paymentorder.IDEQ(oid), paymentorder.UserIDEQ(uid), paymentorder.StatusEQ(OrderStatusCompleted), paymentorder.OrderTypeEQ(payment.OrderTypeBalance)).SetStatus(OrderStatusRefundRequested).SetRefundRequestedAt(now).SetRefundRequestReason(nr).SetRefundRequestedBy(by).SetRefundAmount(lockedOrder.Amount).Save(ctx)
 	if err != nil {
 		return fmt.Errorf("update: %w", err)
 	}
 	if c == 0 {
 		return infraerrors.Conflict("CONFLICT", "order status changed")
 	}
-	s.writeAuditLog(ctx, oid, "REFUND_REQUESTED", fmt.Sprintf("user:%d", uid), map[string]any{"amount": o.Amount, "reason": nr})
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit refund request: %w", err)
+	}
+	s.writeAuditLog(ctx, oid, "REFUND_REQUESTED", fmt.Sprintf("user:%d", uid), map[string]any{"amount": lockedOrder.Amount, "lotteryReward": rewardDeduction, "reason": nr})
 	return nil
 }
 
@@ -247,14 +273,16 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	}
 	p := &RefundPlan{OrderID: oid, Order: o, RefundAmount: amt, GatewayAmount: ga, Reason: rr, Force: force, DeductBalance: deduct, DeductionType: payment.DeductionTypeNone}
 	if deduct {
-		if er := s.prepDeduct(ctx, o, p, force); er != nil {
+		if er, prepErr := s.prepDeduct(ctx, o, p, force); prepErr != nil {
+			return nil, nil, prepErr
+		} else if er != nil {
 			return nil, er, nil
 		}
 	}
 	return p, nil, nil
 }
 
-func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) *RefundResult {
+func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) (*RefundResult, error) {
 	if o.OrderType == payment.OrderTypeSubscription {
 		p.DeductionType = payment.DeductionTypeSubscription
 		if o.SubscriptionGroupID != nil && o.SubscriptionDays != nil {
@@ -263,21 +291,25 @@ func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, 
 			if err == nil && sub != nil {
 				p.SubscriptionID = sub.ID
 			} else if !force {
-				return &RefundResult{Success: false, Warning: "cannot find active subscription for deduction, use force", RequireForce: true}
+				return &RefundResult{Success: false, Warning: "cannot find active subscription for deduction, use force", RequireForce: true}, nil
 			}
 		}
-		return nil
+		return nil, nil
 	}
 	u, err := s.userRepo.GetByID(ctx, o.UserID)
 	if err != nil {
 		if !force {
-			return &RefundResult{Success: false, Warning: "cannot fetch user balance, use force", RequireForce: true}
+			return &RefundResult{Success: false, Warning: "cannot fetch user balance, use force", RequireForce: true}, nil
 		}
-		return nil
+		return nil, nil
+	}
+	rewardDeduction, err := s.rechargeLotteryRefundDeduction(ctx, s.entClient, o.ID, p.RefundAmount, o.Amount)
+	if err != nil {
+		return nil, err
 	}
 	p.DeductionType = payment.DeductionTypeBalance
-	p.BalanceToDeduct = math.Min(p.RefundAmount, u.Balance)
-	return nil
+	p.BalanceToDeduct = math.Min(p.RefundAmount+rewardDeduction, u.Balance)
+	return nil, nil
 }
 
 func (s *PaymentService) ExecuteRefund(ctx context.Context, p *RefundPlan) (*RefundResult, error) {
@@ -287,6 +319,12 @@ func (s *PaymentService) ExecuteRefund(ctx context.Context, p *RefundPlan) (*Ref
 	}
 	if c == 0 {
 		return nil, infraerrors.Conflict("CONFLICT", "order status changed")
+	}
+	if p.DeductBalance && p.DeductionType == payment.DeductionTypeBalance {
+		if err := s.refreshBalanceRefundDeduction(ctx, p); err != nil {
+			s.restoreStatus(ctx, p)
+			return nil, err
+		}
 	}
 	if p.DeductionType == payment.DeductionTypeBalance && p.BalanceToDeduct > 0 {
 		// Skip balance deduction on retry if previous attempt already deducted
@@ -440,9 +478,13 @@ func (s *PaymentService) QueryAndFinalizeRefund(ctx context.Context, oid int64) 
 		plan.BalanceToDeduct = 0
 		plan.SubDaysToDeduct = 0
 	} else if o.OrderType == payment.OrderTypeSubscription {
-		if early := s.prepDeduct(ctx, o, plan, true); early != nil {
+		if early, prepErr := s.prepDeduct(ctx, o, plan, true); prepErr != nil {
+			return nil, prepErr
+		} else if early != nil {
 			return early, nil
 		}
+	} else if err := s.refreshBalanceRefundDeduction(ctx, plan); err != nil {
+		return nil, err
 	}
 	switch strings.TrimSpace(resp.Status) {
 	case payment.ProviderStatusSuccess, payment.ProviderStatusRefunded:
@@ -456,6 +498,20 @@ func (s *PaymentService) QueryAndFinalizeRefund(ctx context.Context, oid int64) 
 	default:
 		return s.finalizeRefundFailed(ctx, o, fmt.Errorf("payment refund returned unknown status: %s", strings.TrimSpace(resp.Status)))
 	}
+}
+
+// refreshBalanceRefundDeduction includes the proportional blind-box reward using current committed state.
+func (s *PaymentService) refreshBalanceRefundDeduction(ctx context.Context, p *RefundPlan) error {
+	u, err := s.userRepo.GetByID(ctx, p.Order.UserID)
+	if err != nil {
+		return fmt.Errorf("get user balance for refund: %w", err)
+	}
+	rewardDeduction, err := s.rechargeLotteryRefundDeduction(ctx, s.entClient, p.OrderID, p.RefundAmount, p.Order.Amount)
+	if err != nil {
+		return err
+	}
+	p.BalanceToDeduct = math.Min(p.RefundAmount+rewardDeduction, u.Balance)
+	return nil
 }
 
 func (s *PaymentService) refundFinalizePlan(o *dbent.PaymentOrder) *RefundPlan {

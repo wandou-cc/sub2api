@@ -145,7 +145,11 @@
               v-else
               :to="item.path"
               class="sidebar-link mb-1"
-              :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+              :class="{
+                'sidebar-link-active': isActive(item.path),
+                'sidebar-link-collapsed': sidebarCollapsed,
+                'lottery-menu-link': item.path === '/lottery',
+              }"
               :title="sidebarCollapsed ? item.label : undefined"
               :id="
                 item.path === '/admin/accounts'
@@ -397,6 +401,21 @@ const DocumentIcon = {
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round',
           d: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'
+        })
+      ]
+    )
+}
+
+const ContactIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M8.625 12.75h6.75m-6.75-3h6.75M21 12a8.25 8.25 0 01-9.592 8.142 8.247 8.247 0 01-3.082-1.151L3 20.25l1.259-5.326A8.25 8.25 0 1121 12z'
         })
       ]
     )
@@ -778,6 +797,7 @@ function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
       items: [
         { path: '/subscriptions', label: t('nav.mySubscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
         { path: '/purchase', label: t('nav.buySubscription'), icon: RechargeSubscriptionIcon, hideInSimpleMode: true, featureFlag: flagPayment },
+        { path: '/lottery', label: t('nav.rechargeLottery'), icon: GiftIcon, hideInSimpleMode: true, featureFlag: flagPayment },
         { path: '/orders', label: t('nav.myOrders'), icon: OrderListIcon, hideInSimpleMode: true, featureFlag: flagPayment },
         { path: '/redeem', label: t('nav.redeem'), icon: GiftIcon, hideInSimpleMode: true },
         { path: '/affiliate', label: t('nav.affiliate'), icon: UsersIcon, hideInSimpleMode: true, featureFlag: flagAffiliate },
@@ -789,6 +809,7 @@ function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
       items: [
         { path: '/uclaw', label: 'UClaw', icon: GiftIcon },
         { path: '/docs', label: t('nav.docs'), icon: DocumentIcon },
+        { path: '/contact', label: t('nav.contactUs'), icon: ContactIcon },
       ],
     },
   ]
@@ -1309,6 +1330,50 @@ onBeforeUnmount(() => {
   opacity: 0;
   transform: translateX(-4px);
   pointer-events: none;
+}
+
+.lottery-menu-link,
+.lottery-menu-link:hover,
+.lottery-menu-link.sidebar-link-active {
+  background: transparent;
+  color: #cf5f68;
+}
+
+.lottery-menu-link.sidebar-link-active::before {
+  background: #cf5f68;
+}
+
+.lottery-menu-link :deep(svg) {
+  transform-origin: center;
+  animation: lottery-menu-pulse 3.6s ease-in-out infinite;
+}
+
+:global(.dark) .lottery-menu-link,
+:global(.dark) .lottery-menu-link:hover,
+:global(.dark) .lottery-menu-link.sidebar-link-active {
+  color: #f09a9f;
+}
+
+:global(.dark) .lottery-menu-link.sidebar-link-active::before {
+  background: #f09a9f;
+}
+
+@keyframes lottery-menu-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgb(207 95 104 / 0%));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 2px rgb(207 95 104 / 30%));
+    transform: scale(1.035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lottery-menu-link :deep(svg) {
+    animation: none;
+  }
 }
 
 /* Custom SVG icon in sidebar: constrain size without overriding uploaded SVG colors */

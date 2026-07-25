@@ -103,7 +103,10 @@ describe('SpeedRankView', () => {
 
     expect(getSpeedRank).toHaveBeenCalledTimes(1)
     expect(wrapper.find('.tide-board-background').attributes('src')).toContain('token-tide-beach')
+    expect(wrapper.findAll('.moving-cloud')).toHaveLength(2)
+    expect(wrapper.find('.shore-crab').exists()).toBe(false)
     expect(wrapper.findAll('.rank-entry')).toHaveLength(3)
+    expect(wrapper.find('.arena-heading').exists()).toBe(false)
     expect(wrapper.findAll('.castle-image').map((image) => image.attributes('src'))).toEqual([
       expect.stringContaining('token-sandcastle-first'),
       expect.stringContaining('token-sandcastle-second'),

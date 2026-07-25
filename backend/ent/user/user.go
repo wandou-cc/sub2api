@@ -83,6 +83,8 @@ const (
 	EdgePromoCodeUsages = "promo_code_usages"
 	// EdgePaymentOrders holds the string denoting the payment_orders edge name in mutations.
 	EdgePaymentOrders = "payment_orders"
+	// EdgeRechargeLotteryDraws holds the string denoting the recharge_lottery_draws edge name in mutations.
+	EdgeRechargeLotteryDraws = "recharge_lottery_draws"
 	// EdgeAuthIdentities holds the string denoting the auth_identities edge name in mutations.
 	EdgeAuthIdentities = "auth_identities"
 	// EdgePendingAuthSessions holds the string denoting the pending_auth_sessions edge name in mutations.
@@ -161,6 +163,13 @@ const (
 	PaymentOrdersInverseTable = "payment_orders"
 	// PaymentOrdersColumn is the table column denoting the payment_orders relation/edge.
 	PaymentOrdersColumn = "user_id"
+	// RechargeLotteryDrawsTable is the table that holds the recharge_lottery_draws relation/edge.
+	RechargeLotteryDrawsTable = "recharge_lottery_draws"
+	// RechargeLotteryDrawsInverseTable is the table name for the RechargeLotteryDraw entity.
+	// It exists in this package in order to avoid circular dependency with the "rechargelotterydraw" package.
+	RechargeLotteryDrawsInverseTable = "recharge_lottery_draws"
+	// RechargeLotteryDrawsColumn is the table column denoting the recharge_lottery_draws relation/edge.
+	RechargeLotteryDrawsColumn = "user_id"
 	// AuthIdentitiesTable is the table that holds the auth_identities relation/edge.
 	AuthIdentitiesTable = "auth_identities"
 	// AuthIdentitiesInverseTable is the table name for the AuthIdentity entity.
@@ -560,6 +569,20 @@ func ByPaymentOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByRechargeLotteryDrawsCount orders the results by recharge_lottery_draws count.
+func ByRechargeLotteryDrawsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRechargeLotteryDrawsStep(), opts...)
+	}
+}
+
+// ByRechargeLotteryDraws orders the results by recharge_lottery_draws terms.
+func ByRechargeLotteryDraws(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRechargeLotteryDrawsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAuthIdentitiesCount orders the results by auth_identities count.
 func ByAuthIdentitiesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -683,6 +706,13 @@ func newPaymentOrdersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PaymentOrdersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PaymentOrdersTable, PaymentOrdersColumn),
+	)
+}
+func newRechargeLotteryDrawsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RechargeLotteryDrawsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RechargeLotteryDrawsTable, RechargeLotteryDrawsColumn),
 	)
 }
 func newAuthIdentitiesStep() *sqlgraph.Step {

@@ -52,6 +52,26 @@ describe('AppSidebar models and pricing entry', () => {
   })
 })
 
+describe('AppSidebar activity entries', () => {
+  it('registers the blind-box menu and Token Arena label keys', () => {
+    expect(componentSource).toContain("{ path: '/lottery', label: t('nav.rechargeLottery')")
+    expect(componentSource).toContain("{ path: '/speed-rank', label: t('nav.speedRank')")
+  })
+
+  it('gives the blind-box menu its restrained light-red treatment', () => {
+    expect(componentSource).toContain("'lottery-menu-link': item.path === '/lottery'")
+    expect(componentSource).toContain('.lottery-menu-link,')
+    expect(componentSource).toContain('background: transparent;')
+    expect(componentSource).toContain('animation: lottery-menu-pulse 3.6s ease-in-out infinite;')
+  })
+})
+
+describe('AppSidebar contact entry', () => {
+  it('registers Contact Us in the Other group', () => {
+    expect(componentSource).toContain("{ path: '/contact', label: t('nav.contactUs'), icon: ContactIcon }")
+  })
+})
+
 describe('AppSidebar header styles', () => {
   it('does not clip the version badge dropdown', () => {
     const sidebarHeaderBlockMatch = styleSource.match(/\.sidebar-header\s*\{[\s\S]*?\n {2}\}/)

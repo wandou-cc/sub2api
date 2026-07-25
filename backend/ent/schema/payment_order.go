@@ -180,6 +180,9 @@ func (PaymentOrder) Edges() []ent.Edge {
 			Field("user_id").
 			Unique().
 			Required(),
+		edge.To("recharge_lottery_draw", RechargeLotteryDraw.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)).
+			Unique(),
 	}
 }
 

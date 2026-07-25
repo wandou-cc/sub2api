@@ -360,8 +360,13 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 	if lease == nil {
 		return errors.New("missing payment fulfillment lease")
 	}
+	tx, err := s.entClient.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("begin completion transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
 	now := time.Now()
-	updated, err := s.entClient.PaymentOrder.Update().Where(
+	updated, err := tx.PaymentOrder.Update().Where(
 		paymentorder.IDEQ(o.ID),
 		paymentorder.StatusEQ(OrderStatusRecharging),
 		paymentorder.UpdatedAtEQ(lease.version),
@@ -375,6 +380,20 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 			return nil
 		}
 		return infraerrors.Conflict("CONFLICT", "fulfillment lease was lost before completion")
+	}
+	if o.OrderType == payment.OrderTypeBalance {
+		rule := rechargeLotteryRuleForAmount(o.Amount)
+		if _, err := tx.RechargeLotteryDraw.Create().
+			SetUserID(o.UserID).
+			SetOrderID(o.ID).
+			SetRechargeAmount(o.Amount).
+			SetMaxRarity(rule.MaxRarity).
+			Save(ctx); err != nil {
+			return fmt.Errorf("create recharge lottery opportunity: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit completion transaction: %w", err)
 	}
 	if !s.hasAuditLog(ctx, o.ID, auditAction) {
 		s.writeAuditLog(ctx, o.ID, auditAction, "system", map[string]any{

@@ -106,6 +106,25 @@ export interface PaymentOrder {
   provider_instance_id?: string
 }
 
+export type RechargeLotteryRarity = 'common' | 'rare' | 'epic' | 'epic_plus' | 'legendary'
+
+export interface RechargeLotteryOpportunity {
+  order_id: number
+  recharge_amount: number
+  max_rarity: RechargeLotteryRarity
+  claimed: boolean
+  rarity: RechargeLotteryRarity | ''
+  reward_amount: number
+  balance_after?: number
+  created_at: string
+  claimed_at?: string
+}
+
+export interface RechargeLotteryOverview {
+  pending_count: number
+  opportunities: RechargeLotteryOpportunity[]
+}
+
 // ==================== Plans & Channels ====================
 
 export interface SubscriptionPlan {

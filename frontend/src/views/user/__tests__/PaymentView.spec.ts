@@ -345,6 +345,28 @@ describe('PaymentView payment recovery', () => {
     ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = undefined
   })
 
+  it('groups recharge account and checkout controls into one form surface', async () => {
+    getCheckoutInfo.mockResolvedValue(checkoutInfoFixture())
+
+    const wrapper = shallowMount(PaymentView, {
+      global: {
+        stubs: {
+          AppLayout: {
+            template: '<div><slot /></div>',
+          },
+          Teleport: true,
+          Transition: false,
+        },
+      },
+    })
+    await flushPromises()
+
+    const rechargeForm = wrapper.get('[data-test="recharge-form"]')
+    expect(rechargeForm.get('[data-test="recharge-account"]').text()).toContain('demo-user')
+    expect(rechargeForm.find('amount-input-stub').exists()).toBe(true)
+    expect(rechargeForm.find('payment-method-selector-stub').exists()).toBe(true)
+  })
+
   it('restores a custom EasyPay method as the selected payment method', async () => {
     getCheckoutInfo.mockResolvedValue(checkoutInfoFixture({
       methods: {

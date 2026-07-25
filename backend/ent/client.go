@@ -41,6 +41,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
 	"github.com/Wei-Shaw/sub2api/ent/setting"
@@ -115,6 +116,8 @@ type Client struct {
 	PromoCodeUsage *PromoCodeUsageClient
 	// Proxy is the client for interacting with the Proxy builders.
 	Proxy *ProxyClient
+	// RechargeLotteryDraw is the client for interacting with the RechargeLotteryDraw builders.
+	RechargeLotteryDraw *RechargeLotteryDrawClient
 	// RedeemCode is the client for interacting with the RedeemCode builders.
 	RedeemCode *RedeemCodeClient
 	// SecuritySecret is the client for interacting with the SecuritySecret builders.
@@ -178,6 +181,7 @@ func (c *Client) init() {
 	c.PromoCode = NewPromoCodeClient(c.config)
 	c.PromoCodeUsage = NewPromoCodeUsageClient(c.config)
 	c.Proxy = NewProxyClient(c.config)
+	c.RechargeLotteryDraw = NewRechargeLotteryDrawClient(c.config)
 	c.RedeemCode = NewRedeemCodeClient(c.config)
 	c.SecuritySecret = NewSecuritySecretClient(c.config)
 	c.Setting = NewSettingClient(c.config)
@@ -309,6 +313,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PromoCode:                     NewPromoCodeClient(cfg),
 		PromoCodeUsage:                NewPromoCodeUsageClient(cfg),
 		Proxy:                         NewProxyClient(cfg),
+		RechargeLotteryDraw:           NewRechargeLotteryDrawClient(cfg),
 		RedeemCode:                    NewRedeemCodeClient(cfg),
 		SecuritySecret:                NewSecuritySecretClient(cfg),
 		Setting:                       NewSettingClient(cfg),
@@ -367,6 +372,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PromoCode:                     NewPromoCodeClient(cfg),
 		PromoCodeUsage:                NewPromoCodeUsageClient(cfg),
 		Proxy:                         NewProxyClient(cfg),
+		RechargeLotteryDraw:           NewRechargeLotteryDrawClient(cfg),
 		RedeemCode:                    NewRedeemCodeClient(cfg),
 		SecuritySecret:                NewSecuritySecretClient(cfg),
 		Setting:                       NewSettingClient(cfg),
@@ -416,9 +422,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group, c.IdempotencyRecord,
 		c.IdentityAdoptionDecision, c.PaymentAuditLog, c.PaymentOrder,
 		c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode, c.PromoCodeUsage,
-		c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting, c.SubscriptionPlan,
-		c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog, c.User,
-		c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
+		c.Proxy, c.RechargeLotteryDraw, c.RedeemCode, c.SecuritySecret, c.Setting,
+		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
+		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
 		c.UserPlatformQuota, c.UserSubscription,
 	} {
 		n.Use(hooks...)
@@ -436,9 +442,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group, c.IdempotencyRecord,
 		c.IdentityAdoptionDecision, c.PaymentAuditLog, c.PaymentOrder,
 		c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode, c.PromoCodeUsage,
-		c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting, c.SubscriptionPlan,
-		c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog, c.User,
-		c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
+		c.Proxy, c.RechargeLotteryDraw, c.RedeemCode, c.SecuritySecret, c.Setting,
+		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
+		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
 		c.UserPlatformQuota, c.UserSubscription,
 	} {
 		n.Intercept(interceptors...)
@@ -500,6 +506,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PromoCodeUsage.mutate(ctx, m)
 	case *ProxyMutation:
 		return c.Proxy.mutate(ctx, m)
+	case *RechargeLotteryDrawMutation:
+		return c.RechargeLotteryDraw.mutate(ctx, m)
 	case *RedeemCodeMutation:
 		return c.RedeemCode.mutate(ctx, m)
 	case *SecuritySecretMutation:
@@ -3834,6 +3842,22 @@ func (c *PaymentOrderClient) QueryUser(_m *PaymentOrder) *UserQuery {
 	return query
 }
 
+// QueryRechargeLotteryDraw queries the recharge_lottery_draw edge of a PaymentOrder.
+func (c *PaymentOrderClient) QueryRechargeLotteryDraw(_m *PaymentOrder) *RechargeLotteryDrawQuery {
+	query := (&RechargeLotteryDrawClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, id),
+			sqlgraph.To(rechargelotterydraw.Table, rechargelotterydraw.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, paymentorder.RechargeLotteryDrawTable, paymentorder.RechargeLotteryDrawColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PaymentOrderClient) Hooks() []Hook {
 	return c.hooks.PaymentOrder
@@ -4635,6 +4659,171 @@ func (c *ProxyClient) mutate(ctx context.Context, m *ProxyMutation) (Value, erro
 		return (&ProxyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Proxy mutation op: %q", m.Op())
+	}
+}
+
+// RechargeLotteryDrawClient is a client for the RechargeLotteryDraw schema.
+type RechargeLotteryDrawClient struct {
+	config
+}
+
+// NewRechargeLotteryDrawClient returns a client for the RechargeLotteryDraw from the given config.
+func NewRechargeLotteryDrawClient(c config) *RechargeLotteryDrawClient {
+	return &RechargeLotteryDrawClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rechargelotterydraw.Hooks(f(g(h())))`.
+func (c *RechargeLotteryDrawClient) Use(hooks ...Hook) {
+	c.hooks.RechargeLotteryDraw = append(c.hooks.RechargeLotteryDraw, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rechargelotterydraw.Intercept(f(g(h())))`.
+func (c *RechargeLotteryDrawClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RechargeLotteryDraw = append(c.inters.RechargeLotteryDraw, interceptors...)
+}
+
+// Create returns a builder for creating a RechargeLotteryDraw entity.
+func (c *RechargeLotteryDrawClient) Create() *RechargeLotteryDrawCreate {
+	mutation := newRechargeLotteryDrawMutation(c.config, OpCreate)
+	return &RechargeLotteryDrawCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RechargeLotteryDraw entities.
+func (c *RechargeLotteryDrawClient) CreateBulk(builders ...*RechargeLotteryDrawCreate) *RechargeLotteryDrawCreateBulk {
+	return &RechargeLotteryDrawCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RechargeLotteryDrawClient) MapCreateBulk(slice any, setFunc func(*RechargeLotteryDrawCreate, int)) *RechargeLotteryDrawCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RechargeLotteryDrawCreateBulk{err: fmt.Errorf("calling to RechargeLotteryDrawClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RechargeLotteryDrawCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RechargeLotteryDrawCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RechargeLotteryDraw.
+func (c *RechargeLotteryDrawClient) Update() *RechargeLotteryDrawUpdate {
+	mutation := newRechargeLotteryDrawMutation(c.config, OpUpdate)
+	return &RechargeLotteryDrawUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RechargeLotteryDrawClient) UpdateOne(_m *RechargeLotteryDraw) *RechargeLotteryDrawUpdateOne {
+	mutation := newRechargeLotteryDrawMutation(c.config, OpUpdateOne, withRechargeLotteryDraw(_m))
+	return &RechargeLotteryDrawUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RechargeLotteryDrawClient) UpdateOneID(id int64) *RechargeLotteryDrawUpdateOne {
+	mutation := newRechargeLotteryDrawMutation(c.config, OpUpdateOne, withRechargeLotteryDrawID(id))
+	return &RechargeLotteryDrawUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RechargeLotteryDraw.
+func (c *RechargeLotteryDrawClient) Delete() *RechargeLotteryDrawDelete {
+	mutation := newRechargeLotteryDrawMutation(c.config, OpDelete)
+	return &RechargeLotteryDrawDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RechargeLotteryDrawClient) DeleteOne(_m *RechargeLotteryDraw) *RechargeLotteryDrawDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RechargeLotteryDrawClient) DeleteOneID(id int64) *RechargeLotteryDrawDeleteOne {
+	builder := c.Delete().Where(rechargelotterydraw.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RechargeLotteryDrawDeleteOne{builder}
+}
+
+// Query returns a query builder for RechargeLotteryDraw.
+func (c *RechargeLotteryDrawClient) Query() *RechargeLotteryDrawQuery {
+	return &RechargeLotteryDrawQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRechargeLotteryDraw},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RechargeLotteryDraw entity by its id.
+func (c *RechargeLotteryDrawClient) Get(ctx context.Context, id int64) (*RechargeLotteryDraw, error) {
+	return c.Query().Where(rechargelotterydraw.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RechargeLotteryDrawClient) GetX(ctx context.Context, id int64) *RechargeLotteryDraw {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RechargeLotteryDraw.
+func (c *RechargeLotteryDrawClient) QueryUser(_m *RechargeLotteryDraw) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rechargelotterydraw.Table, rechargelotterydraw.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rechargelotterydraw.UserTable, rechargelotterydraw.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a RechargeLotteryDraw.
+func (c *RechargeLotteryDrawClient) QueryOrder(_m *RechargeLotteryDraw) *PaymentOrderQuery {
+	query := (&PaymentOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rechargelotterydraw.Table, rechargelotterydraw.FieldID, id),
+			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, rechargelotterydraw.OrderTable, rechargelotterydraw.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RechargeLotteryDrawClient) Hooks() []Hook {
+	return c.hooks.RechargeLotteryDraw
+}
+
+// Interceptors returns the client interceptors.
+func (c *RechargeLotteryDrawClient) Interceptors() []Interceptor {
+	return c.inters.RechargeLotteryDraw
+}
+
+func (c *RechargeLotteryDrawClient) mutate(ctx context.Context, m *RechargeLotteryDrawMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RechargeLotteryDrawCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RechargeLotteryDrawUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RechargeLotteryDrawUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RechargeLotteryDrawDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RechargeLotteryDraw mutation op: %q", m.Op())
 	}
 }
 
@@ -5949,6 +6138,22 @@ func (c *UserClient) QueryPaymentOrders(_m *User) *PaymentOrderQuery {
 	return query
 }
 
+// QueryRechargeLotteryDraws queries the recharge_lottery_draws edge of a User.
+func (c *UserClient) QueryRechargeLotteryDraws(_m *User) *RechargeLotteryDrawQuery {
+	query := (&RechargeLotteryDrawClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(rechargelotterydraw.Table, rechargelotterydraw.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RechargeLotteryDrawsTable, user.RechargeLotteryDrawsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryAuthIdentities queries the auth_identities edge of a User.
 func (c *UserClient) QueryAuthIdentities(_m *User) *AuthIdentityQuery {
 	query := (&AuthIdentityClient{config: c.config}).Query()
@@ -6828,24 +7033,24 @@ type (
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
 		ChannelMonitor, ChannelMonitorDailyRollup, ChannelMonitorHistory,
-		ChannelMonitorRequestTemplate, CompositeModelRoute,
-		ErrorPassthroughRule, Group, IdempotencyRecord, IdentityAdoptionDecision,
-		PaymentAuditLog, PaymentOrder, PaymentProviderInstance, PendingAuthSession,
-		PromoCode, PromoCodeUsage, Proxy, RedeemCode, SecuritySecret, Setting,
-		SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog, User,
-		UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
+		ChannelMonitorRequestTemplate, CompositeModelRoute, ErrorPassthroughRule,
+		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
+		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
+		PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode, SecuritySecret,
+		Setting, SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog,
+		User, UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
 		UserPlatformQuota, UserSubscription []ent.Hook
 	}
 	inters struct {
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
 		ChannelMonitor, ChannelMonitorDailyRollup, ChannelMonitorHistory,
-		ChannelMonitorRequestTemplate, CompositeModelRoute,
-		ErrorPassthroughRule, Group, IdempotencyRecord, IdentityAdoptionDecision,
-		PaymentAuditLog, PaymentOrder, PaymentProviderInstance, PendingAuthSession,
-		PromoCode, PromoCodeUsage, Proxy, RedeemCode, SecuritySecret, Setting,
-		SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog, User,
-		UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
+		ChannelMonitorRequestTemplate, CompositeModelRoute, ErrorPassthroughRule,
+		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
+		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
+		PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode, SecuritySecret,
+		Setting, SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog,
+		User, UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
 		UserPlatformQuota, UserSubscription []ent.Interceptor
 	}
 )

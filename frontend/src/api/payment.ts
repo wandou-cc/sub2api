@@ -11,7 +11,9 @@ import type {
   CheckoutInfoResponse,
   CreateOrderRequest,
   CreateOrderResult,
-  PaymentOrder
+  PaymentOrder,
+  RechargeLotteryOpportunity,
+  RechargeLotteryOverview,
 } from '@/types/payment'
 import type { BasePaginationResponse } from '@/types'
 
@@ -42,6 +44,16 @@ export const paymentAPI = {
   /** Get payment method limits and fee rates */
   getLimits() {
     return apiClient.get<MethodLimitsResponse>('/payment/limits')
+  },
+
+  /** Get recharge blind-box opportunities and recent results. */
+  getRechargeLottery() {
+    return apiClient.get<RechargeLotteryOverview>('/payment/lottery')
+  },
+
+  /** Open the blind box issued for a completed recharge order. */
+  drawRechargeLottery(orderId: number) {
+    return apiClient.post<RechargeLotteryOpportunity>(`/payment/orders/${orderId}/lottery/draw`)
   },
 
   /** Create a new payment order */

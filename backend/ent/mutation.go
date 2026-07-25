@@ -39,6 +39,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
 	"github.com/Wei-Shaw/sub2api/ent/setting"
@@ -90,6 +91,7 @@ const (
 	TypePromoCode                     = "PromoCode"
 	TypePromoCodeUsage                = "PromoCodeUsage"
 	TypeProxy                         = "Proxy"
+	TypeRechargeLotteryDraw           = "RechargeLotteryDraw"
 	TypeRedeemCode                    = "RedeemCode"
 	TypeSecuritySecret                = "SecuritySecret"
 	TypeSetting                       = "Setting"
@@ -28778,60 +28780,62 @@ func (m *PaymentAuditLogMutation) ResetEdge(name string) error {
 // PaymentOrderMutation represents an operation that mutates the PaymentOrder nodes in the graph.
 type PaymentOrderMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *int64
-	user_email               *string
-	user_name                *string
-	user_notes               *string
-	amount                   *float64
-	addamount                *float64
-	pay_amount               *float64
-	addpay_amount            *float64
-	fee_rate                 *float64
-	addfee_rate              *float64
-	recharge_code            *string
-	out_trade_no             *string
-	payment_type             *string
-	payment_trade_no         *string
-	pay_url                  *string
-	qr_code                  *string
-	qr_code_img              *string
-	order_type               *string
-	plan_id                  *int64
-	addplan_id               *int64
-	subscription_group_id    *int64
-	addsubscription_group_id *int64
-	subscription_days        *int
-	addsubscription_days     *int
-	provider_instance_id     *string
-	provider_key             *string
-	provider_snapshot        *map[string]interface{}
-	status                   *string
-	refund_amount            *float64
-	addrefund_amount         *float64
-	refund_reason            *string
-	refund_at                *time.Time
-	force_refund             *bool
-	refund_requested_at      *time.Time
-	refund_request_reason    *string
-	refund_requested_by      *string
-	expires_at               *time.Time
-	paid_at                  *time.Time
-	completed_at             *time.Time
-	failed_at                *time.Time
-	failed_reason            *string
-	client_ip                *string
-	src_host                 *string
-	src_url                  *string
-	created_at               *time.Time
-	updated_at               *time.Time
-	clearedFields            map[string]struct{}
-	user                     *int64
-	cleareduser              bool
-	done                     bool
-	oldValue                 func(context.Context) (*PaymentOrder, error)
-	predicates               []predicate.PaymentOrder
+	op                           Op
+	typ                          string
+	id                           *int64
+	user_email                   *string
+	user_name                    *string
+	user_notes                   *string
+	amount                       *float64
+	addamount                    *float64
+	pay_amount                   *float64
+	addpay_amount                *float64
+	fee_rate                     *float64
+	addfee_rate                  *float64
+	recharge_code                *string
+	out_trade_no                 *string
+	payment_type                 *string
+	payment_trade_no             *string
+	pay_url                      *string
+	qr_code                      *string
+	qr_code_img                  *string
+	order_type                   *string
+	plan_id                      *int64
+	addplan_id                   *int64
+	subscription_group_id        *int64
+	addsubscription_group_id     *int64
+	subscription_days            *int
+	addsubscription_days         *int
+	provider_instance_id         *string
+	provider_key                 *string
+	provider_snapshot            *map[string]interface{}
+	status                       *string
+	refund_amount                *float64
+	addrefund_amount             *float64
+	refund_reason                *string
+	refund_at                    *time.Time
+	force_refund                 *bool
+	refund_requested_at          *time.Time
+	refund_request_reason        *string
+	refund_requested_by          *string
+	expires_at                   *time.Time
+	paid_at                      *time.Time
+	completed_at                 *time.Time
+	failed_at                    *time.Time
+	failed_reason                *string
+	client_ip                    *string
+	src_host                     *string
+	src_url                      *string
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	clearedFields                map[string]struct{}
+	user                         *int64
+	cleareduser                  bool
+	recharge_lottery_draw        *int64
+	clearedrecharge_lottery_draw bool
+	done                         bool
+	oldValue                     func(context.Context) (*PaymentOrder, error)
+	predicates                   []predicate.PaymentOrder
 }
 
 var _ ent.Mutation = (*PaymentOrderMutation)(nil)
@@ -30766,6 +30770,45 @@ func (m *PaymentOrderMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// SetRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by id.
+func (m *PaymentOrderMutation) SetRechargeLotteryDrawID(id int64) {
+	m.recharge_lottery_draw = &id
+}
+
+// ClearRechargeLotteryDraw clears the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (m *PaymentOrderMutation) ClearRechargeLotteryDraw() {
+	m.clearedrecharge_lottery_draw = true
+}
+
+// RechargeLotteryDrawCleared reports if the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity was cleared.
+func (m *PaymentOrderMutation) RechargeLotteryDrawCleared() bool {
+	return m.clearedrecharge_lottery_draw
+}
+
+// RechargeLotteryDrawID returns the "recharge_lottery_draw" edge ID in the mutation.
+func (m *PaymentOrderMutation) RechargeLotteryDrawID() (id int64, exists bool) {
+	if m.recharge_lottery_draw != nil {
+		return *m.recharge_lottery_draw, true
+	}
+	return
+}
+
+// RechargeLotteryDrawIDs returns the "recharge_lottery_draw" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RechargeLotteryDrawID instead. It exists only for internal usage by the builders.
+func (m *PaymentOrderMutation) RechargeLotteryDrawIDs() (ids []int64) {
+	if id := m.recharge_lottery_draw; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRechargeLotteryDraw resets all changes to the "recharge_lottery_draw" edge.
+func (m *PaymentOrderMutation) ResetRechargeLotteryDraw() {
+	m.recharge_lottery_draw = nil
+	m.clearedrecharge_lottery_draw = false
+}
+
 // Where appends a list predicates to the PaymentOrderMutation builder.
 func (m *PaymentOrderMutation) Where(ps ...predicate.PaymentOrder) {
 	m.predicates = append(m.predicates, ps...)
@@ -31755,9 +31798,12 @@ func (m *PaymentOrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PaymentOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, paymentorder.EdgeUser)
+	}
+	if m.recharge_lottery_draw != nil {
+		edges = append(edges, paymentorder.EdgeRechargeLotteryDraw)
 	}
 	return edges
 }
@@ -31770,13 +31816,17 @@ func (m *PaymentOrderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case paymentorder.EdgeRechargeLotteryDraw:
+		if id := m.recharge_lottery_draw; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PaymentOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -31788,9 +31838,12 @@ func (m *PaymentOrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PaymentOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, paymentorder.EdgeUser)
+	}
+	if m.clearedrecharge_lottery_draw {
+		edges = append(edges, paymentorder.EdgeRechargeLotteryDraw)
 	}
 	return edges
 }
@@ -31801,6 +31854,8 @@ func (m *PaymentOrderMutation) EdgeCleared(name string) bool {
 	switch name {
 	case paymentorder.EdgeUser:
 		return m.cleareduser
+	case paymentorder.EdgeRechargeLotteryDraw:
+		return m.clearedrecharge_lottery_draw
 	}
 	return false
 }
@@ -31812,6 +31867,9 @@ func (m *PaymentOrderMutation) ClearEdge(name string) error {
 	case paymentorder.EdgeUser:
 		m.ClearUser()
 		return nil
+	case paymentorder.EdgeRechargeLotteryDraw:
+		m.ClearRechargeLotteryDraw()
+		return nil
 	}
 	return fmt.Errorf("unknown PaymentOrder unique edge %s", name)
 }
@@ -31822,6 +31880,9 @@ func (m *PaymentOrderMutation) ResetEdge(name string) error {
 	switch name {
 	case paymentorder.EdgeUser:
 		m.ResetUser()
+		return nil
+	case paymentorder.EdgeRechargeLotteryDraw:
+		m.ResetRechargeLotteryDraw()
 		return nil
 	}
 	return fmt.Errorf("unknown PaymentOrder edge %s", name)
@@ -37372,6 +37433,1008 @@ func (m *ProxyMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Proxy edge %s", name)
+}
+
+// RechargeLotteryDrawMutation represents an operation that mutates the RechargeLotteryDraw nodes in the graph.
+type RechargeLotteryDrawMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	recharge_amount    *float64
+	addrecharge_amount *float64
+	max_rarity         *string
+	rarity             *string
+	reward_amount      *float64
+	addreward_amount   *float64
+	balance_after      *float64
+	addbalance_after   *float64
+	claimed_at         *time.Time
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	user               *int64
+	cleareduser        bool
+	_order             *int64
+	cleared_order      bool
+	done               bool
+	oldValue           func(context.Context) (*RechargeLotteryDraw, error)
+	predicates         []predicate.RechargeLotteryDraw
+}
+
+var _ ent.Mutation = (*RechargeLotteryDrawMutation)(nil)
+
+// rechargelotterydrawOption allows management of the mutation configuration using functional options.
+type rechargelotterydrawOption func(*RechargeLotteryDrawMutation)
+
+// newRechargeLotteryDrawMutation creates new mutation for the RechargeLotteryDraw entity.
+func newRechargeLotteryDrawMutation(c config, op Op, opts ...rechargelotterydrawOption) *RechargeLotteryDrawMutation {
+	m := &RechargeLotteryDrawMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRechargeLotteryDraw,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRechargeLotteryDrawID sets the ID field of the mutation.
+func withRechargeLotteryDrawID(id int64) rechargelotterydrawOption {
+	return func(m *RechargeLotteryDrawMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RechargeLotteryDraw
+		)
+		m.oldValue = func(ctx context.Context) (*RechargeLotteryDraw, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RechargeLotteryDraw.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRechargeLotteryDraw sets the old RechargeLotteryDraw of the mutation.
+func withRechargeLotteryDraw(node *RechargeLotteryDraw) rechargelotterydrawOption {
+	return func(m *RechargeLotteryDrawMutation) {
+		m.oldValue = func(context.Context) (*RechargeLotteryDraw, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RechargeLotteryDrawMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RechargeLotteryDrawMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RechargeLotteryDrawMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RechargeLotteryDrawMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RechargeLotteryDraw.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *RechargeLotteryDrawMutation) SetUserID(i int64) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *RechargeLotteryDrawMutation) UserID() (r int64, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *RechargeLotteryDrawMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *RechargeLotteryDrawMutation) SetOrderID(i int64) {
+	m._order = &i
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *RechargeLotteryDrawMutation) OrderID() (r int64, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldOrderID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *RechargeLotteryDrawMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetRechargeAmount sets the "recharge_amount" field.
+func (m *RechargeLotteryDrawMutation) SetRechargeAmount(f float64) {
+	m.recharge_amount = &f
+	m.addrecharge_amount = nil
+}
+
+// RechargeAmount returns the value of the "recharge_amount" field in the mutation.
+func (m *RechargeLotteryDrawMutation) RechargeAmount() (r float64, exists bool) {
+	v := m.recharge_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRechargeAmount returns the old "recharge_amount" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldRechargeAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRechargeAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRechargeAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRechargeAmount: %w", err)
+	}
+	return oldValue.RechargeAmount, nil
+}
+
+// AddRechargeAmount adds f to the "recharge_amount" field.
+func (m *RechargeLotteryDrawMutation) AddRechargeAmount(f float64) {
+	if m.addrecharge_amount != nil {
+		*m.addrecharge_amount += f
+	} else {
+		m.addrecharge_amount = &f
+	}
+}
+
+// AddedRechargeAmount returns the value that was added to the "recharge_amount" field in this mutation.
+func (m *RechargeLotteryDrawMutation) AddedRechargeAmount() (r float64, exists bool) {
+	v := m.addrecharge_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRechargeAmount resets all changes to the "recharge_amount" field.
+func (m *RechargeLotteryDrawMutation) ResetRechargeAmount() {
+	m.recharge_amount = nil
+	m.addrecharge_amount = nil
+}
+
+// SetMaxRarity sets the "max_rarity" field.
+func (m *RechargeLotteryDrawMutation) SetMaxRarity(s string) {
+	m.max_rarity = &s
+}
+
+// MaxRarity returns the value of the "max_rarity" field in the mutation.
+func (m *RechargeLotteryDrawMutation) MaxRarity() (r string, exists bool) {
+	v := m.max_rarity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxRarity returns the old "max_rarity" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldMaxRarity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxRarity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxRarity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxRarity: %w", err)
+	}
+	return oldValue.MaxRarity, nil
+}
+
+// ResetMaxRarity resets all changes to the "max_rarity" field.
+func (m *RechargeLotteryDrawMutation) ResetMaxRarity() {
+	m.max_rarity = nil
+}
+
+// SetRarity sets the "rarity" field.
+func (m *RechargeLotteryDrawMutation) SetRarity(s string) {
+	m.rarity = &s
+}
+
+// Rarity returns the value of the "rarity" field in the mutation.
+func (m *RechargeLotteryDrawMutation) Rarity() (r string, exists bool) {
+	v := m.rarity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRarity returns the old "rarity" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldRarity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRarity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRarity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRarity: %w", err)
+	}
+	return oldValue.Rarity, nil
+}
+
+// ResetRarity resets all changes to the "rarity" field.
+func (m *RechargeLotteryDrawMutation) ResetRarity() {
+	m.rarity = nil
+}
+
+// SetRewardAmount sets the "reward_amount" field.
+func (m *RechargeLotteryDrawMutation) SetRewardAmount(f float64) {
+	m.reward_amount = &f
+	m.addreward_amount = nil
+}
+
+// RewardAmount returns the value of the "reward_amount" field in the mutation.
+func (m *RechargeLotteryDrawMutation) RewardAmount() (r float64, exists bool) {
+	v := m.reward_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRewardAmount returns the old "reward_amount" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldRewardAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRewardAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRewardAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRewardAmount: %w", err)
+	}
+	return oldValue.RewardAmount, nil
+}
+
+// AddRewardAmount adds f to the "reward_amount" field.
+func (m *RechargeLotteryDrawMutation) AddRewardAmount(f float64) {
+	if m.addreward_amount != nil {
+		*m.addreward_amount += f
+	} else {
+		m.addreward_amount = &f
+	}
+}
+
+// AddedRewardAmount returns the value that was added to the "reward_amount" field in this mutation.
+func (m *RechargeLotteryDrawMutation) AddedRewardAmount() (r float64, exists bool) {
+	v := m.addreward_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRewardAmount resets all changes to the "reward_amount" field.
+func (m *RechargeLotteryDrawMutation) ResetRewardAmount() {
+	m.reward_amount = nil
+	m.addreward_amount = nil
+}
+
+// SetBalanceAfter sets the "balance_after" field.
+func (m *RechargeLotteryDrawMutation) SetBalanceAfter(f float64) {
+	m.balance_after = &f
+	m.addbalance_after = nil
+}
+
+// BalanceAfter returns the value of the "balance_after" field in the mutation.
+func (m *RechargeLotteryDrawMutation) BalanceAfter() (r float64, exists bool) {
+	v := m.balance_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBalanceAfter returns the old "balance_after" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldBalanceAfter(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBalanceAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBalanceAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBalanceAfter: %w", err)
+	}
+	return oldValue.BalanceAfter, nil
+}
+
+// AddBalanceAfter adds f to the "balance_after" field.
+func (m *RechargeLotteryDrawMutation) AddBalanceAfter(f float64) {
+	if m.addbalance_after != nil {
+		*m.addbalance_after += f
+	} else {
+		m.addbalance_after = &f
+	}
+}
+
+// AddedBalanceAfter returns the value that was added to the "balance_after" field in this mutation.
+func (m *RechargeLotteryDrawMutation) AddedBalanceAfter() (r float64, exists bool) {
+	v := m.addbalance_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBalanceAfter clears the value of the "balance_after" field.
+func (m *RechargeLotteryDrawMutation) ClearBalanceAfter() {
+	m.balance_after = nil
+	m.addbalance_after = nil
+	m.clearedFields[rechargelotterydraw.FieldBalanceAfter] = struct{}{}
+}
+
+// BalanceAfterCleared returns if the "balance_after" field was cleared in this mutation.
+func (m *RechargeLotteryDrawMutation) BalanceAfterCleared() bool {
+	_, ok := m.clearedFields[rechargelotterydraw.FieldBalanceAfter]
+	return ok
+}
+
+// ResetBalanceAfter resets all changes to the "balance_after" field.
+func (m *RechargeLotteryDrawMutation) ResetBalanceAfter() {
+	m.balance_after = nil
+	m.addbalance_after = nil
+	delete(m.clearedFields, rechargelotterydraw.FieldBalanceAfter)
+}
+
+// SetClaimedAt sets the "claimed_at" field.
+func (m *RechargeLotteryDrawMutation) SetClaimedAt(t time.Time) {
+	m.claimed_at = &t
+}
+
+// ClaimedAt returns the value of the "claimed_at" field in the mutation.
+func (m *RechargeLotteryDrawMutation) ClaimedAt() (r time.Time, exists bool) {
+	v := m.claimed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClaimedAt returns the old "claimed_at" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldClaimedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClaimedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClaimedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClaimedAt: %w", err)
+	}
+	return oldValue.ClaimedAt, nil
+}
+
+// ClearClaimedAt clears the value of the "claimed_at" field.
+func (m *RechargeLotteryDrawMutation) ClearClaimedAt() {
+	m.claimed_at = nil
+	m.clearedFields[rechargelotterydraw.FieldClaimedAt] = struct{}{}
+}
+
+// ClaimedAtCleared returns if the "claimed_at" field was cleared in this mutation.
+func (m *RechargeLotteryDrawMutation) ClaimedAtCleared() bool {
+	_, ok := m.clearedFields[rechargelotterydraw.FieldClaimedAt]
+	return ok
+}
+
+// ResetClaimedAt resets all changes to the "claimed_at" field.
+func (m *RechargeLotteryDrawMutation) ResetClaimedAt() {
+	m.claimed_at = nil
+	delete(m.clearedFields, rechargelotterydraw.FieldClaimedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RechargeLotteryDrawMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RechargeLotteryDrawMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the RechargeLotteryDraw entity.
+// If the RechargeLotteryDraw object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RechargeLotteryDrawMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RechargeLotteryDrawMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *RechargeLotteryDrawMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[rechargelotterydraw.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *RechargeLotteryDrawMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *RechargeLotteryDrawMutation) UserIDs() (ids []int64) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *RechargeLotteryDrawMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearOrder clears the "order" edge to the PaymentOrder entity.
+func (m *RechargeLotteryDrawMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[rechargelotterydraw.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the PaymentOrder entity was cleared.
+func (m *RechargeLotteryDrawMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *RechargeLotteryDrawMutation) OrderIDs() (ids []int64) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *RechargeLotteryDrawMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the RechargeLotteryDrawMutation builder.
+func (m *RechargeLotteryDrawMutation) Where(ps ...predicate.RechargeLotteryDraw) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RechargeLotteryDrawMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RechargeLotteryDrawMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RechargeLotteryDraw, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RechargeLotteryDrawMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RechargeLotteryDrawMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RechargeLotteryDraw).
+func (m *RechargeLotteryDrawMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RechargeLotteryDrawMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.user != nil {
+		fields = append(fields, rechargelotterydraw.FieldUserID)
+	}
+	if m._order != nil {
+		fields = append(fields, rechargelotterydraw.FieldOrderID)
+	}
+	if m.recharge_amount != nil {
+		fields = append(fields, rechargelotterydraw.FieldRechargeAmount)
+	}
+	if m.max_rarity != nil {
+		fields = append(fields, rechargelotterydraw.FieldMaxRarity)
+	}
+	if m.rarity != nil {
+		fields = append(fields, rechargelotterydraw.FieldRarity)
+	}
+	if m.reward_amount != nil {
+		fields = append(fields, rechargelotterydraw.FieldRewardAmount)
+	}
+	if m.balance_after != nil {
+		fields = append(fields, rechargelotterydraw.FieldBalanceAfter)
+	}
+	if m.claimed_at != nil {
+		fields = append(fields, rechargelotterydraw.FieldClaimedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, rechargelotterydraw.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RechargeLotteryDrawMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case rechargelotterydraw.FieldUserID:
+		return m.UserID()
+	case rechargelotterydraw.FieldOrderID:
+		return m.OrderID()
+	case rechargelotterydraw.FieldRechargeAmount:
+		return m.RechargeAmount()
+	case rechargelotterydraw.FieldMaxRarity:
+		return m.MaxRarity()
+	case rechargelotterydraw.FieldRarity:
+		return m.Rarity()
+	case rechargelotterydraw.FieldRewardAmount:
+		return m.RewardAmount()
+	case rechargelotterydraw.FieldBalanceAfter:
+		return m.BalanceAfter()
+	case rechargelotterydraw.FieldClaimedAt:
+		return m.ClaimedAt()
+	case rechargelotterydraw.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RechargeLotteryDrawMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case rechargelotterydraw.FieldUserID:
+		return m.OldUserID(ctx)
+	case rechargelotterydraw.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case rechargelotterydraw.FieldRechargeAmount:
+		return m.OldRechargeAmount(ctx)
+	case rechargelotterydraw.FieldMaxRarity:
+		return m.OldMaxRarity(ctx)
+	case rechargelotterydraw.FieldRarity:
+		return m.OldRarity(ctx)
+	case rechargelotterydraw.FieldRewardAmount:
+		return m.OldRewardAmount(ctx)
+	case rechargelotterydraw.FieldBalanceAfter:
+		return m.OldBalanceAfter(ctx)
+	case rechargelotterydraw.FieldClaimedAt:
+		return m.OldClaimedAt(ctx)
+	case rechargelotterydraw.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown RechargeLotteryDraw field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RechargeLotteryDrawMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case rechargelotterydraw.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case rechargelotterydraw.FieldOrderID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case rechargelotterydraw.FieldRechargeAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRechargeAmount(v)
+		return nil
+	case rechargelotterydraw.FieldMaxRarity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxRarity(v)
+		return nil
+	case rechargelotterydraw.FieldRarity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRarity(v)
+		return nil
+	case rechargelotterydraw.FieldRewardAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRewardAmount(v)
+		return nil
+	case rechargelotterydraw.FieldBalanceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBalanceAfter(v)
+		return nil
+	case rechargelotterydraw.FieldClaimedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClaimedAt(v)
+		return nil
+	case rechargelotterydraw.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RechargeLotteryDrawMutation) AddedFields() []string {
+	var fields []string
+	if m.addrecharge_amount != nil {
+		fields = append(fields, rechargelotterydraw.FieldRechargeAmount)
+	}
+	if m.addreward_amount != nil {
+		fields = append(fields, rechargelotterydraw.FieldRewardAmount)
+	}
+	if m.addbalance_after != nil {
+		fields = append(fields, rechargelotterydraw.FieldBalanceAfter)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RechargeLotteryDrawMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case rechargelotterydraw.FieldRechargeAmount:
+		return m.AddedRechargeAmount()
+	case rechargelotterydraw.FieldRewardAmount:
+		return m.AddedRewardAmount()
+	case rechargelotterydraw.FieldBalanceAfter:
+		return m.AddedBalanceAfter()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RechargeLotteryDrawMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case rechargelotterydraw.FieldRechargeAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRechargeAmount(v)
+		return nil
+	case rechargelotterydraw.FieldRewardAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRewardAmount(v)
+		return nil
+	case rechargelotterydraw.FieldBalanceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBalanceAfter(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RechargeLotteryDrawMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(rechargelotterydraw.FieldBalanceAfter) {
+		fields = append(fields, rechargelotterydraw.FieldBalanceAfter)
+	}
+	if m.FieldCleared(rechargelotterydraw.FieldClaimedAt) {
+		fields = append(fields, rechargelotterydraw.FieldClaimedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RechargeLotteryDrawMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RechargeLotteryDrawMutation) ClearField(name string) error {
+	switch name {
+	case rechargelotterydraw.FieldBalanceAfter:
+		m.ClearBalanceAfter()
+		return nil
+	case rechargelotterydraw.FieldClaimedAt:
+		m.ClearClaimedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RechargeLotteryDrawMutation) ResetField(name string) error {
+	switch name {
+	case rechargelotterydraw.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case rechargelotterydraw.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case rechargelotterydraw.FieldRechargeAmount:
+		m.ResetRechargeAmount()
+		return nil
+	case rechargelotterydraw.FieldMaxRarity:
+		m.ResetMaxRarity()
+		return nil
+	case rechargelotterydraw.FieldRarity:
+		m.ResetRarity()
+		return nil
+	case rechargelotterydraw.FieldRewardAmount:
+		m.ResetRewardAmount()
+		return nil
+	case rechargelotterydraw.FieldBalanceAfter:
+		m.ResetBalanceAfter()
+		return nil
+	case rechargelotterydraw.FieldClaimedAt:
+		m.ResetClaimedAt()
+		return nil
+	case rechargelotterydraw.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RechargeLotteryDrawMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, rechargelotterydraw.EdgeUser)
+	}
+	if m._order != nil {
+		edges = append(edges, rechargelotterydraw.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RechargeLotteryDrawMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case rechargelotterydraw.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case rechargelotterydraw.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RechargeLotteryDrawMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RechargeLotteryDrawMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RechargeLotteryDrawMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, rechargelotterydraw.EdgeUser)
+	}
+	if m.cleared_order {
+		edges = append(edges, rechargelotterydraw.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RechargeLotteryDrawMutation) EdgeCleared(name string) bool {
+	switch name {
+	case rechargelotterydraw.EdgeUser:
+		return m.cleareduser
+	case rechargelotterydraw.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RechargeLotteryDrawMutation) ClearEdge(name string) error {
+	switch name {
+	case rechargelotterydraw.EdgeUser:
+		m.ClearUser()
+		return nil
+	case rechargelotterydraw.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RechargeLotteryDrawMutation) ResetEdge(name string) error {
+	switch name {
+	case rechargelotterydraw.EdgeUser:
+		m.ResetUser()
+		return nil
+	case rechargelotterydraw.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown RechargeLotteryDraw edge %s", name)
 }
 
 // RedeemCodeMutation represents an operation that mutates the RedeemCode nodes in the graph.
@@ -47209,6 +48272,9 @@ type UserMutation struct {
 	payment_orders                map[int64]struct{}
 	removedpayment_orders         map[int64]struct{}
 	clearedpayment_orders         bool
+	recharge_lottery_draws        map[int64]struct{}
+	removedrecharge_lottery_draws map[int64]struct{}
+	clearedrecharge_lottery_draws bool
 	auth_identities               map[int64]struct{}
 	removedauth_identities        map[int64]struct{}
 	clearedauth_identities        bool
@@ -48924,6 +49990,60 @@ func (m *UserMutation) ResetPaymentOrders() {
 	m.removedpayment_orders = nil
 }
 
+// AddRechargeLotteryDrawIDs adds the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity by ids.
+func (m *UserMutation) AddRechargeLotteryDrawIDs(ids ...int64) {
+	if m.recharge_lottery_draws == nil {
+		m.recharge_lottery_draws = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.recharge_lottery_draws[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRechargeLotteryDraws clears the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity.
+func (m *UserMutation) ClearRechargeLotteryDraws() {
+	m.clearedrecharge_lottery_draws = true
+}
+
+// RechargeLotteryDrawsCleared reports if the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity was cleared.
+func (m *UserMutation) RechargeLotteryDrawsCleared() bool {
+	return m.clearedrecharge_lottery_draws
+}
+
+// RemoveRechargeLotteryDrawIDs removes the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity by IDs.
+func (m *UserMutation) RemoveRechargeLotteryDrawIDs(ids ...int64) {
+	if m.removedrecharge_lottery_draws == nil {
+		m.removedrecharge_lottery_draws = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.recharge_lottery_draws, ids[i])
+		m.removedrecharge_lottery_draws[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRechargeLotteryDraws returns the removed IDs of the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity.
+func (m *UserMutation) RemovedRechargeLotteryDrawsIDs() (ids []int64) {
+	for id := range m.removedrecharge_lottery_draws {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RechargeLotteryDrawsIDs returns the "recharge_lottery_draws" edge IDs in the mutation.
+func (m *UserMutation) RechargeLotteryDrawsIDs() (ids []int64) {
+	for id := range m.recharge_lottery_draws {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRechargeLotteryDraws resets all changes to the "recharge_lottery_draws" edge.
+func (m *UserMutation) ResetRechargeLotteryDraws() {
+	m.recharge_lottery_draws = nil
+	m.clearedrecharge_lottery_draws = false
+	m.removedrecharge_lottery_draws = nil
+}
+
 // AddAuthIdentityIDs adds the "auth_identities" edge to the AuthIdentity entity by ids.
 func (m *UserMutation) AddAuthIdentityIDs(ids ...int64) {
 	if m.auth_identities == nil {
@@ -49724,7 +50844,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -49754,6 +50874,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.payment_orders != nil {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.recharge_lottery_draws != nil {
+		edges = append(edges, user.EdgeRechargeLotteryDraws)
 	}
 	if m.auth_identities != nil {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -49831,6 +50954,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRechargeLotteryDraws:
+		ids := make([]ent.Value, 0, len(m.recharge_lottery_draws))
+		for id := range m.recharge_lottery_draws {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAuthIdentities:
 		ids := make([]ent.Value, 0, len(m.auth_identities))
 		for id := range m.auth_identities {
@@ -49855,7 +50984,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -49885,6 +51014,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedpayment_orders != nil {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.removedrecharge_lottery_draws != nil {
+		edges = append(edges, user.EdgeRechargeLotteryDraws)
 	}
 	if m.removedauth_identities != nil {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -49962,6 +51094,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRechargeLotteryDraws:
+		ids := make([]ent.Value, 0, len(m.removedrecharge_lottery_draws))
+		for id := range m.removedrecharge_lottery_draws {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAuthIdentities:
 		ids := make([]ent.Value, 0, len(m.removedauth_identities))
 		for id := range m.removedauth_identities {
@@ -49986,7 +51124,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -50016,6 +51154,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedpayment_orders {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.clearedrecharge_lottery_draws {
+		edges = append(edges, user.EdgeRechargeLotteryDraws)
 	}
 	if m.clearedauth_identities {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -50053,6 +51194,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedpromo_code_usages
 	case user.EdgePaymentOrders:
 		return m.clearedpayment_orders
+	case user.EdgeRechargeLotteryDraws:
+		return m.clearedrecharge_lottery_draws
 	case user.EdgeAuthIdentities:
 		return m.clearedauth_identities
 	case user.EdgePendingAuthSessions:
@@ -50104,6 +51247,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgePaymentOrders:
 		m.ResetPaymentOrders()
+		return nil
+	case user.EdgeRechargeLotteryDraws:
+		m.ResetRechargeLotteryDraws()
 		return nil
 	case user.EdgeAuthIdentities:
 		m.ResetAuthIdentities()

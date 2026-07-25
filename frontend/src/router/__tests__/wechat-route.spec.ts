@@ -70,4 +70,14 @@ describe('router WeChat OAuth route', () => {
     expect(route?.meta.requiresAuth).toBe(false)
     expect(route?.meta.title).toBe('UClaw')
   })
+
+  it('registers the recharge lottery as an authenticated payment route', async () => {
+    const { default: router } = await import('@/router')
+    const route = router.getRoutes().find((record) => record.name === 'RechargeLottery')
+
+    expect(route?.path).toBe('/lottery')
+    expect(route?.meta.requiresAuth).toBe(true)
+    expect(route?.meta.requiresPayment).toBe(true)
+    expect(route?.meta.titleKey).toBe('payment.lottery.title')
+  })
 })

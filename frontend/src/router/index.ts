@@ -257,7 +257,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
-      title: 'Speed Rank',
+      title: 'Token Arena',
       titleKey: 'speedRank.title',
       descriptionKey: 'speedRank.description'
     }
@@ -311,6 +311,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/contact',
+    name: 'Contact',
+    component: () => import('@/views/user/ContactView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Contact Us',
+      titleKey: 'contact.title',
+      descriptionKey: 'contact.description'
+    }
+  },
+  {
     path: '/subscriptions',
     name: 'Subscriptions',
     component: () => import('@/views/user/SubscriptionsView.vue'),
@@ -332,6 +344,19 @@ const routes: RouteRecordRaw[] = [
       title: 'Purchase Subscription',
       titleKey: 'nav.buySubscription',
       descriptionKey: 'purchase.description',
+      requiresPayment: true
+    }
+  },
+  {
+    path: '/lottery',
+    name: 'RechargeLottery',
+    component: () => import('@/views/user/RechargeLotteryView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Blind Box Draw',
+      titleKey: 'payment.lottery.title',
+      descriptionKey: 'payment.lottery.description',
       requiresPayment: true
     }
   },

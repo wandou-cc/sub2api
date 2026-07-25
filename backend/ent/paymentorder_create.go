@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/user"
 )
 
@@ -478,6 +479,25 @@ func (_c *PaymentOrderCreate) SetUser(v *User) *PaymentOrderCreate {
 	return _c.SetUserID(v.ID)
 }
 
+// SetRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID.
+func (_c *PaymentOrderCreate) SetRechargeLotteryDrawID(id int64) *PaymentOrderCreate {
+	_c.mutation.SetRechargeLotteryDrawID(id)
+	return _c
+}
+
+// SetNillableRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableRechargeLotteryDrawID(id *int64) *PaymentOrderCreate {
+	if id != nil {
+		_c = _c.SetRechargeLotteryDrawID(*id)
+	}
+	return _c
+}
+
+// SetRechargeLotteryDraw sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (_c *PaymentOrderCreate) SetRechargeLotteryDraw(v *RechargeLotteryDraw) *PaymentOrderCreate {
+	return _c.SetRechargeLotteryDrawID(v.ID)
+}
+
 // Mutation returns the PaymentOrderMutation object of the builder.
 func (_c *PaymentOrderCreate) Mutation() *PaymentOrderMutation {
 	return _c.mutation
@@ -868,6 +888,22 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RechargeLotteryDrawIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   paymentorder.RechargeLotteryDrawTable,
+			Columns: []string{paymentorder.RechargeLotteryDrawColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

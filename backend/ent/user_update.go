@@ -19,6 +19,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/pendingauthsession"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -582,6 +583,21 @@ func (_u *UserUpdate) AddPaymentOrders(v ...*PaymentOrder) *UserUpdate {
 	return _u.AddPaymentOrderIDs(ids...)
 }
 
+// AddRechargeLotteryDrawIDs adds the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity by IDs.
+func (_u *UserUpdate) AddRechargeLotteryDrawIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddRechargeLotteryDrawIDs(ids...)
+	return _u
+}
+
+// AddRechargeLotteryDraws adds the "recharge_lottery_draws" edges to the RechargeLotteryDraw entity.
+func (_u *UserUpdate) AddRechargeLotteryDraws(v ...*RechargeLotteryDraw) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRechargeLotteryDrawIDs(ids...)
+}
+
 // AddAuthIdentityIDs adds the "auth_identities" edge to the AuthIdentity entity by IDs.
 func (_u *UserUpdate) AddAuthIdentityIDs(ids ...int64) *UserUpdate {
 	_u.mutation.AddAuthIdentityIDs(ids...)
@@ -840,6 +856,27 @@ func (_u *UserUpdate) RemovePaymentOrders(v ...*PaymentOrder) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePaymentOrderIDs(ids...)
+}
+
+// ClearRechargeLotteryDraws clears all "recharge_lottery_draws" edges to the RechargeLotteryDraw entity.
+func (_u *UserUpdate) ClearRechargeLotteryDraws() *UserUpdate {
+	_u.mutation.ClearRechargeLotteryDraws()
+	return _u
+}
+
+// RemoveRechargeLotteryDrawIDs removes the "recharge_lottery_draws" edge to RechargeLotteryDraw entities by IDs.
+func (_u *UserUpdate) RemoveRechargeLotteryDrawIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemoveRechargeLotteryDrawIDs(ids...)
+	return _u
+}
+
+// RemoveRechargeLotteryDraws removes "recharge_lottery_draws" edges to RechargeLotteryDraw entities.
+func (_u *UserUpdate) RemoveRechargeLotteryDraws(v ...*RechargeLotteryDraw) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRechargeLotteryDrawIDs(ids...)
 }
 
 // ClearAuthIdentities clears all "auth_identities" edges to the AuthIdentity entity.
@@ -1561,6 +1598,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.RechargeLotteryDrawsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRechargeLotteryDrawsIDs(); len(nodes) > 0 && !_u.mutation.RechargeLotteryDrawsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeLotteryDrawsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.AuthIdentitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2258,6 +2340,21 @@ func (_u *UserUpdateOne) AddPaymentOrders(v ...*PaymentOrder) *UserUpdateOne {
 	return _u.AddPaymentOrderIDs(ids...)
 }
 
+// AddRechargeLotteryDrawIDs adds the "recharge_lottery_draws" edge to the RechargeLotteryDraw entity by IDs.
+func (_u *UserUpdateOne) AddRechargeLotteryDrawIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddRechargeLotteryDrawIDs(ids...)
+	return _u
+}
+
+// AddRechargeLotteryDraws adds the "recharge_lottery_draws" edges to the RechargeLotteryDraw entity.
+func (_u *UserUpdateOne) AddRechargeLotteryDraws(v ...*RechargeLotteryDraw) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRechargeLotteryDrawIDs(ids...)
+}
+
 // AddAuthIdentityIDs adds the "auth_identities" edge to the AuthIdentity entity by IDs.
 func (_u *UserUpdateOne) AddAuthIdentityIDs(ids ...int64) *UserUpdateOne {
 	_u.mutation.AddAuthIdentityIDs(ids...)
@@ -2516,6 +2613,27 @@ func (_u *UserUpdateOne) RemovePaymentOrders(v ...*PaymentOrder) *UserUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePaymentOrderIDs(ids...)
+}
+
+// ClearRechargeLotteryDraws clears all "recharge_lottery_draws" edges to the RechargeLotteryDraw entity.
+func (_u *UserUpdateOne) ClearRechargeLotteryDraws() *UserUpdateOne {
+	_u.mutation.ClearRechargeLotteryDraws()
+	return _u
+}
+
+// RemoveRechargeLotteryDrawIDs removes the "recharge_lottery_draws" edge to RechargeLotteryDraw entities by IDs.
+func (_u *UserUpdateOne) RemoveRechargeLotteryDrawIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemoveRechargeLotteryDrawIDs(ids...)
+	return _u
+}
+
+// RemoveRechargeLotteryDraws removes "recharge_lottery_draws" edges to RechargeLotteryDraw entities.
+func (_u *UserUpdateOne) RemoveRechargeLotteryDraws(v ...*RechargeLotteryDraw) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRechargeLotteryDrawIDs(ids...)
 }
 
 // ClearAuthIdentities clears all "auth_identities" edges to the AuthIdentity entity.
@@ -3260,6 +3378,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RechargeLotteryDrawsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRechargeLotteryDrawsIDs(); len(nodes) > 0 && !_u.mutation.RechargeLotteryDrawsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeLotteryDrawsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeLotteryDrawsTable,
+			Columns: []string{user.RechargeLotteryDrawsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

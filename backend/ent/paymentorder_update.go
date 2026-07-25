@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/user"
 )
 
@@ -719,6 +720,25 @@ func (_u *PaymentOrderUpdate) SetUser(v *User) *PaymentOrderUpdate {
 	return _u.SetUserID(v.ID)
 }
 
+// SetRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID.
+func (_u *PaymentOrderUpdate) SetRechargeLotteryDrawID(id int64) *PaymentOrderUpdate {
+	_u.mutation.SetRechargeLotteryDrawID(id)
+	return _u
+}
+
+// SetNillableRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableRechargeLotteryDrawID(id *int64) *PaymentOrderUpdate {
+	if id != nil {
+		_u = _u.SetRechargeLotteryDrawID(*id)
+	}
+	return _u
+}
+
+// SetRechargeLotteryDraw sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (_u *PaymentOrderUpdate) SetRechargeLotteryDraw(v *RechargeLotteryDraw) *PaymentOrderUpdate {
+	return _u.SetRechargeLotteryDrawID(v.ID)
+}
+
 // Mutation returns the PaymentOrderMutation object of the builder.
 func (_u *PaymentOrderUpdate) Mutation() *PaymentOrderMutation {
 	return _u.mutation
@@ -727,6 +747,12 @@ func (_u *PaymentOrderUpdate) Mutation() *PaymentOrderMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *PaymentOrderUpdate) ClearUser() *PaymentOrderUpdate {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearRechargeLotteryDraw clears the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (_u *PaymentOrderUpdate) ClearRechargeLotteryDraw() *PaymentOrderUpdate {
+	_u.mutation.ClearRechargeLotteryDraw()
 	return _u
 }
 
@@ -1065,6 +1091,35 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RechargeLotteryDrawCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   paymentorder.RechargeLotteryDrawTable,
+			Columns: []string{paymentorder.RechargeLotteryDrawColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeLotteryDrawIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   paymentorder.RechargeLotteryDrawTable,
+			Columns: []string{paymentorder.RechargeLotteryDrawColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -1782,6 +1837,25 @@ func (_u *PaymentOrderUpdateOne) SetUser(v *User) *PaymentOrderUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
+// SetRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID.
+func (_u *PaymentOrderUpdateOne) SetRechargeLotteryDrawID(id int64) *PaymentOrderUpdateOne {
+	_u.mutation.SetRechargeLotteryDrawID(id)
+	return _u
+}
+
+// SetNillableRechargeLotteryDrawID sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity by ID if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableRechargeLotteryDrawID(id *int64) *PaymentOrderUpdateOne {
+	if id != nil {
+		_u = _u.SetRechargeLotteryDrawID(*id)
+	}
+	return _u
+}
+
+// SetRechargeLotteryDraw sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (_u *PaymentOrderUpdateOne) SetRechargeLotteryDraw(v *RechargeLotteryDraw) *PaymentOrderUpdateOne {
+	return _u.SetRechargeLotteryDrawID(v.ID)
+}
+
 // Mutation returns the PaymentOrderMutation object of the builder.
 func (_u *PaymentOrderUpdateOne) Mutation() *PaymentOrderMutation {
 	return _u.mutation
@@ -1790,6 +1864,12 @@ func (_u *PaymentOrderUpdateOne) Mutation() *PaymentOrderMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *PaymentOrderUpdateOne) ClearUser() *PaymentOrderUpdateOne {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearRechargeLotteryDraw clears the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
+func (_u *PaymentOrderUpdateOne) ClearRechargeLotteryDraw() *PaymentOrderUpdateOne {
+	_u.mutation.ClearRechargeLotteryDraw()
 	return _u
 }
 
@@ -2158,6 +2238,35 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RechargeLotteryDrawCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   paymentorder.RechargeLotteryDrawTable,
+			Columns: []string{paymentorder.RechargeLotteryDrawColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeLotteryDrawIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   paymentorder.RechargeLotteryDrawTable,
+			Columns: []string{paymentorder.RechargeLotteryDrawColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

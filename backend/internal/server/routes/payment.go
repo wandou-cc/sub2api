@@ -30,6 +30,7 @@ func RegisterPaymentRoutes(
 		authenticated.GET("/checkout-info", paymentHandler.GetCheckoutInfo)
 		authenticated.GET("/plans", paymentHandler.GetPlans)
 		authenticated.GET("/limits", paymentHandler.GetLimits)
+		authenticated.GET("/lottery", paymentHandler.GetRechargeLottery)
 
 		orders := authenticated.Group("/orders")
 		{
@@ -38,6 +39,7 @@ func RegisterPaymentRoutes(
 			orders.GET("/my", paymentHandler.GetMyOrders)
 			orders.GET("/:id", paymentHandler.GetOrder)
 			orders.POST("/:id/cancel", paymentHandler.CancelOrder)
+			orders.POST("/:id/lottery/draw", paymentHandler.DrawRechargeLottery)
 			orders.POST("/:id/refund-request", paymentHandler.RequestRefund)
 			orders.GET("/refund-eligible-providers", paymentHandler.GetRefundEligibleProviders)
 		}

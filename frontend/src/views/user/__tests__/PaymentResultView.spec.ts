@@ -10,6 +10,7 @@ const pollOrderStatus = vi.hoisted(() => vi.fn())
 const verifyOrder = vi.hoisted(() => vi.fn())
 const verifyOrderPublic = vi.hoisted(() => vi.fn())
 const resolveOrderPublicByResumeToken = vi.hoisted(() => vi.fn())
+const fetchRechargeLotteryOverview = vi.hoisted(() => vi.fn())
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
@@ -33,6 +34,12 @@ vi.mock('vue-i18n', async () => {
 vi.mock('@/stores/payment', () => ({
   usePaymentStore: () => ({
     pollOrderStatus,
+  }),
+}))
+
+vi.mock('@/stores/rechargeLottery', () => ({
+  useRechargeLotteryStore: () => ({
+    fetchOverview: fetchRechargeLotteryOverview,
   }),
 }))
 
@@ -91,6 +98,7 @@ describe('PaymentResultView', () => {
     verifyOrder.mockReset()
     verifyOrderPublic.mockReset()
     resolveOrderPublicByResumeToken.mockReset()
+    fetchRechargeLotteryOverview.mockReset().mockResolvedValue(undefined)
     window.localStorage.clear()
   })
 
@@ -234,6 +242,35 @@ describe('PaymentResultView', () => {
     expect(wrapper.text()).toContain('payment.result.success')
     expect(wrapper.text()).not.toContain('payment.result.failed')
     expect(window.localStorage.getItem(PAYMENT_RECOVERY_STORAGE_KEY)).toBeNull()
+  })
+
+  it('keeps refreshing a paid balance order until fulfillment creates the lottery opportunity', async () => {
+    vi.useFakeTimers()
+    routeState.query = {
+      resume_token: 'resume-lottery-42',
+    }
+    resolveOrderPublicByResumeToken
+      .mockResolvedValueOnce({ data: orderFactory('RECHARGING') })
+      .mockResolvedValueOnce({ data: orderFactory('COMPLETED') })
+
+    const wrapper = mount(PaymentResultView, {
+      global: {
+        stubs: {
+          OrderStatusBadge: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('payment.result.success')
+    expect(fetchRechargeLotteryOverview).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(2000)
+    await flushPromises()
+
+    expect(resolveOrderPublicByResumeToken).toHaveBeenCalledTimes(2)
+    expect(fetchRechargeLotteryOverview).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-testid="recharge-lottery-panel"]').exists()).toBe(false)
   })
 
   it('falls back to order_id polling when resume-token recovery fails', async () => {
@@ -406,6 +443,8 @@ describe('PaymentResultView', () => {
     expect(verifyOrder).toHaveBeenCalledWith('auth-verify-123')
     expect(verifyOrderPublic).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('payment.result.success')
+    expect(fetchRechargeLotteryOverview).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-testid="recharge-lottery-panel"]').exists()).toBe(false)
   })
 
   it('does not use public out_trade_no verification for bare order numbers without legacy return markers', async () => {

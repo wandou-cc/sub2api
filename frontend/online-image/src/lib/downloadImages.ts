@@ -1,6 +1,7 @@
 import { zipSync } from 'fflate'
 import type { TaskRecord } from '../types'
 import { ensureImageCached } from '../store'
+import { dataUrlToBlob } from './canvasImage'
 import { getNumberedFileNameBase, sanitizeFileNamePart } from './exportFileName'
 
 const MIME_EXTENSIONS: Record<string, string> = {
@@ -108,8 +109,10 @@ async function getImageBlob(imageIdOrUrl: string): Promise<Blob> {
     src = await ensureImageCached(imageIdOrUrl) ?? imageIdOrUrl
   }
 
+  if (src.startsWith('data:')) return dataUrlToBlob(src)
+
   const res = await fetch(src)
-  if (!res.ok && !src.startsWith('data:')) throw new Error(`读取图片失败：${imageIdOrUrl}`)
+  if (!res.ok) throw new Error(`读取图片失败：${imageIdOrUrl}`)
   return await res.blob()
 }
 
@@ -131,4 +134,3 @@ function getBlobExtension(blob: Blob): string {
 function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
-

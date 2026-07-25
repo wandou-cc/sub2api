@@ -94,6 +94,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeRechargeLotteryDraw holds the string denoting the recharge_lottery_draw edge name in mutations.
+	EdgeRechargeLotteryDraw = "recharge_lottery_draw"
 	// Table holds the table name of the paymentorder in the database.
 	Table = "payment_orders"
 	// UserTable is the table that holds the user relation/edge.
@@ -103,6 +105,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// RechargeLotteryDrawTable is the table that holds the recharge_lottery_draw relation/edge.
+	RechargeLotteryDrawTable = "recharge_lottery_draws"
+	// RechargeLotteryDrawInverseTable is the table name for the RechargeLotteryDraw entity.
+	// It exists in this package in order to avoid circular dependency with the "rechargelotterydraw" package.
+	RechargeLotteryDrawInverseTable = "recharge_lottery_draws"
+	// RechargeLotteryDrawColumn is the table column denoting the recharge_lottery_draw relation/edge.
+	RechargeLotteryDrawColumn = "order_id"
 )
 
 // Columns holds all SQL columns for paymentorder fields.
@@ -410,10 +419,24 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByRechargeLotteryDrawField orders the results by recharge_lottery_draw field.
+func ByRechargeLotteryDrawField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRechargeLotteryDrawStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newRechargeLotteryDrawStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RechargeLotteryDrawInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, RechargeLotteryDrawTable, RechargeLotteryDrawColumn),
 	)
 }

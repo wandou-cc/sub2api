@@ -37,4 +37,16 @@ describe('payment api', () => {
       resume_token: 'resume-token-123',
     })
   })
+
+  it('loads the current recharge blind-box opportunities', async () => {
+    await paymentAPI.getRechargeLottery()
+
+    expect(get).toHaveBeenCalledWith('/payment/lottery')
+  })
+
+  it('claims the blind box bound to a recharge order', async () => {
+    await paymentAPI.drawRechargeLottery(42)
+
+    expect(post).toHaveBeenCalledWith('/payment/orders/42/lottery/draw')
+  })
 })

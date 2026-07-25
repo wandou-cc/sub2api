@@ -1615,6 +1615,29 @@ func HasPaymentOrdersWith(preds ...predicate.PaymentOrder) predicate.User {
 	})
 }
 
+// HasRechargeLotteryDraws applies the HasEdge predicate on the "recharge_lottery_draws" edge.
+func HasRechargeLotteryDraws() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RechargeLotteryDrawsTable, RechargeLotteryDrawsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRechargeLotteryDrawsWith applies the HasEdge predicate on the "recharge_lottery_draws" edge with a given conditions (other predicates).
+func HasRechargeLotteryDrawsWith(preds ...predicate.RechargeLotteryDraw) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRechargeLotteryDrawsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAuthIdentities applies the HasEdge predicate on the "auth_identities" edge.
 func HasAuthIdentities() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

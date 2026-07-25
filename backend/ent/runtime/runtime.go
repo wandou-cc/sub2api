@@ -31,6 +31,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/schema"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
@@ -1675,6 +1676,26 @@ func init() {
 	proxyDescExpiryWarnDays := proxyFields[10].Descriptor()
 	// proxy.DefaultExpiryWarnDays holds the default value on creation for the expiry_warn_days field.
 	proxy.DefaultExpiryWarnDays = proxyDescExpiryWarnDays.Default.(int)
+	rechargelotterydrawFields := schema.RechargeLotteryDraw{}.Fields()
+	_ = rechargelotterydrawFields
+	// rechargelotterydrawDescMaxRarity is the schema descriptor for max_rarity field.
+	rechargelotterydrawDescMaxRarity := rechargelotterydrawFields[3].Descriptor()
+	// rechargelotterydraw.MaxRarityValidator is a validator for the "max_rarity" field. It is called by the builders before save.
+	rechargelotterydraw.MaxRarityValidator = rechargelotterydrawDescMaxRarity.Validators[0].(func(string) error)
+	// rechargelotterydrawDescRarity is the schema descriptor for rarity field.
+	rechargelotterydrawDescRarity := rechargelotterydrawFields[4].Descriptor()
+	// rechargelotterydraw.DefaultRarity holds the default value on creation for the rarity field.
+	rechargelotterydraw.DefaultRarity = rechargelotterydrawDescRarity.Default.(string)
+	// rechargelotterydraw.RarityValidator is a validator for the "rarity" field. It is called by the builders before save.
+	rechargelotterydraw.RarityValidator = rechargelotterydrawDescRarity.Validators[0].(func(string) error)
+	// rechargelotterydrawDescRewardAmount is the schema descriptor for reward_amount field.
+	rechargelotterydrawDescRewardAmount := rechargelotterydrawFields[5].Descriptor()
+	// rechargelotterydraw.DefaultRewardAmount holds the default value on creation for the reward_amount field.
+	rechargelotterydraw.DefaultRewardAmount = rechargelotterydrawDescRewardAmount.Default.(float64)
+	// rechargelotterydrawDescCreatedAt is the schema descriptor for created_at field.
+	rechargelotterydrawDescCreatedAt := rechargelotterydrawFields[8].Descriptor()
+	// rechargelotterydraw.DefaultCreatedAt holds the default value on creation for the created_at field.
+	rechargelotterydraw.DefaultCreatedAt = rechargelotterydrawDescCreatedAt.Default.(func() time.Time)
 	redeemcodeFields := schema.RedeemCode{}.Fields()
 	_ = redeemcodeFields
 	// redeemcodeDescCode is the schema descriptor for code field.

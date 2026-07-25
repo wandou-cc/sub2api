@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
@@ -107,6 +107,7 @@ import {
   readPaymentRecoverySnapshot,
 } from '@/components/payment/paymentFlow'
 import { usePaymentStore } from '@/stores/payment'
+import { useRechargeLotteryStore } from '@/stores/rechargeLottery'
 import { paymentAPI } from '@/api/payment'
 import type { PublicOrderVerifyResult } from '@/api/payment'
 import type { OrderStatus, PaymentOrder } from '@/types/payment'
@@ -118,6 +119,7 @@ const { t } = i18n
 const route = useRoute()
 const router = useRouter()
 const paymentStore = usePaymentStore()
+const lotteryStore = useRechargeLotteryStore()
 
 type ResolvedOrder = PaymentOrder | PublicOrderVerifyResult
 
@@ -174,6 +176,21 @@ const isPending = computed(() => {
   return isPendingStatus(order.value?.status)
 })
 
+const completedBalanceOrderId = computed(() => {
+  if (!hasOrderId(order.value)) return 0
+  if (order.value.order_type !== 'balance' || normalizeOrderStatus(order.value.status) !== 'COMPLETED') return 0
+  return order.value.id
+})
+
+watch(completedBalanceOrderId, async (orderId) => {
+  if (!orderId) return
+  try {
+    await lotteryStore.fetchOverview()
+  } catch (cause: unknown) {
+    console.error('[recharge-lottery] Failed to refresh after recharge completion:', cause)
+  }
+})
+
 const statusTitle = computed(() => {
   if (isSuccess.value) {
     return t('payment.result.success')
@@ -225,6 +242,13 @@ function isSuccessStatus(status: string | null | undefined): boolean {
 
 function isPendingStatus(status: string | null | undefined): boolean {
   return PENDING_STATUSES.has(normalizeOrderStatus(status))
+}
+
+function shouldRefreshOrderStatus(nextOrder: ResolvedOrder | null): boolean {
+  if (isPendingStatus(nextOrder?.status)) return true
+  if (!hasOrderId(nextOrder) || nextOrder.order_type !== 'balance') return false
+  const status = normalizeOrderStatus(nextOrder.status)
+  return status === 'PAID' || status === 'RECHARGING'
 }
 
 function readRouteQueryString(key: string): string {
@@ -319,7 +343,7 @@ function clearRecoverySnapshotForTerminalStatus(status: string | null | undefine
 
 function scheduleStatusRefresh(refreshOrder: (() => Promise<ResolvedOrder | null>) | null): void {
   clearStatusRefreshTimer()
-  if (!refreshOrder || !isPending.value || refreshAttempts.value >= STATUS_REFRESH_MAX_ATTEMPTS) {
+  if (!refreshOrder || !shouldRefreshOrderStatus(order.value) || refreshAttempts.value >= STATUS_REFRESH_MAX_ATTEMPTS) {
     return
   }
 
@@ -331,7 +355,7 @@ function scheduleStatusRefresh(refreshOrder: (() => Promise<ResolvedOrder | null
       clearRecoverySnapshotForTerminalStatus(refreshedOrder.status)
     }
 
-    if (isPendingStatus(order.value?.status)) {
+    if (shouldRefreshOrderStatus(order.value)) {
       scheduleStatusRefresh(refreshOrder)
     }
   }, STATUS_REFRESH_INTERVAL_MS)
@@ -429,7 +453,8 @@ onMounted(async () => {
     return null
   }
 
-  if (isPendingStatus(order.value?.status)) {
+  if (shouldRefreshOrderStatus(order.value)) {
+    clearRecoverySnapshotForTerminalStatus(order.value?.status)
     scheduleStatusRefresh(refreshOrder)
   } else if (order.value) {
     clearRecoverySnapshotForTerminalStatus(order.value.status)

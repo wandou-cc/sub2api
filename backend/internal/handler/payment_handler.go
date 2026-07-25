@@ -226,6 +226,41 @@ func (h *PaymentHandler) GetLimits(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// GetRechargeLottery returns pending blind boxes and recent results.
+// GET /api/v1/payment/lottery
+func (h *PaymentHandler) GetRechargeLottery(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+	overview, err := h.paymentService.GetRechargeLotteryOverview(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, overview)
+}
+
+// DrawRechargeLottery opens the blind box issued for one completed recharge order.
+// POST /api/v1/payment/orders/:id/lottery/draw
+func (h *PaymentHandler) DrawRechargeLottery(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || orderID <= 0 {
+		response.BadRequest(c, "Invalid order ID")
+		return
+	}
+	result, err := h.paymentService.DrawRechargeLottery(c.Request.Context(), subject.UserID, orderID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, result)
+}
+
 // CreateOrderRequest is the request body for creating a payment order.
 type CreateOrderRequest struct {
 	Amount            float64 `json:"amount"`

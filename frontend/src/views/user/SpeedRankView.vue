@@ -1,12 +1,6 @@
 <template>
   <AppLayout>
     <main class="arena-page">
-      <header class="arena-heading">
-        <p class="arena-kicker">ARENA · {{ t('speedRank.limitedEvent') }}</p>
-        <h1>{{ t('speedRank.title') }}</h1>
-        <p>{{ t('speedRank.description') }}</p>
-      </header>
-
       <section class="round-strip" :style="{ '--countdown-progress': countdownProgress }">
         <div class="round-clock" aria-hidden="true">
           <Icon name="clock" size="lg" />
@@ -31,6 +25,10 @@
       <section class="tide-board" :aria-label="t('speedRank.todayBoard')">
         <img class="tide-board-background" :src="tideBeach" alt="" aria-hidden="true" />
         <span class="tide-glint" aria-hidden="true"></span>
+        <div class="scene-motion" aria-hidden="true">
+          <Icon name="cloud" size="xl" class="moving-cloud moving-cloud-near" />
+          <Icon name="cloud" size="xl" class="moving-cloud moving-cloud-far" />
+        </div>
 
         <header class="tide-board-heading">
           <div>
@@ -263,28 +261,12 @@ onBeforeUnmount(() => {
   color: var(--app-ink);
 }
 
-.arena-heading {
-  max-width: 48rem;
-}
-
-.arena-heading h1,
 .almanac-heading h2,
 .tide-board-heading h2 {
   margin: 0;
   font-family: var(--app-font-display);
   font-weight: 900;
   letter-spacing: 0;
-}
-
-.arena-heading h1 {
-  font-size: 2.25rem;
-  line-height: 1.15;
-}
-
-.arena-heading > p:last-child {
-  margin: 0.45rem 0 0;
-  color: var(--app-muted);
-  font-size: 0.95rem;
 }
 
 .arena-kicker {
@@ -428,6 +410,39 @@ onBeforeUnmount(() => {
   transform: rotate(-0.5deg);
   animation: tide-drift 9s ease-in-out infinite alternate;
   pointer-events: none;
+}
+
+.scene-motion {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.moving-cloud {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.92);
+  fill: rgba(255, 255, 255, 0.48);
+  filter: drop-shadow(0 0.35rem 0.35rem rgba(62, 118, 127, 0.12));
+  will-change: transform;
+}
+
+.moving-cloud-near {
+  top: 12%;
+  left: -7rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  animation: cloud-eastbound 108s linear -24s infinite;
+}
+
+.moving-cloud-far {
+  top: 25%;
+  left: -5rem;
+  width: 3.7rem;
+  height: 3.7rem;
+  opacity: 0.72;
+  animation: cloud-far-eastbound 142s linear -88s infinite;
 }
 
 .tide-board-heading {
@@ -805,6 +820,20 @@ onBeforeUnmount(() => {
   to { transform: translateX(2%) rotate(0.25deg); }
 }
 
+@keyframes cloud-eastbound {
+  0% { transform: translate3d(0, 0, 0); }
+  32% { transform: translate3d(38vw, 0.12rem, 0); }
+  68% { transform: translate3d(78vw, -0.1rem, 0); }
+  100% { transform: translate3d(calc(100vw + 12rem), 0.05rem, 0); }
+}
+
+@keyframes cloud-far-eastbound {
+  0% { transform: translate3d(0, 0, 0); }
+  38% { transform: translate3d(42vw, -0.08rem, 0); }
+  73% { transform: translate3d(80vw, 0.1rem, 0); }
+  100% { transform: translate3d(calc(100vw + 10rem), 0, 0); }
+}
+
 @keyframes medal-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-0.18rem); }
@@ -854,10 +883,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 760px) {
-  .arena-heading h1 {
-    font-size: 1.8rem;
-  }
-
   .round-strip {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.8rem;
@@ -898,6 +923,18 @@ onBeforeUnmount(() => {
 
   .tide-glint {
     top: 18%;
+  }
+
+  .moving-cloud-near {
+    top: 9%;
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .moving-cloud-far {
+    top: 20%;
+    width: 3rem;
+    height: 3rem;
   }
 
   .tide-podium {
@@ -1052,8 +1089,17 @@ onBeforeUnmount(() => {
   .rank-entry-1 .rank-medal,
   .history-entry,
   .tide-glint,
+  .moving-cloud,
   .refresh-icon-spinning {
     animation: none;
+  }
+
+  .moving-cloud-near {
+    left: 8%;
+  }
+
+  .moving-cloud-far {
+    left: 62%;
   }
 
   .castle-image,
