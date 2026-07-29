@@ -14,6 +14,7 @@ import type {
   PaymentOrder,
   RechargeLotteryOpportunity,
   RechargeLotteryOverview,
+  CarpoolOverview,
 } from '@/types/payment'
 import type { BasePaginationResponse } from '@/types'
 
@@ -39,6 +40,11 @@ export const paymentAPI = {
   /** Get all checkout page data in a single call */
   getCheckoutInfo() {
     return apiClient.get<CheckoutInfoResponse>('/payment/checkout-info')
+  },
+
+  /** Get configured carpool plans, live progress, and current user's carpool records. */
+  getCarpoolOverview() {
+    return apiClient.get<CarpoolOverview>('/payment/carpools/overview')
   },
 
   /** Get payment method limits and fee rates */

@@ -25,6 +25,8 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/batchimageevent"
 	"github.com/Wei-Shaw/sub2api/ent/batchimageitem"
 	"github.com/Wei-Shaw/sub2api/ent/batchimagejob"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolplan"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitor"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitordailyrollup"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorhistory"
@@ -84,6 +86,10 @@ type Client struct {
 	BatchImageItem *BatchImageItemClient
 	// BatchImageJob is the client for interacting with the BatchImageJob builders.
 	BatchImageJob *BatchImageJobClient
+	// CarpoolGroup is the client for interacting with the CarpoolGroup builders.
+	CarpoolGroup *CarpoolGroupClient
+	// CarpoolPlan is the client for interacting with the CarpoolPlan builders.
+	CarpoolPlan *CarpoolPlanClient
 	// ChannelMonitor is the client for interacting with the ChannelMonitor builders.
 	ChannelMonitor *ChannelMonitorClient
 	// ChannelMonitorDailyRollup is the client for interacting with the ChannelMonitorDailyRollup builders.
@@ -165,6 +171,8 @@ func (c *Client) init() {
 	c.BatchImageEvent = NewBatchImageEventClient(c.config)
 	c.BatchImageItem = NewBatchImageItemClient(c.config)
 	c.BatchImageJob = NewBatchImageJobClient(c.config)
+	c.CarpoolGroup = NewCarpoolGroupClient(c.config)
+	c.CarpoolPlan = NewCarpoolPlanClient(c.config)
 	c.ChannelMonitor = NewChannelMonitorClient(c.config)
 	c.ChannelMonitorDailyRollup = NewChannelMonitorDailyRollupClient(c.config)
 	c.ChannelMonitorHistory = NewChannelMonitorHistoryClient(c.config)
@@ -297,6 +305,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BatchImageEvent:               NewBatchImageEventClient(cfg),
 		BatchImageItem:                NewBatchImageItemClient(cfg),
 		BatchImageJob:                 NewBatchImageJobClient(cfg),
+		CarpoolGroup:                  NewCarpoolGroupClient(cfg),
+		CarpoolPlan:                   NewCarpoolPlanClient(cfg),
 		ChannelMonitor:                NewChannelMonitorClient(cfg),
 		ChannelMonitorDailyRollup:     NewChannelMonitorDailyRollupClient(cfg),
 		ChannelMonitorHistory:         NewChannelMonitorHistoryClient(cfg),
@@ -356,6 +366,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BatchImageEvent:               NewBatchImageEventClient(cfg),
 		BatchImageItem:                NewBatchImageItemClient(cfg),
 		BatchImageJob:                 NewBatchImageJobClient(cfg),
+		CarpoolGroup:                  NewCarpoolGroupClient(cfg),
+		CarpoolPlan:                   NewCarpoolPlanClient(cfg),
 		ChannelMonitor:                NewChannelMonitorClient(cfg),
 		ChannelMonitorDailyRollup:     NewChannelMonitorDailyRollupClient(cfg),
 		ChannelMonitorHistory:         NewChannelMonitorHistoryClient(cfg),
@@ -417,15 +429,16 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
 		c.AuthIdentity, c.AuthIdentityChannel, c.BatchImageEvent, c.BatchImageItem,
-		c.BatchImageJob, c.ChannelMonitor, c.ChannelMonitorDailyRollup,
-		c.ChannelMonitorHistory, c.ChannelMonitorRequestTemplate,
-		c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group, c.IdempotencyRecord,
-		c.IdentityAdoptionDecision, c.PaymentAuditLog, c.PaymentOrder,
-		c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode, c.PromoCodeUsage,
-		c.Proxy, c.RechargeLotteryDraw, c.RedeemCode, c.SecuritySecret, c.Setting,
-		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
-		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
-		c.UserPlatformQuota, c.UserSubscription,
+		c.BatchImageJob, c.CarpoolGroup, c.CarpoolPlan, c.ChannelMonitor,
+		c.ChannelMonitorDailyRollup, c.ChannelMonitorHistory,
+		c.ChannelMonitorRequestTemplate, c.CompositeModelRoute, c.ErrorPassthroughRule,
+		c.Group, c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
+		c.PaymentOrder, c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode,
+		c.PromoCodeUsage, c.Proxy, c.RechargeLotteryDraw, c.RedeemCode,
+		c.SecuritySecret, c.Setting, c.SubscriptionPlan, c.TLSFingerprintProfile,
+		c.UsageCleanupTask, c.UsageLog, c.User, c.UserAllowedGroup,
+		c.UserAttributeDefinition, c.UserAttributeValue, c.UserPlatformQuota,
+		c.UserSubscription,
 	} {
 		n.Use(hooks...)
 	}
@@ -437,15 +450,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
 		c.AuthIdentity, c.AuthIdentityChannel, c.BatchImageEvent, c.BatchImageItem,
-		c.BatchImageJob, c.ChannelMonitor, c.ChannelMonitorDailyRollup,
-		c.ChannelMonitorHistory, c.ChannelMonitorRequestTemplate,
-		c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group, c.IdempotencyRecord,
-		c.IdentityAdoptionDecision, c.PaymentAuditLog, c.PaymentOrder,
-		c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode, c.PromoCodeUsage,
-		c.Proxy, c.RechargeLotteryDraw, c.RedeemCode, c.SecuritySecret, c.Setting,
-		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
-		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
-		c.UserPlatformQuota, c.UserSubscription,
+		c.BatchImageJob, c.CarpoolGroup, c.CarpoolPlan, c.ChannelMonitor,
+		c.ChannelMonitorDailyRollup, c.ChannelMonitorHistory,
+		c.ChannelMonitorRequestTemplate, c.CompositeModelRoute, c.ErrorPassthroughRule,
+		c.Group, c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
+		c.PaymentOrder, c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode,
+		c.PromoCodeUsage, c.Proxy, c.RechargeLotteryDraw, c.RedeemCode,
+		c.SecuritySecret, c.Setting, c.SubscriptionPlan, c.TLSFingerprintProfile,
+		c.UsageCleanupTask, c.UsageLog, c.User, c.UserAllowedGroup,
+		c.UserAttributeDefinition, c.UserAttributeValue, c.UserPlatformQuota,
+		c.UserSubscription,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -474,6 +488,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BatchImageItem.mutate(ctx, m)
 	case *BatchImageJobMutation:
 		return c.BatchImageJob.mutate(ctx, m)
+	case *CarpoolGroupMutation:
+		return c.CarpoolGroup.mutate(ctx, m)
+	case *CarpoolPlanMutation:
+		return c.CarpoolPlan.mutate(ctx, m)
 	case *ChannelMonitorMutation:
 		return c.ChannelMonitor.mutate(ctx, m)
 	case *ChannelMonitorDailyRollupMutation:
@@ -2109,6 +2127,288 @@ func (c *BatchImageJobClient) mutate(ctx context.Context, m *BatchImageJobMutati
 		return (&BatchImageJobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown BatchImageJob mutation op: %q", m.Op())
+	}
+}
+
+// CarpoolGroupClient is a client for the CarpoolGroup schema.
+type CarpoolGroupClient struct {
+	config
+}
+
+// NewCarpoolGroupClient returns a client for the CarpoolGroup from the given config.
+func NewCarpoolGroupClient(c config) *CarpoolGroupClient {
+	return &CarpoolGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `carpoolgroup.Hooks(f(g(h())))`.
+func (c *CarpoolGroupClient) Use(hooks ...Hook) {
+	c.hooks.CarpoolGroup = append(c.hooks.CarpoolGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `carpoolgroup.Intercept(f(g(h())))`.
+func (c *CarpoolGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CarpoolGroup = append(c.inters.CarpoolGroup, interceptors...)
+}
+
+// Create returns a builder for creating a CarpoolGroup entity.
+func (c *CarpoolGroupClient) Create() *CarpoolGroupCreate {
+	mutation := newCarpoolGroupMutation(c.config, OpCreate)
+	return &CarpoolGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CarpoolGroup entities.
+func (c *CarpoolGroupClient) CreateBulk(builders ...*CarpoolGroupCreate) *CarpoolGroupCreateBulk {
+	return &CarpoolGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CarpoolGroupClient) MapCreateBulk(slice any, setFunc func(*CarpoolGroupCreate, int)) *CarpoolGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CarpoolGroupCreateBulk{err: fmt.Errorf("calling to CarpoolGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CarpoolGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CarpoolGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CarpoolGroup.
+func (c *CarpoolGroupClient) Update() *CarpoolGroupUpdate {
+	mutation := newCarpoolGroupMutation(c.config, OpUpdate)
+	return &CarpoolGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CarpoolGroupClient) UpdateOne(_m *CarpoolGroup) *CarpoolGroupUpdateOne {
+	mutation := newCarpoolGroupMutation(c.config, OpUpdateOne, withCarpoolGroup(_m))
+	return &CarpoolGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CarpoolGroupClient) UpdateOneID(id int64) *CarpoolGroupUpdateOne {
+	mutation := newCarpoolGroupMutation(c.config, OpUpdateOne, withCarpoolGroupID(id))
+	return &CarpoolGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CarpoolGroup.
+func (c *CarpoolGroupClient) Delete() *CarpoolGroupDelete {
+	mutation := newCarpoolGroupMutation(c.config, OpDelete)
+	return &CarpoolGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CarpoolGroupClient) DeleteOne(_m *CarpoolGroup) *CarpoolGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CarpoolGroupClient) DeleteOneID(id int64) *CarpoolGroupDeleteOne {
+	builder := c.Delete().Where(carpoolgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CarpoolGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for CarpoolGroup.
+func (c *CarpoolGroupClient) Query() *CarpoolGroupQuery {
+	return &CarpoolGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCarpoolGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CarpoolGroup entity by its id.
+func (c *CarpoolGroupClient) Get(ctx context.Context, id int64) (*CarpoolGroup, error) {
+	return c.Query().Where(carpoolgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CarpoolGroupClient) GetX(ctx context.Context, id int64) *CarpoolGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrders queries the orders edge of a CarpoolGroup.
+func (c *CarpoolGroupClient) QueryOrders(_m *CarpoolGroup) *PaymentOrderQuery {
+	query := (&PaymentOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(carpoolgroup.Table, carpoolgroup.FieldID, id),
+			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, carpoolgroup.OrdersTable, carpoolgroup.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CarpoolGroupClient) Hooks() []Hook {
+	return c.hooks.CarpoolGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *CarpoolGroupClient) Interceptors() []Interceptor {
+	return c.inters.CarpoolGroup
+}
+
+func (c *CarpoolGroupClient) mutate(ctx context.Context, m *CarpoolGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CarpoolGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CarpoolGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CarpoolGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CarpoolGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CarpoolGroup mutation op: %q", m.Op())
+	}
+}
+
+// CarpoolPlanClient is a client for the CarpoolPlan schema.
+type CarpoolPlanClient struct {
+	config
+}
+
+// NewCarpoolPlanClient returns a client for the CarpoolPlan from the given config.
+func NewCarpoolPlanClient(c config) *CarpoolPlanClient {
+	return &CarpoolPlanClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `carpoolplan.Hooks(f(g(h())))`.
+func (c *CarpoolPlanClient) Use(hooks ...Hook) {
+	c.hooks.CarpoolPlan = append(c.hooks.CarpoolPlan, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `carpoolplan.Intercept(f(g(h())))`.
+func (c *CarpoolPlanClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CarpoolPlan = append(c.inters.CarpoolPlan, interceptors...)
+}
+
+// Create returns a builder for creating a CarpoolPlan entity.
+func (c *CarpoolPlanClient) Create() *CarpoolPlanCreate {
+	mutation := newCarpoolPlanMutation(c.config, OpCreate)
+	return &CarpoolPlanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CarpoolPlan entities.
+func (c *CarpoolPlanClient) CreateBulk(builders ...*CarpoolPlanCreate) *CarpoolPlanCreateBulk {
+	return &CarpoolPlanCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CarpoolPlanClient) MapCreateBulk(slice any, setFunc func(*CarpoolPlanCreate, int)) *CarpoolPlanCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CarpoolPlanCreateBulk{err: fmt.Errorf("calling to CarpoolPlanClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CarpoolPlanCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CarpoolPlanCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CarpoolPlan.
+func (c *CarpoolPlanClient) Update() *CarpoolPlanUpdate {
+	mutation := newCarpoolPlanMutation(c.config, OpUpdate)
+	return &CarpoolPlanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CarpoolPlanClient) UpdateOne(_m *CarpoolPlan) *CarpoolPlanUpdateOne {
+	mutation := newCarpoolPlanMutation(c.config, OpUpdateOne, withCarpoolPlan(_m))
+	return &CarpoolPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CarpoolPlanClient) UpdateOneID(id int64) *CarpoolPlanUpdateOne {
+	mutation := newCarpoolPlanMutation(c.config, OpUpdateOne, withCarpoolPlanID(id))
+	return &CarpoolPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CarpoolPlan.
+func (c *CarpoolPlanClient) Delete() *CarpoolPlanDelete {
+	mutation := newCarpoolPlanMutation(c.config, OpDelete)
+	return &CarpoolPlanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CarpoolPlanClient) DeleteOne(_m *CarpoolPlan) *CarpoolPlanDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CarpoolPlanClient) DeleteOneID(id int64) *CarpoolPlanDeleteOne {
+	builder := c.Delete().Where(carpoolplan.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CarpoolPlanDeleteOne{builder}
+}
+
+// Query returns a query builder for CarpoolPlan.
+func (c *CarpoolPlanClient) Query() *CarpoolPlanQuery {
+	return &CarpoolPlanQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCarpoolPlan},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CarpoolPlan entity by its id.
+func (c *CarpoolPlanClient) Get(ctx context.Context, id int64) (*CarpoolPlan, error) {
+	return c.Query().Where(carpoolplan.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CarpoolPlanClient) GetX(ctx context.Context, id int64) *CarpoolPlan {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CarpoolPlanClient) Hooks() []Hook {
+	return c.hooks.CarpoolPlan
+}
+
+// Interceptors returns the client interceptors.
+func (c *CarpoolPlanClient) Interceptors() []Interceptor {
+	return c.inters.CarpoolPlan
+}
+
+func (c *CarpoolPlanClient) mutate(ctx context.Context, m *CarpoolPlanMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CarpoolPlanCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CarpoolPlanUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CarpoolPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CarpoolPlanDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CarpoolPlan mutation op: %q", m.Op())
 	}
 }
 
@@ -3851,6 +4151,22 @@ func (c *PaymentOrderClient) QueryRechargeLotteryDraw(_m *PaymentOrder) *Recharg
 			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, id),
 			sqlgraph.To(rechargelotterydraw.Table, rechargelotterydraw.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, paymentorder.RechargeLotteryDrawTable, paymentorder.RechargeLotteryDrawColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCarpoolGroup queries the carpool_group edge of a PaymentOrder.
+func (c *PaymentOrderClient) QueryCarpoolGroup(_m *PaymentOrder) *CarpoolGroupQuery {
+	query := (&CarpoolGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, id),
+			sqlgraph.To(carpoolgroup.Table, carpoolgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, paymentorder.CarpoolGroupTable, paymentorder.CarpoolGroupColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -7032,26 +7348,26 @@ type (
 	hooks struct {
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
-		ChannelMonitor, ChannelMonitorDailyRollup, ChannelMonitorHistory,
-		ChannelMonitorRequestTemplate, CompositeModelRoute, ErrorPassthroughRule,
-		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
-		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
-		PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode, SecuritySecret,
-		Setting, SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog,
-		User, UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
-		UserPlatformQuota, UserSubscription []ent.Hook
+		CarpoolGroup, CarpoolPlan, ChannelMonitor, ChannelMonitorDailyRollup,
+		ChannelMonitorHistory, ChannelMonitorRequestTemplate, CompositeModelRoute,
+		ErrorPassthroughRule, Group, IdempotencyRecord, IdentityAdoptionDecision,
+		PaymentAuditLog, PaymentOrder, PaymentProviderInstance, PendingAuthSession,
+		PromoCode, PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode,
+		SecuritySecret, Setting, SubscriptionPlan, TLSFingerprintProfile,
+		UsageCleanupTask, UsageLog, User, UserAllowedGroup, UserAttributeDefinition,
+		UserAttributeValue, UserPlatformQuota, UserSubscription []ent.Hook
 	}
 	inters struct {
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
-		ChannelMonitor, ChannelMonitorDailyRollup, ChannelMonitorHistory,
-		ChannelMonitorRequestTemplate, CompositeModelRoute, ErrorPassthroughRule,
-		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
-		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
-		PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode, SecuritySecret,
-		Setting, SubscriptionPlan, TLSFingerprintProfile, UsageCleanupTask, UsageLog,
-		User, UserAllowedGroup, UserAttributeDefinition, UserAttributeValue,
-		UserPlatformQuota, UserSubscription []ent.Interceptor
+		CarpoolGroup, CarpoolPlan, ChannelMonitor, ChannelMonitorDailyRollup,
+		ChannelMonitorHistory, ChannelMonitorRequestTemplate, CompositeModelRoute,
+		ErrorPassthroughRule, Group, IdempotencyRecord, IdentityAdoptionDecision,
+		PaymentAuditLog, PaymentOrder, PaymentProviderInstance, PendingAuthSession,
+		PromoCode, PromoCodeUsage, Proxy, RechargeLotteryDraw, RedeemCode,
+		SecuritySecret, Setting, SubscriptionPlan, TLSFingerprintProfile,
+		UsageCleanupTask, UsageLog, User, UserAllowedGroup, UserAttributeDefinition,
+		UserAttributeValue, UserPlatformQuota, UserSubscription []ent.Interceptor
 	}
 )
 

@@ -2,9 +2,12 @@
 # =============================================================================
 # Sub2API Multi-Stage Dockerfile
 # =============================================================================
-# Stage 1: Build frontend
-# Stage 2: Build Go backend with embedded frontend
-# Stage 3: Final minimal image
+# Stage 1: Prepare the shared Node build environment
+# Stage 2: Build the main frontend
+# Stage 3: Build online-image independently
+# Stage 4: Build Go backend with both embedded frontends
+# Stage 5: Provide the PostgreSQL client
+# Stage 6: Build the final minimal image
 # =============================================================================
 
 ARG NODE_IMAGE=node:24-alpine
@@ -16,40 +19,63 @@ ARG GOSUMDB=sum.golang.google.cn
 ARG NPM_CONFIG_REGISTRY=
 
 # -----------------------------------------------------------------------------
-# Stage 1: Frontend Builder
+# Stage 1: Shared Node Builder
 # -----------------------------------------------------------------------------
 # --platform=$BUILDPLATFORM: the frontend output is JS (arch-neutral), so build
 # it on the native host arch instead of under QEMU emulation for the target.
-FROM --platform=${BUILDPLATFORM} ${NODE_IMAGE} AS frontend-builder
+FROM --platform=${BUILDPLATFORM} ${NODE_IMAGE} AS node-builder
+# Install the exact pnpm version used to generate the frontend lockfile.
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+
+# -----------------------------------------------------------------------------
+# Stage 2: Main Frontend Builder
+# -----------------------------------------------------------------------------
+FROM node-builder AS frontend-builder
 ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app/frontend
 
-# Install the exact pnpm version used to generate the frontend lockfile.
-RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
-
-# Install dependencies first (better caching)
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,id=sub2api-pnpm-store,target=/root/.local/share/pnpm/store \
     if [ -n "${NPM_CONFIG_REGISTRY}" ]; then pnpm config set registry "${NPM_CONFIG_REGISTRY}"; fi && \
     pnpm install --frozen-lockfile --prefer-offline
 
-COPY frontend/online-image/package.json frontend/online-image/pnpm-lock.yaml ./online-image/
-RUN --mount=type=cache,id=sub2api-online-image-pnpm-store,target=/root/.local/share/pnpm/online-image-store \
-    if [ -n "${NPM_CONFIG_REGISTRY}" ]; then pnpm config set registry "${NPM_CONFIG_REGISTRY}"; fi && \
-    pnpm --dir online-image install --frozen-lockfile --prefer-offline
-
-# Copy frontend source and build.
 # LegalDocumentView.vue (admin-compliance gate) build-time imports
 # ../../../../docs/legal/*.md?raw, so docs/legal/ must sit beside frontend/
 # in the image (WORKDIR /app/frontend -> resolves to /app/docs/legal/*.md).
-# Copy only that subtree to keep the build dependency minimal.
-COPY frontend/ ./
+COPY frontend/index.html frontend/postcss.config.js frontend/tailwind.config.js ./
+COPY frontend/tsconfig.json frontend/tsconfig.node.json frontend/vite.config.ts ./
+COPY frontend/public/ ./public/
+COPY frontend/src/ ./src/
 COPY docs/legal/ /app/docs/legal/
-RUN pnpm run build
+RUN pnpm exec vue-tsc -b && pnpm exec vite build --config vite.config.ts
 
 # -----------------------------------------------------------------------------
-# Stage 2: Backend Builder
+# Stage 3: Online Image Builder
+# -----------------------------------------------------------------------------
+FROM node-builder AS online-image-builder
+ARG NPM_CONFIG_REGISTRY
+
+WORKDIR /app/online-image
+
+COPY frontend/online-image/package.json frontend/online-image/pnpm-lock.yaml ./
+RUN --mount=type=cache,id=sub2api-pnpm-store,target=/root/.local/share/pnpm/store \
+    if [ -n "${NPM_CONFIG_REGISTRY}" ]; then pnpm config set registry "${NPM_CONFIG_REGISTRY}"; fi && \
+    pnpm install --frozen-lockfile --prefer-offline
+
+COPY frontend/online-image/index.html frontend/online-image/postcss.config.js ./
+COPY frontend/online-image/tailwind.config.js frontend/online-image/tsconfig.json ./
+COPY frontend/online-image/vite.config.ts ./
+COPY frontend/online-image/public/ ./public/
+COPY frontend/online-image/src/ ./src/
+RUN VITE_DEFAULT_API_URL=https://codeingforce.com/v1 \
+    VITE_API_PROXY_AVAILABLE=false \
+    VITE_API_PROXY_LOCKED=false \
+    VITE_SHOW_DEFAULT_CONFIG_ONLY=true \
+    pnpm run build
+
+# -----------------------------------------------------------------------------
+# Stage 4: Backend Builder
 # -----------------------------------------------------------------------------
 # --platform=$BUILDPLATFORM: run the Go toolchain on the native host arch and
 # cross-compile to the target arch below. The binary is CGO_ENABLED=0, so this
@@ -81,8 +107,9 @@ RUN --mount=type=cache,id=sub2api-gomod,target=/go/pkg/mod \
 # Copy backend source first
 COPY backend/ ./
 
-# Copy frontend dist from previous stage (must be after backend copy to avoid being overwritten)
+# Copy both frontend builds after the backend source so they cannot be overwritten.
 COPY --from=frontend-builder /app/backend/internal/web/dist ./internal/web/dist
+COPY --from=online-image-builder /app/online-image/dist ./internal/web/dist/online-image
 
 # Build arguments for version info (set by CI)
 ARG VERSION=
@@ -104,12 +131,12 @@ RUN --mount=type=cache,id=sub2api-gomod,target=/go/pkg/mod \
     ./cmd/server
 
 # -----------------------------------------------------------------------------
-# Stage 3: PostgreSQL Client (version-matched with docker-compose)
+# Stage 5: PostgreSQL Client (version-matched with docker-compose)
 # -----------------------------------------------------------------------------
 FROM ${POSTGRES_IMAGE} AS pg-client
 
 # -----------------------------------------------------------------------------
-# Stage 4: Final Runtime Image
+# Stage 6: Final Runtime Image
 # -----------------------------------------------------------------------------
 FROM ${ALPINE_IMAGE}
 

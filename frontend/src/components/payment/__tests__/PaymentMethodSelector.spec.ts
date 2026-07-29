@@ -31,7 +31,21 @@ describe('PaymentMethodSelector', () => {
     })
 
     const button = wrapper.get('button')
-    expect(button.classes()).toContain('border-primary-500')
+    expect(button.classes()).toContain('border-gray-950')
     expect(button.classes()).not.toContain('border-[#02A9F1]')
+  })
+
+  it('renders Alipay as a compact branded selection row', () => {
+    const wrapper = mount(PaymentMethodSelector, {
+      props: {
+        selected: 'alipay',
+        methods: [{ type: 'alipay', fee_rate: 0, available: true }],
+      },
+    })
+
+    const button = wrapper.get('button')
+    expect(button.classes()).toContain('h-[68px]')
+    expect(button.classes()).toContain('border-gray-950')
+    expect(button.get('img').attributes('src')).toContain('alipay')
   })
 })

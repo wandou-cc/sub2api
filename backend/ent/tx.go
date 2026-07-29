@@ -34,6 +34,10 @@ type Tx struct {
 	BatchImageItem *BatchImageItemClient
 	// BatchImageJob is the client for interacting with the BatchImageJob builders.
 	BatchImageJob *BatchImageJobClient
+	// CarpoolGroup is the client for interacting with the CarpoolGroup builders.
+	CarpoolGroup *CarpoolGroupClient
+	// CarpoolPlan is the client for interacting with the CarpoolPlan builders.
+	CarpoolPlan *CarpoolPlanClient
 	// ChannelMonitor is the client for interacting with the ChannelMonitor builders.
 	ChannelMonitor *ChannelMonitorClient
 	// ChannelMonitorDailyRollup is the client for interacting with the ChannelMonitorDailyRollup builders.
@@ -235,6 +239,8 @@ func (tx *Tx) init() {
 	tx.BatchImageEvent = NewBatchImageEventClient(tx.config)
 	tx.BatchImageItem = NewBatchImageItemClient(tx.config)
 	tx.BatchImageJob = NewBatchImageJobClient(tx.config)
+	tx.CarpoolGroup = NewCarpoolGroupClient(tx.config)
+	tx.CarpoolPlan = NewCarpoolPlanClient(tx.config)
 	tx.ChannelMonitor = NewChannelMonitorClient(tx.config)
 	tx.ChannelMonitorDailyRollup = NewChannelMonitorDailyRollupClient(tx.config)
 	tx.ChannelMonitorHistory = NewChannelMonitorHistoryClient(tx.config)

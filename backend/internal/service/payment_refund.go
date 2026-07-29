@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	dbent "github.com/Wei-Shaw/sub2api/ent"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
 	"github.com/Wei-Shaw/sub2api/ent/paymentauditlog"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/paymentproviderinstance"
@@ -240,6 +241,36 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	if !psSliceContains(ok, o.Status) {
 		return nil, nil, infraerrors.BadRequest("INVALID_STATUS", "order status does not allow refund")
 	}
+	if math.IsNaN(amt) || math.IsInf(amt, 0) {
+		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "invalid refund amount")
+	}
+	if amt <= 0 {
+		amt = o.Amount
+	}
+	orderCurrency := PaymentOrderCurrency(o)
+	amountTolerance := paymentAmountToleranceForCurrency(orderCurrency)
+	if amt-o.Amount > amountTolerance {
+		return nil, nil, infraerrors.BadRequest("REFUND_AMOUNT_EXCEEDED", "refund amount exceeds recharge")
+	}
+	if o.OrderType == payment.OrderTypeCarpool {
+		if o.CarpoolGroupID == nil {
+			return nil, nil, infraerrors.BadRequest("INVALID_CARPOOL_STATUS", "carpool order is not assigned to a group")
+		}
+		group, err := s.entClient.CarpoolGroup.Query().Where(
+			carpoolgroup.IDEQ(*o.CarpoolGroupID),
+			carpoolgroup.StatusEQ(CarpoolStatusRefundPending),
+		).Only(ctx)
+		if dbent.IsNotFound(err) {
+			return nil, nil, infraerrors.Conflict("INVALID_CARPOOL_STATUS", "carpool group is not ready for refund")
+		}
+		if err != nil {
+			return nil, nil, fmt.Errorf("check carpool refund status: %w", err)
+		}
+		if group.OpenedAt == nil && math.Abs(amt-o.Amount) > amountTolerance {
+			return nil, nil, infraerrors.BadRequest("CARPOOL_FULL_REFUND_REQUIRED", "carpool groups without service delivery require a full refund")
+		}
+		deduct = false
+	}
 	// Check provider instance allows admin refund
 	inst, instErr := s.getRefundOrderProviderInstance(ctx, o)
 	if instErr != nil {
@@ -252,16 +283,6 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	}
 	if !inst.RefundEnabled {
 		return nil, nil, infraerrors.Forbidden("REFUND_DISABLED", "refund is not enabled for this provider")
-	}
-	if math.IsNaN(amt) || math.IsInf(amt, 0) {
-		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "invalid refund amount")
-	}
-	if amt <= 0 {
-		amt = o.Amount
-	}
-	orderCurrency := PaymentOrderCurrency(o)
-	if amt-o.Amount > paymentAmountToleranceForCurrency(orderCurrency) {
-		return nil, nil, infraerrors.BadRequest("REFUND_AMOUNT_EXCEEDED", "refund amount exceeds recharge")
 	}
 	ga := calculateGatewayRefundAmount(o.Amount, o.PayAmount, amt, orderCurrency)
 	rr := strings.TrimSpace(reason)
@@ -283,6 +304,10 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 }
 
 func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) (*RefundResult, error) {
+	if o.OrderType == payment.OrderTypeCarpool {
+		p.DeductionType = payment.DeductionTypeNone
+		return nil, nil
+	}
 	if o.OrderType == payment.OrderTypeSubscription {
 		p.DeductionType = payment.DeductionTypeSubscription
 		if o.SubscriptionGroupID != nil && o.SubscriptionDays != nil {
@@ -483,8 +508,12 @@ func (s *PaymentService) QueryAndFinalizeRefund(ctx context.Context, oid int64) 
 		} else if early != nil {
 			return early, nil
 		}
-	} else if err := s.refreshBalanceRefundDeduction(ctx, plan); err != nil {
-		return nil, err
+	} else if o.OrderType == payment.OrderTypeBalance {
+		if err := s.refreshBalanceRefundDeduction(ctx, plan); err != nil {
+			return nil, err
+		}
+	} else if o.OrderType != payment.OrderTypeCarpool {
+		return nil, infraerrors.BadRequest("INVALID_ORDER_TYPE", "unsupported payment order type")
 	}
 	switch strings.TrimSpace(resp.Status) {
 	case payment.ProviderStatusSuccess, payment.ProviderStatusRefunded:
@@ -520,15 +549,15 @@ func (s *PaymentService) refundFinalizePlan(o *dbent.PaymentOrder) *RefundPlan {
 	if reason == "" {
 		reason = fmt.Sprintf("refund order:%d", o.ID)
 	}
-	return &RefundPlan{
+	plan := &RefundPlan{
 		OrderID:       o.ID,
 		Order:         o,
 		RefundAmount:  refundAmount,
 		GatewayAmount: calculateGatewayRefundAmount(o.Amount, o.PayAmount, refundAmount, PaymentOrderCurrency(o)),
 		Reason:        reason,
 		Force:         o.ForceRefund,
-		DeductBalance: true,
-		DeductionType: payment.DeductionTypeBalance,
+		DeductBalance: o.OrderType != payment.OrderTypeCarpool,
+		DeductionType: payment.DeductionTypeNone,
 		BalanceToDeduct: func() float64 {
 			if o.OrderType == payment.OrderTypeBalance {
 				return refundAmount
@@ -536,6 +565,12 @@ func (s *PaymentService) refundFinalizePlan(o *dbent.PaymentOrder) *RefundPlan {
 			return 0
 		}(),
 	}
+	if o.OrderType == payment.OrderTypeBalance {
+		plan.DeductionType = payment.DeductionTypeBalance
+	} else if o.OrderType == payment.OrderTypeSubscription {
+		plan.DeductionType = payment.DeductionTypeSubscription
+	}
+	return plan
 }
 
 func (s *PaymentService) applyRefundFinalDeduction(ctx context.Context, p *RefundPlan) error {
@@ -625,6 +660,11 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
 	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force})
+	if p.Order != nil && p.Order.OrderType == payment.OrderTypeCarpool && p.Order.CarpoolGroupID != nil {
+		if err := s.syncCarpoolRefundedGroups(ctx); err != nil {
+			slog.Error("failed to reconcile carpool refund status", "orderID", p.Order.ID, "error", err)
+		}
+	}
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil
 }
 

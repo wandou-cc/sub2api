@@ -9,7 +9,8 @@ import type {
   PaymentOrder,
   PaymentChannel,
   SubscriptionPlan,
-  ProviderInstance
+  ProviderInstance,
+  OrderStatus,
 } from '@/types/payment'
 import type { BasePaginationResponse } from '@/types'
 
@@ -59,6 +60,58 @@ export interface RefundResult {
   require_force?: boolean
   balance_deducted?: number
   subscription_days_deducted?: number
+}
+
+export interface AdminCarpoolMember {
+  order_id: number
+  user_id: number
+  user_email: string
+  user_name: string
+  amount: number
+  pay_amount: number
+  currency: string
+  payment_type: string
+  status: OrderStatus
+  refund_amount: number
+  refund_reason?: string
+  paid_at?: string
+  provider_instance_id?: string
+  payment_trade_no?: string
+}
+
+export interface AdminCarpoolGroup {
+  id: number
+  carpool_plan_id: number
+  target_members: number
+  current_members: number
+  total_amount: number
+  price_per_member: number
+  plan_note: string
+  status: 'waiting' | 'purchasing' | 'active' | 'refund_pending' | 'refunded' | 'expired'
+  status_reason?: string
+  deadline_at?: string
+  formed_at?: string
+  opened_at?: string
+  expires_at?: string
+  created_at: string
+  updated_at: string
+  members: AdminCarpoolMember[]
+}
+
+export interface AdminCarpoolPlan {
+  id: number
+  total_amount: number
+  target_members: number
+  price_per_member: number
+  note: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CarpoolPlanInput {
+  total_amount: number
+  target_members: number
+  note: string
 }
 
 export const adminPaymentAPI = {
@@ -123,6 +176,41 @@ export const adminPaymentAPI = {
   /** Query and finalize a pending refund */
   queryRefund(id: number) {
     return apiClient.post<RefundResult>(`/admin/payment/orders/${id}/refund/query`)
+  },
+
+  /** Get current carpool groups or completed history. */
+  getCarpoolGroups(history = false) {
+    return apiClient.get<AdminCarpoolGroup[]>('/admin/payment/carpools', { params: { history } })
+  },
+
+  /** Mark a formed carpool group as delivered. */
+  openCarpoolGroup(id: number) {
+    return apiClient.post(`/admin/payment/carpools/${id}/open`)
+  },
+
+  /** Close a carpool group before manually refunding member orders. */
+  markCarpoolRefundPending(id: number, reason: string) {
+    return apiClient.post(`/admin/payment/carpools/${id}/refund-pending`, { reason })
+  },
+
+  /** Get every configured carpool package. */
+  getCarpoolPlans() {
+    return apiClient.get<AdminCarpoolPlan[]>('/admin/payment/carpool-plans')
+  },
+
+  /** Create a carpool package. */
+  createCarpoolPlan(data: CarpoolPlanInput) {
+    return apiClient.post<AdminCarpoolPlan>('/admin/payment/carpool-plans', data)
+  },
+
+  /** Replace a carpool package's configurable fields. */
+  updateCarpoolPlan(id: number, data: CarpoolPlanInput) {
+    return apiClient.put<AdminCarpoolPlan>(`/admin/payment/carpool-plans/${id}`, data)
+  },
+
+  /** Delete an unused carpool package. */
+  deleteCarpoolPlan(id: number) {
+    return apiClient.delete(`/admin/payment/carpool-plans/${id}`)
   },
 
   // ==================== Channels ====================

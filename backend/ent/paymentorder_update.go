@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
@@ -363,6 +364,154 @@ func (_u *PaymentOrderUpdate) AddSubscriptionDays(v int) *PaymentOrderUpdate {
 // ClearSubscriptionDays clears the value of the "subscription_days" field.
 func (_u *PaymentOrderUpdate) ClearSubscriptionDays() *PaymentOrderUpdate {
 	_u.mutation.ClearSubscriptionDays()
+	return _u
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (_u *PaymentOrderUpdate) SetCarpoolSize(v int) *PaymentOrderUpdate {
+	_u.mutation.ResetCarpoolSize()
+	_u.mutation.SetCarpoolSize(v)
+	return _u
+}
+
+// SetNillableCarpoolSize sets the "carpool_size" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolSize(v *int) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolSize(*v)
+	}
+	return _u
+}
+
+// AddCarpoolSize adds value to the "carpool_size" field.
+func (_u *PaymentOrderUpdate) AddCarpoolSize(v int) *PaymentOrderUpdate {
+	_u.mutation.AddCarpoolSize(v)
+	return _u
+}
+
+// ClearCarpoolSize clears the value of the "carpool_size" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolSize() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolSize()
+	return _u
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdate) SetCarpoolPlanID(v int64) *PaymentOrderUpdate {
+	_u.mutation.ResetCarpoolPlanID()
+	_u.mutation.SetCarpoolPlanID(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanID sets the "carpool_plan_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolPlanID(v *int64) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolPlanID(*v)
+	}
+	return _u
+}
+
+// AddCarpoolPlanID adds value to the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdate) AddCarpoolPlanID(v int64) *PaymentOrderUpdate {
+	_u.mutation.AddCarpoolPlanID(v)
+	return _u
+}
+
+// ClearCarpoolPlanID clears the value of the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolPlanID() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolPlanID()
+	return _u
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdate) SetCarpoolPlanRevision(v int) *PaymentOrderUpdate {
+	_u.mutation.ResetCarpoolPlanRevision()
+	_u.mutation.SetCarpoolPlanRevision(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanRevision sets the "carpool_plan_revision" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolPlanRevision(v *int) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolPlanRevision(*v)
+	}
+	return _u
+}
+
+// AddCarpoolPlanRevision adds value to the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdate) AddCarpoolPlanRevision(v int) *PaymentOrderUpdate {
+	_u.mutation.AddCarpoolPlanRevision(v)
+	return _u
+}
+
+// ClearCarpoolPlanRevision clears the value of the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolPlanRevision() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolPlanRevision()
+	return _u
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdate) SetCarpoolTotalAmount(v float64) *PaymentOrderUpdate {
+	_u.mutation.ResetCarpoolTotalAmount()
+	_u.mutation.SetCarpoolTotalAmount(v)
+	return _u
+}
+
+// SetNillableCarpoolTotalAmount sets the "carpool_total_amount" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolTotalAmount(v *float64) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolTotalAmount(*v)
+	}
+	return _u
+}
+
+// AddCarpoolTotalAmount adds value to the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdate) AddCarpoolTotalAmount(v float64) *PaymentOrderUpdate {
+	_u.mutation.AddCarpoolTotalAmount(v)
+	return _u
+}
+
+// ClearCarpoolTotalAmount clears the value of the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolTotalAmount() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolTotalAmount()
+	return _u
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (_u *PaymentOrderUpdate) SetCarpoolPlanNote(v string) *PaymentOrderUpdate {
+	_u.mutation.SetCarpoolPlanNote(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanNote sets the "carpool_plan_note" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolPlanNote(v *string) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolPlanNote(*v)
+	}
+	return _u
+}
+
+// ClearCarpoolPlanNote clears the value of the "carpool_plan_note" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolPlanNote() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolPlanNote()
+	return _u
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (_u *PaymentOrderUpdate) SetCarpoolGroupID(v int64) *PaymentOrderUpdate {
+	_u.mutation.SetCarpoolGroupID(v)
+	return _u
+}
+
+// SetNillableCarpoolGroupID sets the "carpool_group_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableCarpoolGroupID(v *int64) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetCarpoolGroupID(*v)
+	}
+	return _u
+}
+
+// ClearCarpoolGroupID clears the value of the "carpool_group_id" field.
+func (_u *PaymentOrderUpdate) ClearCarpoolGroupID() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolGroupID()
 	return _u
 }
 
@@ -739,6 +888,11 @@ func (_u *PaymentOrderUpdate) SetRechargeLotteryDraw(v *RechargeLotteryDraw) *Pa
 	return _u.SetRechargeLotteryDrawID(v.ID)
 }
 
+// SetCarpoolGroup sets the "carpool_group" edge to the CarpoolGroup entity.
+func (_u *PaymentOrderUpdate) SetCarpoolGroup(v *CarpoolGroup) *PaymentOrderUpdate {
+	return _u.SetCarpoolGroupID(v.ID)
+}
+
 // Mutation returns the PaymentOrderMutation object of the builder.
 func (_u *PaymentOrderUpdate) Mutation() *PaymentOrderMutation {
 	return _u.mutation
@@ -753,6 +907,12 @@ func (_u *PaymentOrderUpdate) ClearUser() *PaymentOrderUpdate {
 // ClearRechargeLotteryDraw clears the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
 func (_u *PaymentOrderUpdate) ClearRechargeLotteryDraw() *PaymentOrderUpdate {
 	_u.mutation.ClearRechargeLotteryDraw()
+	return _u
+}
+
+// ClearCarpoolGroup clears the "carpool_group" edge to the CarpoolGroup entity.
+func (_u *PaymentOrderUpdate) ClearCarpoolGroup() *PaymentOrderUpdate {
+	_u.mutation.ClearCarpoolGroup()
 	return _u
 }
 
@@ -967,6 +1127,48 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if _u.mutation.SubscriptionDaysCleared() {
 		_spec.ClearField(paymentorder.FieldSubscriptionDays, field.TypeInt)
 	}
+	if value, ok := _u.mutation.CarpoolSize(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolSize, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolSize(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolSize, field.TypeInt, value)
+	}
+	if _u.mutation.CarpoolSizeCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolSize, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CarpoolPlanID(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolPlanID(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolPlanID, field.TypeInt64, value)
+	}
+	if _u.mutation.CarpoolPlanIDCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.CarpoolPlanRevision(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolPlanRevision(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt, value)
+	}
+	if _u.mutation.CarpoolPlanRevisionCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CarpoolTotalAmount(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolTotalAmount(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64, value)
+	}
+	if _u.mutation.CarpoolTotalAmountCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.CarpoolPlanNote(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanNote, field.TypeString, value)
+	}
+	if _u.mutation.CarpoolPlanNoteCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanNote, field.TypeString)
+	}
 	if value, ok := _u.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)
 	}
@@ -1120,6 +1322,35 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CarpoolGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   paymentorder.CarpoolGroupTable,
+			Columns: []string{paymentorder.CarpoolGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carpoolgroup.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CarpoolGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   paymentorder.CarpoolGroupTable,
+			Columns: []string{paymentorder.CarpoolGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carpoolgroup.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -1480,6 +1711,154 @@ func (_u *PaymentOrderUpdateOne) AddSubscriptionDays(v int) *PaymentOrderUpdateO
 // ClearSubscriptionDays clears the value of the "subscription_days" field.
 func (_u *PaymentOrderUpdateOne) ClearSubscriptionDays() *PaymentOrderUpdateOne {
 	_u.mutation.ClearSubscriptionDays()
+	return _u
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolSize(v int) *PaymentOrderUpdateOne {
+	_u.mutation.ResetCarpoolSize()
+	_u.mutation.SetCarpoolSize(v)
+	return _u
+}
+
+// SetNillableCarpoolSize sets the "carpool_size" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolSize(v *int) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolSize(*v)
+	}
+	return _u
+}
+
+// AddCarpoolSize adds value to the "carpool_size" field.
+func (_u *PaymentOrderUpdateOne) AddCarpoolSize(v int) *PaymentOrderUpdateOne {
+	_u.mutation.AddCarpoolSize(v)
+	return _u
+}
+
+// ClearCarpoolSize clears the value of the "carpool_size" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolSize() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolSize()
+	return _u
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolPlanID(v int64) *PaymentOrderUpdateOne {
+	_u.mutation.ResetCarpoolPlanID()
+	_u.mutation.SetCarpoolPlanID(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanID sets the "carpool_plan_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolPlanID(v *int64) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolPlanID(*v)
+	}
+	return _u
+}
+
+// AddCarpoolPlanID adds value to the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdateOne) AddCarpoolPlanID(v int64) *PaymentOrderUpdateOne {
+	_u.mutation.AddCarpoolPlanID(v)
+	return _u
+}
+
+// ClearCarpoolPlanID clears the value of the "carpool_plan_id" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolPlanID() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolPlanID()
+	return _u
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolPlanRevision(v int) *PaymentOrderUpdateOne {
+	_u.mutation.ResetCarpoolPlanRevision()
+	_u.mutation.SetCarpoolPlanRevision(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanRevision sets the "carpool_plan_revision" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolPlanRevision(v *int) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolPlanRevision(*v)
+	}
+	return _u
+}
+
+// AddCarpoolPlanRevision adds value to the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdateOne) AddCarpoolPlanRevision(v int) *PaymentOrderUpdateOne {
+	_u.mutation.AddCarpoolPlanRevision(v)
+	return _u
+}
+
+// ClearCarpoolPlanRevision clears the value of the "carpool_plan_revision" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolPlanRevision() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolPlanRevision()
+	return _u
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolTotalAmount(v float64) *PaymentOrderUpdateOne {
+	_u.mutation.ResetCarpoolTotalAmount()
+	_u.mutation.SetCarpoolTotalAmount(v)
+	return _u
+}
+
+// SetNillableCarpoolTotalAmount sets the "carpool_total_amount" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolTotalAmount(v *float64) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolTotalAmount(*v)
+	}
+	return _u
+}
+
+// AddCarpoolTotalAmount adds value to the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdateOne) AddCarpoolTotalAmount(v float64) *PaymentOrderUpdateOne {
+	_u.mutation.AddCarpoolTotalAmount(v)
+	return _u
+}
+
+// ClearCarpoolTotalAmount clears the value of the "carpool_total_amount" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolTotalAmount() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolTotalAmount()
+	return _u
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolPlanNote(v string) *PaymentOrderUpdateOne {
+	_u.mutation.SetCarpoolPlanNote(v)
+	return _u
+}
+
+// SetNillableCarpoolPlanNote sets the "carpool_plan_note" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolPlanNote(v *string) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolPlanNote(*v)
+	}
+	return _u
+}
+
+// ClearCarpoolPlanNote clears the value of the "carpool_plan_note" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolPlanNote() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolPlanNote()
+	return _u
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (_u *PaymentOrderUpdateOne) SetCarpoolGroupID(v int64) *PaymentOrderUpdateOne {
+	_u.mutation.SetCarpoolGroupID(v)
+	return _u
+}
+
+// SetNillableCarpoolGroupID sets the "carpool_group_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableCarpoolGroupID(v *int64) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetCarpoolGroupID(*v)
+	}
+	return _u
+}
+
+// ClearCarpoolGroupID clears the value of the "carpool_group_id" field.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolGroupID() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolGroupID()
 	return _u
 }
 
@@ -1856,6 +2235,11 @@ func (_u *PaymentOrderUpdateOne) SetRechargeLotteryDraw(v *RechargeLotteryDraw) 
 	return _u.SetRechargeLotteryDrawID(v.ID)
 }
 
+// SetCarpoolGroup sets the "carpool_group" edge to the CarpoolGroup entity.
+func (_u *PaymentOrderUpdateOne) SetCarpoolGroup(v *CarpoolGroup) *PaymentOrderUpdateOne {
+	return _u.SetCarpoolGroupID(v.ID)
+}
+
 // Mutation returns the PaymentOrderMutation object of the builder.
 func (_u *PaymentOrderUpdateOne) Mutation() *PaymentOrderMutation {
 	return _u.mutation
@@ -1870,6 +2254,12 @@ func (_u *PaymentOrderUpdateOne) ClearUser() *PaymentOrderUpdateOne {
 // ClearRechargeLotteryDraw clears the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
 func (_u *PaymentOrderUpdateOne) ClearRechargeLotteryDraw() *PaymentOrderUpdateOne {
 	_u.mutation.ClearRechargeLotteryDraw()
+	return _u
+}
+
+// ClearCarpoolGroup clears the "carpool_group" edge to the CarpoolGroup entity.
+func (_u *PaymentOrderUpdateOne) ClearCarpoolGroup() *PaymentOrderUpdateOne {
+	_u.mutation.ClearCarpoolGroup()
 	return _u
 }
 
@@ -2114,6 +2504,48 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 	if _u.mutation.SubscriptionDaysCleared() {
 		_spec.ClearField(paymentorder.FieldSubscriptionDays, field.TypeInt)
 	}
+	if value, ok := _u.mutation.CarpoolSize(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolSize, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolSize(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolSize, field.TypeInt, value)
+	}
+	if _u.mutation.CarpoolSizeCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolSize, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CarpoolPlanID(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolPlanID(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolPlanID, field.TypeInt64, value)
+	}
+	if _u.mutation.CarpoolPlanIDCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.CarpoolPlanRevision(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolPlanRevision(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt, value)
+	}
+	if _u.mutation.CarpoolPlanRevisionCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CarpoolTotalAmount(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCarpoolTotalAmount(); ok {
+		_spec.AddField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64, value)
+	}
+	if _u.mutation.CarpoolTotalAmountCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.CarpoolPlanNote(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanNote, field.TypeString, value)
+	}
+	if _u.mutation.CarpoolPlanNoteCleared() {
+		_spec.ClearField(paymentorder.FieldCarpoolPlanNote, field.TypeString)
+	}
 	if value, ok := _u.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)
 	}
@@ -2267,6 +2699,35 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(rechargelotterydraw.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CarpoolGroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   paymentorder.CarpoolGroupTable,
+			Columns: []string{paymentorder.CarpoolGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carpoolgroup.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CarpoolGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   paymentorder.CarpoolGroupTable,
+			Columns: []string{paymentorder.CarpoolGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carpoolgroup.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

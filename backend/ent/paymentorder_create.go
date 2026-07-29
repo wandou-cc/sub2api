@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -208,6 +209,90 @@ func (_c *PaymentOrderCreate) SetSubscriptionDays(v int) *PaymentOrderCreate {
 func (_c *PaymentOrderCreate) SetNillableSubscriptionDays(v *int) *PaymentOrderCreate {
 	if v != nil {
 		_c.SetSubscriptionDays(*v)
+	}
+	return _c
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (_c *PaymentOrderCreate) SetCarpoolSize(v int) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolSize(v)
+	return _c
+}
+
+// SetNillableCarpoolSize sets the "carpool_size" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolSize(v *int) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolSize(*v)
+	}
+	return _c
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (_c *PaymentOrderCreate) SetCarpoolPlanID(v int64) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolPlanID(v)
+	return _c
+}
+
+// SetNillableCarpoolPlanID sets the "carpool_plan_id" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolPlanID(v *int64) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolPlanID(*v)
+	}
+	return _c
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (_c *PaymentOrderCreate) SetCarpoolPlanRevision(v int) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolPlanRevision(v)
+	return _c
+}
+
+// SetNillableCarpoolPlanRevision sets the "carpool_plan_revision" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolPlanRevision(v *int) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolPlanRevision(*v)
+	}
+	return _c
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (_c *PaymentOrderCreate) SetCarpoolTotalAmount(v float64) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolTotalAmount(v)
+	return _c
+}
+
+// SetNillableCarpoolTotalAmount sets the "carpool_total_amount" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolTotalAmount(v *float64) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolTotalAmount(*v)
+	}
+	return _c
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (_c *PaymentOrderCreate) SetCarpoolPlanNote(v string) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolPlanNote(v)
+	return _c
+}
+
+// SetNillableCarpoolPlanNote sets the "carpool_plan_note" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolPlanNote(v *string) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolPlanNote(*v)
+	}
+	return _c
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (_c *PaymentOrderCreate) SetCarpoolGroupID(v int64) *PaymentOrderCreate {
+	_c.mutation.SetCarpoolGroupID(v)
+	return _c
+}
+
+// SetNillableCarpoolGroupID sets the "carpool_group_id" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableCarpoolGroupID(v *int64) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetCarpoolGroupID(*v)
 	}
 	return _c
 }
@@ -496,6 +581,11 @@ func (_c *PaymentOrderCreate) SetNillableRechargeLotteryDrawID(id *int64) *Payme
 // SetRechargeLotteryDraw sets the "recharge_lottery_draw" edge to the RechargeLotteryDraw entity.
 func (_c *PaymentOrderCreate) SetRechargeLotteryDraw(v *RechargeLotteryDraw) *PaymentOrderCreate {
 	return _c.SetRechargeLotteryDrawID(v.ID)
+}
+
+// SetCarpoolGroup sets the "carpool_group" edge to the CarpoolGroup entity.
+func (_c *PaymentOrderCreate) SetCarpoolGroup(v *CarpoolGroup) *PaymentOrderCreate {
+	return _c.SetCarpoolGroupID(v.ID)
 }
 
 // Mutation returns the PaymentOrderMutation object of the builder.
@@ -789,6 +879,26 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 		_spec.SetField(paymentorder.FieldSubscriptionDays, field.TypeInt, value)
 		_node.SubscriptionDays = &value
 	}
+	if value, ok := _c.mutation.CarpoolSize(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolSize, field.TypeInt, value)
+		_node.CarpoolSize = &value
+	}
+	if value, ok := _c.mutation.CarpoolPlanID(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanID, field.TypeInt64, value)
+		_node.CarpoolPlanID = &value
+	}
+	if value, ok := _c.mutation.CarpoolPlanRevision(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanRevision, field.TypeInt, value)
+		_node.CarpoolPlanRevision = &value
+	}
+	if value, ok := _c.mutation.CarpoolTotalAmount(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolTotalAmount, field.TypeFloat64, value)
+		_node.CarpoolTotalAmount = &value
+	}
+	if value, ok := _c.mutation.CarpoolPlanNote(); ok {
+		_spec.SetField(paymentorder.FieldCarpoolPlanNote, field.TypeString, value)
+		_node.CarpoolPlanNote = &value
+	}
 	if value, ok := _c.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)
 		_node.ProviderInstanceID = &value
@@ -904,6 +1014,23 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CarpoolGroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   paymentorder.CarpoolGroupTable,
+			Columns: []string{paymentorder.CarpoolGroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carpoolgroup.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CarpoolGroupID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -1249,6 +1376,138 @@ func (u *PaymentOrderUpsert) AddSubscriptionDays(v int) *PaymentOrderUpsert {
 // ClearSubscriptionDays clears the value of the "subscription_days" field.
 func (u *PaymentOrderUpsert) ClearSubscriptionDays() *PaymentOrderUpsert {
 	u.SetNull(paymentorder.FieldSubscriptionDays)
+	return u
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (u *PaymentOrderUpsert) SetCarpoolSize(v int) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolSize, v)
+	return u
+}
+
+// UpdateCarpoolSize sets the "carpool_size" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolSize() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolSize)
+	return u
+}
+
+// AddCarpoolSize adds v to the "carpool_size" field.
+func (u *PaymentOrderUpsert) AddCarpoolSize(v int) *PaymentOrderUpsert {
+	u.Add(paymentorder.FieldCarpoolSize, v)
+	return u
+}
+
+// ClearCarpoolSize clears the value of the "carpool_size" field.
+func (u *PaymentOrderUpsert) ClearCarpoolSize() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolSize)
+	return u
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (u *PaymentOrderUpsert) SetCarpoolPlanID(v int64) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolPlanID, v)
+	return u
+}
+
+// UpdateCarpoolPlanID sets the "carpool_plan_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolPlanID() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolPlanID)
+	return u
+}
+
+// AddCarpoolPlanID adds v to the "carpool_plan_id" field.
+func (u *PaymentOrderUpsert) AddCarpoolPlanID(v int64) *PaymentOrderUpsert {
+	u.Add(paymentorder.FieldCarpoolPlanID, v)
+	return u
+}
+
+// ClearCarpoolPlanID clears the value of the "carpool_plan_id" field.
+func (u *PaymentOrderUpsert) ClearCarpoolPlanID() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolPlanID)
+	return u
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsert) SetCarpoolPlanRevision(v int) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolPlanRevision, v)
+	return u
+}
+
+// UpdateCarpoolPlanRevision sets the "carpool_plan_revision" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolPlanRevision() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolPlanRevision)
+	return u
+}
+
+// AddCarpoolPlanRevision adds v to the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsert) AddCarpoolPlanRevision(v int) *PaymentOrderUpsert {
+	u.Add(paymentorder.FieldCarpoolPlanRevision, v)
+	return u
+}
+
+// ClearCarpoolPlanRevision clears the value of the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsert) ClearCarpoolPlanRevision() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolPlanRevision)
+	return u
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (u *PaymentOrderUpsert) SetCarpoolTotalAmount(v float64) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolTotalAmount, v)
+	return u
+}
+
+// UpdateCarpoolTotalAmount sets the "carpool_total_amount" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolTotalAmount() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolTotalAmount)
+	return u
+}
+
+// AddCarpoolTotalAmount adds v to the "carpool_total_amount" field.
+func (u *PaymentOrderUpsert) AddCarpoolTotalAmount(v float64) *PaymentOrderUpsert {
+	u.Add(paymentorder.FieldCarpoolTotalAmount, v)
+	return u
+}
+
+// ClearCarpoolTotalAmount clears the value of the "carpool_total_amount" field.
+func (u *PaymentOrderUpsert) ClearCarpoolTotalAmount() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolTotalAmount)
+	return u
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (u *PaymentOrderUpsert) SetCarpoolPlanNote(v string) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolPlanNote, v)
+	return u
+}
+
+// UpdateCarpoolPlanNote sets the "carpool_plan_note" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolPlanNote() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolPlanNote)
+	return u
+}
+
+// ClearCarpoolPlanNote clears the value of the "carpool_plan_note" field.
+func (u *PaymentOrderUpsert) ClearCarpoolPlanNote() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolPlanNote)
+	return u
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (u *PaymentOrderUpsert) SetCarpoolGroupID(v int64) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldCarpoolGroupID, v)
+	return u
+}
+
+// UpdateCarpoolGroupID sets the "carpool_group_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateCarpoolGroupID() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldCarpoolGroupID)
+	return u
+}
+
+// ClearCarpoolGroupID clears the value of the "carpool_group_id" field.
+func (u *PaymentOrderUpsert) ClearCarpoolGroupID() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldCarpoolGroupID)
 	return u
 }
 
@@ -1961,6 +2220,160 @@ func (u *PaymentOrderUpsertOne) UpdateSubscriptionDays() *PaymentOrderUpsertOne 
 func (u *PaymentOrderUpsertOne) ClearSubscriptionDays() *PaymentOrderUpsertOne {
 	return u.Update(func(s *PaymentOrderUpsert) {
 		s.ClearSubscriptionDays()
+	})
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolSize(v int) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolSize(v)
+	})
+}
+
+// AddCarpoolSize adds v to the "carpool_size" field.
+func (u *PaymentOrderUpsertOne) AddCarpoolSize(v int) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolSize(v)
+	})
+}
+
+// UpdateCarpoolSize sets the "carpool_size" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolSize() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolSize()
+	})
+}
+
+// ClearCarpoolSize clears the value of the "carpool_size" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolSize() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolSize()
+	})
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolPlanID(v int64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanID(v)
+	})
+}
+
+// AddCarpoolPlanID adds v to the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertOne) AddCarpoolPlanID(v int64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolPlanID(v)
+	})
+}
+
+// UpdateCarpoolPlanID sets the "carpool_plan_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolPlanID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanID()
+	})
+}
+
+// ClearCarpoolPlanID clears the value of the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolPlanID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanID()
+	})
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolPlanRevision(v int) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanRevision(v)
+	})
+}
+
+// AddCarpoolPlanRevision adds v to the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertOne) AddCarpoolPlanRevision(v int) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolPlanRevision(v)
+	})
+}
+
+// UpdateCarpoolPlanRevision sets the "carpool_plan_revision" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolPlanRevision() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanRevision()
+	})
+}
+
+// ClearCarpoolPlanRevision clears the value of the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolPlanRevision() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanRevision()
+	})
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolTotalAmount(v float64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolTotalAmount(v)
+	})
+}
+
+// AddCarpoolTotalAmount adds v to the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertOne) AddCarpoolTotalAmount(v float64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolTotalAmount(v)
+	})
+}
+
+// UpdateCarpoolTotalAmount sets the "carpool_total_amount" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolTotalAmount() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolTotalAmount()
+	})
+}
+
+// ClearCarpoolTotalAmount clears the value of the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolTotalAmount() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolTotalAmount()
+	})
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolPlanNote(v string) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanNote(v)
+	})
+}
+
+// UpdateCarpoolPlanNote sets the "carpool_plan_note" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolPlanNote() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanNote()
+	})
+}
+
+// ClearCarpoolPlanNote clears the value of the "carpool_plan_note" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolPlanNote() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanNote()
+	})
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (u *PaymentOrderUpsertOne) SetCarpoolGroupID(v int64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolGroupID(v)
+	})
+}
+
+// UpdateCarpoolGroupID sets the "carpool_group_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateCarpoolGroupID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolGroupID()
+	})
+}
+
+// ClearCarpoolGroupID clears the value of the "carpool_group_id" field.
+func (u *PaymentOrderUpsertOne) ClearCarpoolGroupID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolGroupID()
 	})
 }
 
@@ -2893,6 +3306,160 @@ func (u *PaymentOrderUpsertBulk) UpdateSubscriptionDays() *PaymentOrderUpsertBul
 func (u *PaymentOrderUpsertBulk) ClearSubscriptionDays() *PaymentOrderUpsertBulk {
 	return u.Update(func(s *PaymentOrderUpsert) {
 		s.ClearSubscriptionDays()
+	})
+}
+
+// SetCarpoolSize sets the "carpool_size" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolSize(v int) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolSize(v)
+	})
+}
+
+// AddCarpoolSize adds v to the "carpool_size" field.
+func (u *PaymentOrderUpsertBulk) AddCarpoolSize(v int) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolSize(v)
+	})
+}
+
+// UpdateCarpoolSize sets the "carpool_size" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolSize() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolSize()
+	})
+}
+
+// ClearCarpoolSize clears the value of the "carpool_size" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolSize() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolSize()
+	})
+}
+
+// SetCarpoolPlanID sets the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolPlanID(v int64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanID(v)
+	})
+}
+
+// AddCarpoolPlanID adds v to the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertBulk) AddCarpoolPlanID(v int64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolPlanID(v)
+	})
+}
+
+// UpdateCarpoolPlanID sets the "carpool_plan_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolPlanID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanID()
+	})
+}
+
+// ClearCarpoolPlanID clears the value of the "carpool_plan_id" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolPlanID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanID()
+	})
+}
+
+// SetCarpoolPlanRevision sets the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolPlanRevision(v int) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanRevision(v)
+	})
+}
+
+// AddCarpoolPlanRevision adds v to the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertBulk) AddCarpoolPlanRevision(v int) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolPlanRevision(v)
+	})
+}
+
+// UpdateCarpoolPlanRevision sets the "carpool_plan_revision" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolPlanRevision() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanRevision()
+	})
+}
+
+// ClearCarpoolPlanRevision clears the value of the "carpool_plan_revision" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolPlanRevision() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanRevision()
+	})
+}
+
+// SetCarpoolTotalAmount sets the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolTotalAmount(v float64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolTotalAmount(v)
+	})
+}
+
+// AddCarpoolTotalAmount adds v to the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertBulk) AddCarpoolTotalAmount(v float64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddCarpoolTotalAmount(v)
+	})
+}
+
+// UpdateCarpoolTotalAmount sets the "carpool_total_amount" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolTotalAmount() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolTotalAmount()
+	})
+}
+
+// ClearCarpoolTotalAmount clears the value of the "carpool_total_amount" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolTotalAmount() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolTotalAmount()
+	})
+}
+
+// SetCarpoolPlanNote sets the "carpool_plan_note" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolPlanNote(v string) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolPlanNote(v)
+	})
+}
+
+// UpdateCarpoolPlanNote sets the "carpool_plan_note" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolPlanNote() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolPlanNote()
+	})
+}
+
+// ClearCarpoolPlanNote clears the value of the "carpool_plan_note" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolPlanNote() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolPlanNote()
+	})
+}
+
+// SetCarpoolGroupID sets the "carpool_group_id" field.
+func (u *PaymentOrderUpsertBulk) SetCarpoolGroupID(v int64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetCarpoolGroupID(v)
+	})
+}
+
+// UpdateCarpoolGroupID sets the "carpool_group_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateCarpoolGroupID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateCarpoolGroupID()
+	})
+}
+
+// ClearCarpoolGroupID clears the value of the "carpool_group_id" field.
+func (u *PaymentOrderUpsertBulk) ClearCarpoolGroupID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearCarpoolGroupID()
 	})
 }
 

@@ -617,6 +617,87 @@ var (
 			},
 		},
 	}
+	// CarpoolGroupsColumns holds the columns for the "carpool_groups" table.
+	CarpoolGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "carpool_plan_id", Type: field.TypeInt64},
+		{Name: "carpool_plan_revision", Type: field.TypeInt},
+		{Name: "target_members", Type: field.TypeInt},
+		{Name: "total_amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "price_per_member", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "plan_note", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "member_count", Type: field.TypeInt, Default: 0},
+		{Name: "status", Type: field.TypeString, Size: 30},
+		{Name: "open_key", Type: field.TypeString, Unique: true, Nullable: true, Size: 32},
+		{Name: "status_reason", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "deadline_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "formed_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "opened_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+	}
+	// CarpoolGroupsTable holds the schema information for the "carpool_groups" table.
+	CarpoolGroupsTable = &schema.Table{
+		Name:       "carpool_groups",
+		Columns:    CarpoolGroupsColumns,
+		PrimaryKey: []*schema.Column{CarpoolGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "carpoolgroup_carpool_plan_id",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolGroupsColumns[1]},
+			},
+			{
+				Name:    "carpoolgroup_status",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolGroupsColumns[8]},
+			},
+			{
+				Name:    "carpoolgroup_deadline_at",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolGroupsColumns[11]},
+			},
+			{
+				Name:    "carpoolgroup_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolGroupsColumns[14]},
+			},
+			{
+				Name:    "carpoolgroup_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolGroupsColumns[15]},
+			},
+		},
+	}
+	// CarpoolPlansColumns holds the columns for the "carpool_plans" table.
+	CarpoolPlansColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "total_amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "target_members", Type: field.TypeInt},
+		{Name: "note", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "revision", Type: field.TypeInt, Default: 1},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+	}
+	// CarpoolPlansTable holds the schema information for the "carpool_plans" table.
+	CarpoolPlansTable = &schema.Table{
+		Name:       "carpool_plans",
+		Columns:    CarpoolPlansColumns,
+		PrimaryKey: []*schema.Column{CarpoolPlansColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "carpoolplan_target_members",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolPlansColumns[2]},
+			},
+			{
+				Name:    "carpoolplan_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{CarpoolPlansColumns[5]},
+			},
+		},
+	}
 	// ChannelMonitorsColumns holds the columns for the "channel_monitors" table.
 	ChannelMonitorsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1117,6 +1198,11 @@ var (
 		{Name: "plan_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "subscription_group_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "subscription_days", Type: field.TypeInt, Nullable: true},
+		{Name: "carpool_size", Type: field.TypeInt, Nullable: true},
+		{Name: "carpool_plan_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "carpool_plan_revision", Type: field.TypeInt, Nullable: true},
+		{Name: "carpool_total_amount", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "decimal(20,2)"}},
+		{Name: "carpool_plan_note", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "provider_instance_id", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "provider_key", Type: field.TypeString, Nullable: true, Size: 30},
 		{Name: "provider_snapshot", Type: field.TypeJSON, Nullable: true, SchemaType: map[string]string{"postgres": "jsonb"}},
@@ -1138,6 +1224,7 @@ var (
 		{Name: "src_url", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "carpool_group_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "user_id", Type: field.TypeInt64},
 	}
 	// PaymentOrdersTable holds the schema information for the "payment_orders" table.
@@ -1147,8 +1234,14 @@ var (
 		PrimaryKey: []*schema.Column{PaymentOrdersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "payment_orders_carpool_groups_orders",
+				Columns:    []*schema.Column{PaymentOrdersColumns[44]},
+				RefColumns: []*schema.Column{CarpoolGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "payment_orders_users_payment_orders",
-				Columns:    []*schema.Column{PaymentOrdersColumns[39]},
+				Columns:    []*schema.Column{PaymentOrdersColumns[45]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1165,37 +1258,50 @@ var (
 			{
 				Name:    "paymentorder_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[39]},
+				Columns: []*schema.Column{PaymentOrdersColumns[45]},
 			},
 			{
 				Name:    "paymentorder_status",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[21]},
+				Columns: []*schema.Column{PaymentOrdersColumns[26]},
 			},
 			{
 				Name:    "paymentorder_expires_at",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[29]},
+				Columns: []*schema.Column{PaymentOrdersColumns[34]},
 			},
 			{
 				Name:    "paymentorder_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[37]},
+				Columns: []*schema.Column{PaymentOrdersColumns[42]},
 			},
 			{
 				Name:    "paymentorder_paid_at",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[30]},
+				Columns: []*schema.Column{PaymentOrdersColumns[35]},
 			},
 			{
 				Name:    "paymentorder_payment_type_paid_at",
 				Unique:  false,
-				Columns: []*schema.Column{PaymentOrdersColumns[9], PaymentOrdersColumns[30]},
+				Columns: []*schema.Column{PaymentOrdersColumns[9], PaymentOrdersColumns[35]},
 			},
 			{
 				Name:    "paymentorder_order_type",
 				Unique:  false,
 				Columns: []*schema.Column{PaymentOrdersColumns[14]},
+			},
+			{
+				Name:    "paymentorder_carpool_group_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{PaymentOrdersColumns[44], PaymentOrdersColumns[45]},
+			},
+			{
+				Name:    "paymentorder_user_id_carpool_plan_id",
+				Unique:  true,
+				Columns: []*schema.Column{PaymentOrdersColumns[45], PaymentOrdersColumns[19]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "order_type = 'carpool' AND carpool_group_id IS NULL AND (status IN ('PENDING', 'PAID', 'RECHARGING') OR (status = 'FAILED' AND paid_at IS NOT NULL))",
+				},
 			},
 		},
 	}
@@ -2123,6 +2229,8 @@ var (
 		BatchImageEventsTable,
 		BatchImageItemsTable,
 		BatchImageJobsTable,
+		CarpoolGroupsTable,
+		CarpoolPlansTable,
 		ChannelMonitorsTable,
 		ChannelMonitorDailyRollupsTable,
 		ChannelMonitorHistoriesTable,
@@ -2197,6 +2305,12 @@ func init() {
 	BatchImageJobsTable.Annotation = &entsql.Annotation{
 		Table: "batch_image_jobs",
 	}
+	CarpoolGroupsTable.Annotation = &entsql.Annotation{
+		Table: "carpool_groups",
+	}
+	CarpoolPlansTable.Annotation = &entsql.Annotation{
+		Table: "carpool_plans",
+	}
 	ChannelMonitorsTable.ForeignKeys[0].RefTable = ChannelMonitorRequestTemplatesTable
 	ChannelMonitorsTable.Annotation = &entsql.Annotation{
 		Table: "channel_monitors",
@@ -2233,7 +2347,8 @@ func init() {
 	PaymentAuditLogsTable.Annotation = &entsql.Annotation{
 		Table: "payment_audit_logs",
 	}
-	PaymentOrdersTable.ForeignKeys[0].RefTable = UsersTable
+	PaymentOrdersTable.ForeignKeys[0].RefTable = CarpoolGroupsTable
+	PaymentOrdersTable.ForeignKeys[1].RefTable = UsersTable
 	PaymentOrdersTable.Annotation = &entsql.Annotation{
 		Table: "payment_orders",
 	}

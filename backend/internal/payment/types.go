@@ -37,10 +37,11 @@ const (
 	OrderStatusRefundFailed      = "REFUND_FAILED"
 )
 
-// Order types distinguish balance recharges from subscription purchases.
+// Order types distinguish balance recharges, subscription purchases, and carpool purchases.
 const (
 	OrderTypeBalance      = "balance"
 	OrderTypeSubscription = "subscription"
+	OrderTypeCarpool      = "carpool"
 )
 
 // Entity statuses shared across users, groups, etc.

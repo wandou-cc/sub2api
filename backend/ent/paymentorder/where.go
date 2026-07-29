@@ -145,6 +145,36 @@ func SubscriptionDays(v int) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldSubscriptionDays, v))
 }
 
+// CarpoolSize applies equality check predicate on the "carpool_size" field. It's identical to CarpoolSizeEQ.
+func CarpoolSize(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolSize, v))
+}
+
+// CarpoolPlanID applies equality check predicate on the "carpool_plan_id" field. It's identical to CarpoolPlanIDEQ.
+func CarpoolPlanID(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanRevision applies equality check predicate on the "carpool_plan_revision" field. It's identical to CarpoolPlanRevisionEQ.
+func CarpoolPlanRevision(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolTotalAmount applies equality check predicate on the "carpool_total_amount" field. It's identical to CarpoolTotalAmountEQ.
+func CarpoolTotalAmount(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolPlanNote applies equality check predicate on the "carpool_plan_note" field. It's identical to CarpoolPlanNoteEQ.
+func CarpoolPlanNote(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolGroupID applies equality check predicate on the "carpool_group_id" field. It's identical to CarpoolGroupIDEQ.
+func CarpoolGroupID(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolGroupID, v))
+}
+
 // ProviderInstanceID applies equality check predicate on the "provider_instance_id" field. It's identical to ProviderInstanceIDEQ.
 func ProviderInstanceID(v string) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldProviderInstanceID, v))
@@ -1288,6 +1318,311 @@ func SubscriptionDaysIsNil() predicate.PaymentOrder {
 // SubscriptionDaysNotNil applies the NotNil predicate on the "subscription_days" field.
 func SubscriptionDaysNotNil() predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldNotNull(FieldSubscriptionDays))
+}
+
+// CarpoolSizeEQ applies the EQ predicate on the "carpool_size" field.
+func CarpoolSizeEQ(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeNEQ applies the NEQ predicate on the "carpool_size" field.
+func CarpoolSizeNEQ(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeIn applies the In predicate on the "carpool_size" field.
+func CarpoolSizeIn(vs ...int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolSize, vs...))
+}
+
+// CarpoolSizeNotIn applies the NotIn predicate on the "carpool_size" field.
+func CarpoolSizeNotIn(vs ...int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolSize, vs...))
+}
+
+// CarpoolSizeGT applies the GT predicate on the "carpool_size" field.
+func CarpoolSizeGT(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeGTE applies the GTE predicate on the "carpool_size" field.
+func CarpoolSizeGTE(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeLT applies the LT predicate on the "carpool_size" field.
+func CarpoolSizeLT(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeLTE applies the LTE predicate on the "carpool_size" field.
+func CarpoolSizeLTE(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldCarpoolSize, v))
+}
+
+// CarpoolSizeIsNil applies the IsNil predicate on the "carpool_size" field.
+func CarpoolSizeIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolSize))
+}
+
+// CarpoolSizeNotNil applies the NotNil predicate on the "carpool_size" field.
+func CarpoolSizeNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolSize))
+}
+
+// CarpoolPlanIDEQ applies the EQ predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDNEQ applies the NEQ predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDNEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDIn applies the In predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolPlanID, vs...))
+}
+
+// CarpoolPlanIDNotIn applies the NotIn predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDNotIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolPlanID, vs...))
+}
+
+// CarpoolPlanIDGT applies the GT predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDGT(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDGTE applies the GTE predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDGTE(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDLT applies the LT predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDLT(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDLTE applies the LTE predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDLTE(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldCarpoolPlanID, v))
+}
+
+// CarpoolPlanIDIsNil applies the IsNil predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolPlanID))
+}
+
+// CarpoolPlanIDNotNil applies the NotNil predicate on the "carpool_plan_id" field.
+func CarpoolPlanIDNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolPlanID))
+}
+
+// CarpoolPlanRevisionEQ applies the EQ predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionEQ(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionNEQ applies the NEQ predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionNEQ(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionIn applies the In predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionIn(vs ...int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolPlanRevision, vs...))
+}
+
+// CarpoolPlanRevisionNotIn applies the NotIn predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionNotIn(vs ...int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolPlanRevision, vs...))
+}
+
+// CarpoolPlanRevisionGT applies the GT predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionGT(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionGTE applies the GTE predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionGTE(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionLT applies the LT predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionLT(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionLTE applies the LTE predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionLTE(v int) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldCarpoolPlanRevision, v))
+}
+
+// CarpoolPlanRevisionIsNil applies the IsNil predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolPlanRevision))
+}
+
+// CarpoolPlanRevisionNotNil applies the NotNil predicate on the "carpool_plan_revision" field.
+func CarpoolPlanRevisionNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolPlanRevision))
+}
+
+// CarpoolTotalAmountEQ applies the EQ predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountEQ(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountNEQ applies the NEQ predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountNEQ(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountIn applies the In predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountIn(vs ...float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolTotalAmount, vs...))
+}
+
+// CarpoolTotalAmountNotIn applies the NotIn predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountNotIn(vs ...float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolTotalAmount, vs...))
+}
+
+// CarpoolTotalAmountGT applies the GT predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountGT(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountGTE applies the GTE predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountGTE(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountLT applies the LT predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountLT(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountLTE applies the LTE predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountLTE(v float64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldCarpoolTotalAmount, v))
+}
+
+// CarpoolTotalAmountIsNil applies the IsNil predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolTotalAmount))
+}
+
+// CarpoolTotalAmountNotNil applies the NotNil predicate on the "carpool_total_amount" field.
+func CarpoolTotalAmountNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolTotalAmount))
+}
+
+// CarpoolPlanNoteEQ applies the EQ predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteNEQ applies the NEQ predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteNEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteIn applies the In predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolPlanNote, vs...))
+}
+
+// CarpoolPlanNoteNotIn applies the NotIn predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteNotIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolPlanNote, vs...))
+}
+
+// CarpoolPlanNoteGT applies the GT predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteGT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteGTE applies the GTE predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteGTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteLT applies the LT predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteLT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteLTE applies the LTE predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteLTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteContains applies the Contains predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteContains(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContains(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteHasPrefix applies the HasPrefix predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteHasPrefix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasPrefix(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteHasSuffix applies the HasSuffix predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteHasSuffix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasSuffix(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteIsNil applies the IsNil predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolPlanNote))
+}
+
+// CarpoolPlanNoteNotNil applies the NotNil predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolPlanNote))
+}
+
+// CarpoolPlanNoteEqualFold applies the EqualFold predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteEqualFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEqualFold(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolPlanNoteContainsFold applies the ContainsFold predicate on the "carpool_plan_note" field.
+func CarpoolPlanNoteContainsFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContainsFold(FieldCarpoolPlanNote, v))
+}
+
+// CarpoolGroupIDEQ applies the EQ predicate on the "carpool_group_id" field.
+func CarpoolGroupIDEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldCarpoolGroupID, v))
+}
+
+// CarpoolGroupIDNEQ applies the NEQ predicate on the "carpool_group_id" field.
+func CarpoolGroupIDNEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldCarpoolGroupID, v))
+}
+
+// CarpoolGroupIDIn applies the In predicate on the "carpool_group_id" field.
+func CarpoolGroupIDIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldCarpoolGroupID, vs...))
+}
+
+// CarpoolGroupIDNotIn applies the NotIn predicate on the "carpool_group_id" field.
+func CarpoolGroupIDNotIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldCarpoolGroupID, vs...))
+}
+
+// CarpoolGroupIDIsNil applies the IsNil predicate on the "carpool_group_id" field.
+func CarpoolGroupIDIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldCarpoolGroupID))
+}
+
+// CarpoolGroupIDNotNil applies the NotNil predicate on the "carpool_group_id" field.
+func CarpoolGroupIDNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldCarpoolGroupID))
 }
 
 // ProviderInstanceIDEQ applies the EQ predicate on the "provider_instance_id" field.
@@ -2478,6 +2813,29 @@ func HasRechargeLotteryDraw() predicate.PaymentOrder {
 func HasRechargeLotteryDrawWith(preds ...predicate.RechargeLotteryDraw) predicate.PaymentOrder {
 	return predicate.PaymentOrder(func(s *sql.Selector) {
 		step := newRechargeLotteryDrawStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCarpoolGroup applies the HasEdge predicate on the "carpool_group" edge.
+func HasCarpoolGroup() predicate.PaymentOrder {
+	return predicate.PaymentOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CarpoolGroupTable, CarpoolGroupColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCarpoolGroupWith applies the HasEdge predicate on the "carpool_group" edge with a given conditions (other predicates).
+func HasCarpoolGroupWith(preds ...predicate.CarpoolGroup) predicate.PaymentOrder {
+	return predicate.PaymentOrder(func(s *sql.Selector) {
+		step := newCarpoolGroupStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

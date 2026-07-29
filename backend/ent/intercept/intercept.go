@@ -18,6 +18,8 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/batchimageevent"
 	"github.com/Wei-Shaw/sub2api/ent/batchimageitem"
 	"github.com/Wei-Shaw/sub2api/ent/batchimagejob"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolplan"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitor"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitordailyrollup"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorhistory"
@@ -375,6 +377,60 @@ func (f TraverseBatchImageJob) Traverse(ctx context.Context, q ent.Query) error 
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.BatchImageJobQuery", q)
+}
+
+// The CarpoolGroupFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CarpoolGroupFunc func(context.Context, *ent.CarpoolGroupQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CarpoolGroupFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CarpoolGroupQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CarpoolGroupQuery", q)
+}
+
+// The TraverseCarpoolGroup type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCarpoolGroup func(context.Context, *ent.CarpoolGroupQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCarpoolGroup) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCarpoolGroup) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CarpoolGroupQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CarpoolGroupQuery", q)
+}
+
+// The CarpoolPlanFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CarpoolPlanFunc func(context.Context, *ent.CarpoolPlanQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CarpoolPlanFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CarpoolPlanQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CarpoolPlanQuery", q)
+}
+
+// The TraverseCarpoolPlan type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCarpoolPlan func(context.Context, *ent.CarpoolPlanQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCarpoolPlan) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCarpoolPlan) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CarpoolPlanQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CarpoolPlanQuery", q)
 }
 
 // The ChannelMonitorFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -1210,6 +1266,10 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.BatchImageItemQuery, predicate.BatchImageItem, batchimageitem.OrderOption]{typ: ent.TypeBatchImageItem, tq: q}, nil
 	case *ent.BatchImageJobQuery:
 		return &query[*ent.BatchImageJobQuery, predicate.BatchImageJob, batchimagejob.OrderOption]{typ: ent.TypeBatchImageJob, tq: q}, nil
+	case *ent.CarpoolGroupQuery:
+		return &query[*ent.CarpoolGroupQuery, predicate.CarpoolGroup, carpoolgroup.OrderOption]{typ: ent.TypeCarpoolGroup, tq: q}, nil
+	case *ent.CarpoolPlanQuery:
+		return &query[*ent.CarpoolPlanQuery, predicate.CarpoolPlan, carpoolplan.OrderOption]{typ: ent.TypeCarpoolPlan, tq: q}, nil
 	case *ent.ChannelMonitorQuery:
 		return &query[*ent.ChannelMonitorQuery, predicate.ChannelMonitor, channelmonitor.OrderOption]{typ: ent.TypeChannelMonitor, tq: q}, nil
 	case *ent.ChannelMonitorDailyRollupQuery:

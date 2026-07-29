@@ -19,9 +19,13 @@
           ({{ t('payment.orders.fee') }} {{ row.fee_rate }}%)
         </span>
         <div v-if="row.amount !== row.pay_amount" class="text-xs text-gray-500">
-          {{ t('payment.orders.creditedAmount') }}: {{ creditedAmountSymbol }}{{ row.amount.toFixed(2) }}
+          {{ t(row.order_type === 'carpool' ? 'payment.orders.amount' : 'payment.orders.creditedAmount') }}:
+          {{ row.order_type === 'carpool' ? paymentAmountSymbol(row) : creditedAmountSymbol }}{{ row.amount.toFixed(2) }}
         </div>
       </div>
+    </template>
+    <template #cell-order_type="{ value }">
+      <span class="text-sm text-gray-700 dark:text-gray-300">{{ t(`payment.admin.${value}Order`, value) }}</span>
     </template>
     <template #cell-payment_type="{ value }">
       <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('payment.methods.' + value, value) }}</span>
@@ -73,6 +77,7 @@ const columns = computed((): Column[] => {
   }
   cols.push(
     { key: 'pay_amount', label: t('payment.orders.payAmount') },
+    { key: 'order_type', label: t('payment.orders.orderType') },
     { key: 'payment_type', label: t('payment.orders.paymentMethod') },
     { key: 'status', label: t('payment.orders.status') },
     { key: 'created_at', label: t('payment.orders.createdAt') },

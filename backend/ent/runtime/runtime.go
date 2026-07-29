@@ -15,6 +15,8 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/batchimageevent"
 	"github.com/Wei-Shaw/sub2api/ent/batchimageitem"
 	"github.com/Wei-Shaw/sub2api/ent/batchimagejob"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolplan"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitor"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitordailyrollup"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorhistory"
@@ -603,6 +605,50 @@ func init() {
 	batchimagejob.DefaultUpdatedAt = batchimagejobDescUpdatedAt.Default.(func() time.Time)
 	// batchimagejob.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	batchimagejob.UpdateDefaultUpdatedAt = batchimagejobDescUpdatedAt.UpdateDefault.(func() time.Time)
+	carpoolgroupFields := schema.CarpoolGroup{}.Fields()
+	_ = carpoolgroupFields
+	// carpoolgroupDescMemberCount is the schema descriptor for member_count field.
+	carpoolgroupDescMemberCount := carpoolgroupFields[6].Descriptor()
+	// carpoolgroup.DefaultMemberCount holds the default value on creation for the member_count field.
+	carpoolgroup.DefaultMemberCount = carpoolgroupDescMemberCount.Default.(int)
+	// carpoolgroupDescStatus is the schema descriptor for status field.
+	carpoolgroupDescStatus := carpoolgroupFields[7].Descriptor()
+	// carpoolgroup.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	carpoolgroup.StatusValidator = carpoolgroupDescStatus.Validators[0].(func(string) error)
+	// carpoolgroupDescOpenKey is the schema descriptor for open_key field.
+	carpoolgroupDescOpenKey := carpoolgroupFields[8].Descriptor()
+	// carpoolgroup.OpenKeyValidator is a validator for the "open_key" field. It is called by the builders before save.
+	carpoolgroup.OpenKeyValidator = carpoolgroupDescOpenKey.Validators[0].(func(string) error)
+	// carpoolgroupDescCreatedAt is the schema descriptor for created_at field.
+	carpoolgroupDescCreatedAt := carpoolgroupFields[14].Descriptor()
+	// carpoolgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	carpoolgroup.DefaultCreatedAt = carpoolgroupDescCreatedAt.Default.(func() time.Time)
+	// carpoolgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	carpoolgroupDescUpdatedAt := carpoolgroupFields[15].Descriptor()
+	// carpoolgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	carpoolgroup.DefaultUpdatedAt = carpoolgroupDescUpdatedAt.Default.(func() time.Time)
+	// carpoolgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	carpoolgroup.UpdateDefaultUpdatedAt = carpoolgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	carpoolplanFields := schema.CarpoolPlan{}.Fields()
+	_ = carpoolplanFields
+	// carpoolplanDescNote is the schema descriptor for note field.
+	carpoolplanDescNote := carpoolplanFields[2].Descriptor()
+	// carpoolplan.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	carpoolplan.NoteValidator = carpoolplanDescNote.Validators[0].(func(string) error)
+	// carpoolplanDescRevision is the schema descriptor for revision field.
+	carpoolplanDescRevision := carpoolplanFields[3].Descriptor()
+	// carpoolplan.DefaultRevision holds the default value on creation for the revision field.
+	carpoolplan.DefaultRevision = carpoolplanDescRevision.Default.(int)
+	// carpoolplanDescCreatedAt is the schema descriptor for created_at field.
+	carpoolplanDescCreatedAt := carpoolplanFields[4].Descriptor()
+	// carpoolplan.DefaultCreatedAt holds the default value on creation for the created_at field.
+	carpoolplan.DefaultCreatedAt = carpoolplanDescCreatedAt.Default.(func() time.Time)
+	// carpoolplanDescUpdatedAt is the schema descriptor for updated_at field.
+	carpoolplanDescUpdatedAt := carpoolplanFields[5].Descriptor()
+	// carpoolplan.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	carpoolplan.DefaultUpdatedAt = carpoolplanDescUpdatedAt.Default.(func() time.Time)
+	// carpoolplan.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	carpoolplan.UpdateDefaultUpdatedAt = carpoolplanDescUpdatedAt.UpdateDefault.(func() time.Time)
 	channelmonitorMixin := schema.ChannelMonitor{}.Mixin()
 	channelmonitorMixinFields0 := channelmonitorMixin[0].Fields()
 	_ = channelmonitorMixinFields0
@@ -1307,45 +1353,45 @@ func init() {
 	// paymentorder.OrderTypeValidator is a validator for the "order_type" field. It is called by the builders before save.
 	paymentorder.OrderTypeValidator = paymentorderDescOrderType.Validators[0].(func(string) error)
 	// paymentorderDescProviderInstanceID is the schema descriptor for provider_instance_id field.
-	paymentorderDescProviderInstanceID := paymentorderFields[18].Descriptor()
+	paymentorderDescProviderInstanceID := paymentorderFields[24].Descriptor()
 	// paymentorder.ProviderInstanceIDValidator is a validator for the "provider_instance_id" field. It is called by the builders before save.
 	paymentorder.ProviderInstanceIDValidator = paymentorderDescProviderInstanceID.Validators[0].(func(string) error)
 	// paymentorderDescProviderKey is the schema descriptor for provider_key field.
-	paymentorderDescProviderKey := paymentorderFields[19].Descriptor()
+	paymentorderDescProviderKey := paymentorderFields[25].Descriptor()
 	// paymentorder.ProviderKeyValidator is a validator for the "provider_key" field. It is called by the builders before save.
 	paymentorder.ProviderKeyValidator = paymentorderDescProviderKey.Validators[0].(func(string) error)
 	// paymentorderDescStatus is the schema descriptor for status field.
-	paymentorderDescStatus := paymentorderFields[21].Descriptor()
+	paymentorderDescStatus := paymentorderFields[27].Descriptor()
 	// paymentorder.DefaultStatus holds the default value on creation for the status field.
 	paymentorder.DefaultStatus = paymentorderDescStatus.Default.(string)
 	// paymentorder.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	paymentorder.StatusValidator = paymentorderDescStatus.Validators[0].(func(string) error)
 	// paymentorderDescRefundAmount is the schema descriptor for refund_amount field.
-	paymentorderDescRefundAmount := paymentorderFields[22].Descriptor()
+	paymentorderDescRefundAmount := paymentorderFields[28].Descriptor()
 	// paymentorder.DefaultRefundAmount holds the default value on creation for the refund_amount field.
 	paymentorder.DefaultRefundAmount = paymentorderDescRefundAmount.Default.(float64)
 	// paymentorderDescForceRefund is the schema descriptor for force_refund field.
-	paymentorderDescForceRefund := paymentorderFields[25].Descriptor()
+	paymentorderDescForceRefund := paymentorderFields[31].Descriptor()
 	// paymentorder.DefaultForceRefund holds the default value on creation for the force_refund field.
 	paymentorder.DefaultForceRefund = paymentorderDescForceRefund.Default.(bool)
 	// paymentorderDescRefundRequestedBy is the schema descriptor for refund_requested_by field.
-	paymentorderDescRefundRequestedBy := paymentorderFields[28].Descriptor()
+	paymentorderDescRefundRequestedBy := paymentorderFields[34].Descriptor()
 	// paymentorder.RefundRequestedByValidator is a validator for the "refund_requested_by" field. It is called by the builders before save.
 	paymentorder.RefundRequestedByValidator = paymentorderDescRefundRequestedBy.Validators[0].(func(string) error)
 	// paymentorderDescClientIP is the schema descriptor for client_ip field.
-	paymentorderDescClientIP := paymentorderFields[34].Descriptor()
+	paymentorderDescClientIP := paymentorderFields[40].Descriptor()
 	// paymentorder.ClientIPValidator is a validator for the "client_ip" field. It is called by the builders before save.
 	paymentorder.ClientIPValidator = paymentorderDescClientIP.Validators[0].(func(string) error)
 	// paymentorderDescSrcHost is the schema descriptor for src_host field.
-	paymentorderDescSrcHost := paymentorderFields[35].Descriptor()
+	paymentorderDescSrcHost := paymentorderFields[41].Descriptor()
 	// paymentorder.SrcHostValidator is a validator for the "src_host" field. It is called by the builders before save.
 	paymentorder.SrcHostValidator = paymentorderDescSrcHost.Validators[0].(func(string) error)
 	// paymentorderDescCreatedAt is the schema descriptor for created_at field.
-	paymentorderDescCreatedAt := paymentorderFields[37].Descriptor()
+	paymentorderDescCreatedAt := paymentorderFields[43].Descriptor()
 	// paymentorder.DefaultCreatedAt holds the default value on creation for the created_at field.
 	paymentorder.DefaultCreatedAt = paymentorderDescCreatedAt.Default.(func() time.Time)
 	// paymentorderDescUpdatedAt is the schema descriptor for updated_at field.
-	paymentorderDescUpdatedAt := paymentorderFields[38].Descriptor()
+	paymentorderDescUpdatedAt := paymentorderFields[44].Descriptor()
 	// paymentorder.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	paymentorder.DefaultUpdatedAt = paymentorderDescUpdatedAt.Default.(func() time.Time)
 	// paymentorder.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

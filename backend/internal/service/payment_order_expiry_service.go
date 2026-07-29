@@ -116,4 +116,15 @@ func (s *PaymentOrderExpiryService) runOnce() {
 	if expired > 0 {
 		slog.Info("[PaymentOrderExpiry] expired timed-out orders", "count", expired)
 	}
+
+	carpoolCtx, cancel := context.WithTimeout(context.Background(), expiryCheckTimeout)
+	defer cancel()
+	carpoolExpired, err := s.paymentSvc.ExpireCarpoolGroups(carpoolCtx)
+	if err != nil {
+		slog.Error("[PaymentOrderExpiry] failed to advance carpool groups", "error", err)
+		return
+	}
+	if carpoolExpired > 0 {
+		slog.Info("[PaymentOrderExpiry] advanced carpool groups", "count", carpoolExpired)
+	}
 }

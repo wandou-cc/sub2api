@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
@@ -28,6 +29,7 @@ type PaymentOrderQuery struct {
 	predicates              []predicate.PaymentOrder
 	withUser                *UserQuery
 	withRechargeLotteryDraw *RechargeLotteryDrawQuery
+	withCarpoolGroup        *CarpoolGroupQuery
 	modifiers               []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -102,6 +104,28 @@ func (_q *PaymentOrderQuery) QueryRechargeLotteryDraw() *RechargeLotteryDrawQuer
 			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, selector),
 			sqlgraph.To(rechargelotterydraw.Table, rechargelotterydraw.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, paymentorder.RechargeLotteryDrawTable, paymentorder.RechargeLotteryDrawColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCarpoolGroup chains the current query on the "carpool_group" edge.
+func (_q *PaymentOrderQuery) QueryCarpoolGroup() *CarpoolGroupQuery {
+	query := (&CarpoolGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, selector),
+			sqlgraph.To(carpoolgroup.Table, carpoolgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, paymentorder.CarpoolGroupTable, paymentorder.CarpoolGroupColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -303,6 +327,7 @@ func (_q *PaymentOrderQuery) Clone() *PaymentOrderQuery {
 		predicates:              append([]predicate.PaymentOrder{}, _q.predicates...),
 		withUser:                _q.withUser.Clone(),
 		withRechargeLotteryDraw: _q.withRechargeLotteryDraw.Clone(),
+		withCarpoolGroup:        _q.withCarpoolGroup.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -328,6 +353,17 @@ func (_q *PaymentOrderQuery) WithRechargeLotteryDraw(opts ...func(*RechargeLotte
 		opt(query)
 	}
 	_q.withRechargeLotteryDraw = query
+	return _q
+}
+
+// WithCarpoolGroup tells the query-builder to eager-load the nodes that are connected to
+// the "carpool_group" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PaymentOrderQuery) WithCarpoolGroup(opts ...func(*CarpoolGroupQuery)) *PaymentOrderQuery {
+	query := (&CarpoolGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCarpoolGroup = query
 	return _q
 }
 
@@ -409,9 +445,10 @@ func (_q *PaymentOrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*PaymentOrder{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withUser != nil,
 			_q.withRechargeLotteryDraw != nil,
+			_q.withCarpoolGroup != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -444,6 +481,12 @@ func (_q *PaymentOrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := _q.withRechargeLotteryDraw; query != nil {
 		if err := _q.loadRechargeLotteryDraw(ctx, query, nodes, nil,
 			func(n *PaymentOrder, e *RechargeLotteryDraw) { n.Edges.RechargeLotteryDraw = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCarpoolGroup; query != nil {
+		if err := _q.loadCarpoolGroup(ctx, query, nodes, nil,
+			func(n *PaymentOrder, e *CarpoolGroup) { n.Edges.CarpoolGroup = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +549,38 @@ func (_q *PaymentOrderQuery) loadRechargeLotteryDraw(ctx context.Context, query 
 	}
 	return nil
 }
+func (_q *PaymentOrderQuery) loadCarpoolGroup(ctx context.Context, query *CarpoolGroupQuery, nodes []*PaymentOrder, init func(*PaymentOrder), assign func(*PaymentOrder, *CarpoolGroup)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*PaymentOrder)
+	for i := range nodes {
+		if nodes[i].CarpoolGroupID == nil {
+			continue
+		}
+		fk := *nodes[i].CarpoolGroupID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(carpoolgroup.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "carpool_group_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *PaymentOrderQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -537,6 +612,9 @@ func (_q *PaymentOrderQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withUser != nil {
 			_spec.Node.AddColumnOnce(paymentorder.FieldUserID)
+		}
+		if _q.withCarpoolGroup != nil {
+			_spec.Node.AddColumnOnce(paymentorder.FieldCarpoolGroupID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

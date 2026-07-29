@@ -8,6 +8,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/service"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 )
 
 func TestBillingErrorDetails_MapsGroupRPMExceededToTooManyRequests(t *testing.T) {
@@ -48,11 +49,35 @@ func TestBillingErrorDetails_BillingServiceUnavailableMapsTo503(t *testing.T) {
 	require.Equal(t, 0, retryAfter, "non-RPM errors should not set Retry-After")
 }
 
-func TestBillingErrorDetails_UnknownErrorFallsBackTo403(t *testing.T) {
+func TestBillingErrorDetails_InsufficientBalancePreservesBusinessCode(t *testing.T) {
 	status, code, msg, _ := billingErrorDetails(service.ErrInsufficientBalance)
 	require.Equal(t, http.StatusForbidden, status)
+	require.Equal(t, "INSUFFICIENT_BALANCE", code)
+	require.Equal(t, "账户余额不足，请充值后重试", msg)
+}
+
+func TestOpenAIResponsesBalanceErrorIncludesCodeAndChineseSupportMessage(t *testing.T) {
+	status, code, message, _ := billingErrorDetails(service.ErrInsufficientBalance)
+	c, recorder := newGinContextForEndpoint(t, EndpointResponses)
+
+	(&OpenAIGatewayHandler{}).handleStreamingAwareErrorWithCode(
+		c, status, billingErrorType(code), code, message, false, false,
+	)
+
+	require.Equal(t, http.StatusForbidden, recorder.Code)
+	require.Equal(t, "billing_error", gjson.GetBytes(recorder.Body.Bytes(), "error.type").String())
+	require.Equal(t, "INSUFFICIENT_BALANCE", gjson.GetBytes(recorder.Body.Bytes(), "error.code").String())
+	require.Equal(t,
+		"[错误码：403 / INSUFFICIENT_BALANCE] 账户余额不足，请充值后重试。如需技术支持，请前往官网联系客服。",
+		gjson.GetBytes(recorder.Body.Bytes(), "error.message").String(),
+	)
+}
+
+func TestBillingErrorDetails_UnknownErrorFallsBackTo403(t *testing.T) {
+	status, code, msg, _ := billingErrorDetails(errors.New("unknown billing error"))
+	require.Equal(t, http.StatusForbidden, status)
 	require.Equal(t, "billing_error", code)
-	require.NotEmpty(t, msg)
+	require.Equal(t, "internal error", msg)
 }
 
 func TestExtractQuotaResetSeconds_T19_HappyPath(t *testing.T) {

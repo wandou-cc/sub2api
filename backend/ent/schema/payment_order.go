@@ -74,7 +74,7 @@ func (PaymentOrder) Fields() []ent.Field {
 			Nillable().
 			SchemaType(map[string]string{dialect.Postgres: "text"}),
 
-		// 订单类型 & 订阅关联
+		// 订单类型、订阅与拼车关联
 		field.String("order_type").
 			MaxLen(20).
 			Default("balance"),
@@ -85,6 +85,26 @@ func (PaymentOrder) Fields() []ent.Field {
 			Optional().
 			Nillable(),
 		field.Int("subscription_days").
+			Optional().
+			Nillable(),
+		field.Int("carpool_size").
+			Optional().
+			Nillable(),
+		field.Int64("carpool_plan_id").
+			Optional().
+			Nillable(),
+		field.Int("carpool_plan_revision").
+			Optional().
+			Nillable(),
+		field.Float("carpool_total_amount").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(20,2)"}).
+			Optional().
+			Nillable(),
+		field.String("carpool_plan_note").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "text"}),
+		field.Int64("carpool_group_id").
 			Optional().
 			Nillable(),
 		field.String("provider_instance_id").
@@ -183,6 +203,10 @@ func (PaymentOrder) Edges() []ent.Edge {
 		edge.To("recharge_lottery_draw", RechargeLotteryDraw.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)).
 			Unique(),
+		edge.From("carpool_group", CarpoolGroup.Type).
+			Ref("orders").
+			Field("carpool_group_id").
+			Unique(),
 	}
 }
 
@@ -198,5 +222,10 @@ func (PaymentOrder) Indexes() []ent.Index {
 		index.Fields("paid_at"),
 		index.Fields("payment_type", "paid_at"),
 		index.Fields("order_type"),
+		index.Fields("carpool_group_id", "user_id").
+			Unique(),
+		index.Fields("user_id", "carpool_plan_id").
+			Unique().
+			Annotations(entsql.IndexWhere("order_type = 'carpool' AND carpool_group_id IS NULL AND (status IN ('PENDING', 'PAID', 'RECHARGING') OR (status = 'FAILED' AND paid_at IS NOT NULL))")),
 	}
 }

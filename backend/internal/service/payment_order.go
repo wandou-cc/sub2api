@@ -12,6 +12,8 @@ import (
 	"time"
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolplan"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/internal/payment"
 	"github.com/Wei-Shaw/sub2api/internal/payment/provider"
@@ -36,9 +38,18 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	if !cfg.Enabled {
 		return nil, infraerrors.Forbidden("PAYMENT_DISABLED", "payment system is disabled")
 	}
-	plan, err := s.validateOrderInput(ctx, req, cfg)
+	plan, carpoolPlan, err := s.validateOrderInput(ctx, req, cfg)
 	if err != nil {
 		return nil, err
+	}
+	carpoolTargetMembers := 0
+	if carpoolPlan != nil {
+		price, err := carpoolPricePerMember(carpoolPlan.TotalAmount, carpoolPlan.TargetMembers)
+		if err != nil {
+			return nil, infraerrors.BadRequest("INVALID_CARPOOL_PLAN", "carpool plan price is invalid")
+		}
+		req.Amount = price
+		carpoolTargetMembers = carpoolPlan.TargetMembers
 	}
 	if err := s.checkCancelRateLimit(ctx, req.UserID, cfg); err != nil {
 		return nil, err
@@ -69,6 +80,9 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 			return nil, err
 		}
 	}
+	if req.OrderType == payment.OrderTypeCarpool && methodCurrency != payment.DefaultPaymentCurrency {
+		return nil, infraerrors.BadRequest("CARPOOL_CNY_ONLY", "carpool subscriptions require a CNY payment channel")
+	}
 	payAmountStr, payAmount, err := calculateCreateOrderPayAmountForOrderType(limitAmount, feeRate, methodCurrency, req.OrderType, cfg.SubscriptionUSDToCNYRate)
 	if err != nil {
 		return nil, err
@@ -83,6 +97,9 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	selectedCurrency := payment.DefaultPaymentCurrency
 	if sel != nil {
 		selectedCurrency = paymentProviderConfigCurrency(sel.ProviderKey, sel.Config)
+	}
+	if req.OrderType == payment.OrderTypeCarpool && selectedCurrency != payment.DefaultPaymentCurrency {
+		return nil, infraerrors.BadRequest("CARPOOL_CNY_ONLY", "carpool subscriptions require a CNY payment channel")
 	}
 	if selectedCurrency != methodCurrency {
 		payAmountStr, payAmount, err = calculateCreateOrderPayAmountForOrderType(limitAmount, feeRate, selectedCurrency, req.OrderType, cfg.SubscriptionUSDToCNYRate)
@@ -100,11 +117,11 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	if oauthResp != nil {
 		return oauthResp, nil
 	}
-	order, err := s.createOrderInTx(ctx, req, user, plan, cfg, orderAmount, limitAmount, feeRate, payAmount, sel)
+	order, err := s.createOrderInTx(ctx, req, user, plan, carpoolPlan, cfg, orderAmount, limitAmount, feeRate, payAmount, sel)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.invokeProvider(ctx, order, req, cfg, limitAmount, payAmountStr, payAmount, plan, sel)
+	resp, err := s.invokeProvider(ctx, order, req, cfg, limitAmount, payAmountStr, payAmount, plan, carpoolTargetMembers, sel)
 	if err != nil {
 		_, _ = s.entClient.PaymentOrder.UpdateOneID(order.ID).
 			SetStatus(OrderStatusFailed).
@@ -114,21 +131,29 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	return resp, nil
 }
 
-func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrderRequest, cfg *PaymentConfig) (*dbent.SubscriptionPlan, error) {
-	if req.OrderType == payment.OrderTypeBalance && cfg.BalanceDisabled {
-		return nil, infraerrors.Forbidden("BALANCE_PAYMENT_DISABLED", "balance recharge has been disabled")
-	}
-	if req.OrderType == payment.OrderTypeSubscription {
-		return s.validateSubOrder(ctx, req)
+func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrderRequest, cfg *PaymentConfig) (*dbent.SubscriptionPlan, *dbent.CarpoolPlan, error) {
+	switch req.OrderType {
+	case payment.OrderTypeSubscription:
+		plan, err := s.validateSubOrder(ctx, req)
+		return plan, nil, err
+	case payment.OrderTypeCarpool:
+		plan, err := s.validateCarpoolOrder(ctx, req)
+		return nil, plan, err
+	case payment.OrderTypeBalance:
+		if cfg.BalanceDisabled {
+			return nil, nil, infraerrors.Forbidden("BALANCE_PAYMENT_DISABLED", "balance recharge has been disabled")
+		}
+	default:
+		return nil, nil, infraerrors.BadRequest("INVALID_ORDER_TYPE", "unsupported payment order type")
 	}
 	if math.IsNaN(req.Amount) || math.IsInf(req.Amount, 0) || req.Amount <= 0 {
-		return nil, infraerrors.BadRequest("INVALID_AMOUNT", "amount must be a positive number")
+		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "amount must be a positive number")
 	}
 	if (cfg.MinAmount > 0 && req.Amount < cfg.MinAmount) || (cfg.MaxAmount > 0 && req.Amount > cfg.MaxAmount) {
-		return nil, infraerrors.BadRequest("INVALID_AMOUNT", "amount out of range").
+		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "amount out of range").
 			WithMetadata(map[string]string{"min": fmt.Sprintf("%.2f", cfg.MinAmount), "max": fmt.Sprintf("%.2f", cfg.MaxAmount)})
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
 func (s *PaymentService) validateSubOrder(ctx context.Context, req CreateOrderRequest) (*dbent.SubscriptionPlan, error) {
@@ -149,12 +174,57 @@ func (s *PaymentService) validateSubOrder(ctx context.Context, req CreateOrderRe
 	return plan, nil
 }
 
-func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderRequest, user *User, plan *dbent.SubscriptionPlan, cfg *PaymentConfig, orderAmount, limitAmount, feeRate, payAmount float64, sel *payment.InstanceSelection) (*dbent.PaymentOrder, error) {
+func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderRequest, user *User, plan *dbent.SubscriptionPlan, carpoolPlan *dbent.CarpoolPlan, cfg *PaymentConfig, orderAmount, limitAmount, feeRate, payAmount float64, sel *payment.InstanceSelection) (*dbent.PaymentOrder, error) {
 	tx, err := s.entClient.Tx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin transaction: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	if carpoolPlan != nil {
+		lockedPlan, err := tx.CarpoolPlan.Query().Where(carpoolplan.IDEQ(carpoolPlan.ID)).ForUpdate().Only(ctx)
+		if dbent.IsNotFound(err) {
+			return nil, infraerrors.Conflict("CARPOOL_PLAN_CHANGED", "carpool plan changed before order creation")
+		}
+		if err != nil {
+			return nil, fmt.Errorf("lock carpool plan: %w", err)
+		}
+		if lockedPlan.Revision != carpoolPlan.Revision {
+			return nil, infraerrors.Conflict("CARPOOL_PLAN_CHANGED", "carpool plan changed before order creation")
+		}
+		unfinished, err := tx.PaymentOrder.Query().Where(
+			paymentorder.UserIDEQ(req.UserID),
+			paymentorder.OrderTypeEQ(payment.OrderTypeCarpool),
+			paymentorder.CarpoolPlanIDEQ(carpoolPlan.ID),
+			paymentorder.CarpoolGroupIDIsNil(),
+			paymentorder.Or(
+				paymentorder.StatusIn(OrderStatusPending, OrderStatusPaid, OrderStatusRecharging),
+				paymentorder.And(
+					paymentorder.StatusEQ(OrderStatusFailed),
+					paymentorder.PaidAtNotNil(),
+				),
+			),
+		).Exist(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("check unfinished carpool order: %w", err)
+		}
+		if unfinished {
+			return nil, infraerrors.Conflict("CARPOOL_PENDING_ORDER_EXISTS", "finish or cancel the pending carpool order first")
+		}
+		if lockedPlan.TargetMembers > 1 {
+			joined, err := tx.CarpoolGroup.Query().Where(
+				carpoolgroup.CarpoolPlanIDEQ(lockedPlan.ID),
+				carpoolgroup.StatusEQ(CarpoolStatusWaiting),
+				carpoolgroup.HasOrdersWith(paymentorder.UserIDEQ(req.UserID)),
+			).Exist(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("check current carpool membership: %w", err)
+			}
+			if joined {
+				return nil, infraerrors.Conflict("CARPOOL_ALREADY_JOINED", "the user already has a seat in the current carpool group")
+			}
+		}
+		carpoolPlan = lockedPlan
+	}
 	if err := s.checkPendingLimit(ctx, tx, req.UserID, cfg.MaxPendingOrders); err != nil {
 		return nil, err
 	}
@@ -208,6 +278,13 @@ func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderReq
 	}
 	if plan != nil {
 		b.SetPlanID(plan.ID).SetSubscriptionGroupID(plan.GroupID).SetSubscriptionDays(psComputeValidityDays(plan.ValidityDays, plan.ValidityUnit))
+	}
+	if req.OrderType == payment.OrderTypeCarpool {
+		b.SetCarpoolPlanID(carpoolPlan.ID).
+			SetCarpoolPlanRevision(carpoolPlan.Revision).
+			SetCarpoolSize(carpoolPlan.TargetMembers).
+			SetCarpoolTotalAmount(carpoolPlan.TotalAmount).
+			SetCarpoolPlanNote(carpoolPlan.Note)
 	}
 	order, err := b.Save(ctx)
 	if err != nil {
@@ -397,7 +474,7 @@ func (s *PaymentService) usesOfficialWxpayVisibleMethod(ctx context.Context) boo
 	return inst.ProviderKey == payment.TypeWxpay
 }
 
-func (s *PaymentService) invokeProvider(ctx context.Context, order *dbent.PaymentOrder, req CreateOrderRequest, cfg *PaymentConfig, limitAmount float64, payAmountStr string, payAmount float64, plan *dbent.SubscriptionPlan, sel *payment.InstanceSelection) (*CreateOrderResponse, error) {
+func (s *PaymentService) invokeProvider(ctx context.Context, order *dbent.PaymentOrder, req CreateOrderRequest, cfg *PaymentConfig, limitAmount float64, payAmountStr string, payAmount float64, plan *dbent.SubscriptionPlan, carpoolTargetMembers int, sel *payment.InstanceSelection) (*CreateOrderResponse, error) {
 	prov, err := provider.CreateProvider(sel.ProviderKey, sel.InstanceID, sel.Config)
 	if err != nil {
 		slog.Error("[PaymentService] CreateProvider failed", "provider", sel.ProviderKey, "instance", sel.InstanceID, "error", err)
@@ -413,7 +490,7 @@ func (s *PaymentService) invokeProvider(ctx context.Context, order *dbent.Paymen
 		return nil, infraerrors.ServiceUnavailable("PAYMENT_PROVIDER_MISCONFIGURED", "provider_misconfigured").
 			WithMetadata(map[string]string{"provider": sel.ProviderKey, "instance_id": sel.InstanceID})
 	}
-	subject := s.buildPaymentSubject(plan, limitAmount, cfg, sel)
+	subject := s.buildPaymentSubject(plan, req.OrderType, carpoolTargetMembers, limitAmount, cfg, sel)
 	outTradeNo := order.OutTradeNo
 	canonicalReturnURL, err := CanonicalizeReturnURL(req.ReturnURL, req.SrcHost, req.SrcURL)
 	if err != nil {
@@ -531,13 +608,16 @@ func selectedInstanceSupportedTypes(sel *payment.InstanceSelection) string {
 	return sel.SupportedTypes
 }
 
-func (s *PaymentService) buildPaymentSubject(plan *dbent.SubscriptionPlan, limitAmount float64, cfg *PaymentConfig, sel *payment.InstanceSelection) string {
+func (s *PaymentService) buildPaymentSubject(plan *dbent.SubscriptionPlan, orderType string, carpoolSize int, limitAmount float64, cfg *PaymentConfig, sel *payment.InstanceSelection) string {
 	if plan != nil {
 		productName := plan.ProductName
 		if productName == "" {
 			productName = "Sub2API Subscription " + plan.Name
 		}
 		return applyPaymentProductNameAffix(productName, cfg)
+	}
+	if orderType == payment.OrderTypeCarpool {
+		return applyPaymentProductNameAffix(fmt.Sprintf("Sub2API Carpool Subscription %d-Person", carpoolSize), cfg)
 	}
 	currency := payment.DefaultPaymentCurrency
 	if sel != nil {
@@ -822,7 +902,7 @@ func normalizePaymentRedirectPath(path string) string {
 // --- Order Queries ---
 
 func (s *PaymentService) GetOrder(ctx context.Context, orderID, userID int64) (*dbent.PaymentOrder, error) {
-	o, err := s.entClient.PaymentOrder.Get(ctx, orderID)
+	o, err := s.entClient.PaymentOrder.Query().Where(paymentorder.IDEQ(orderID)).WithCarpoolGroup().Only(ctx)
 	if err != nil {
 		return nil, infraerrors.NotFound("NOT_FOUND", "order not found")
 	}
@@ -833,7 +913,7 @@ func (s *PaymentService) GetOrder(ctx context.Context, orderID, userID int64) (*
 }
 
 func (s *PaymentService) GetOrderByID(ctx context.Context, orderID int64) (*dbent.PaymentOrder, error) {
-	o, err := s.entClient.PaymentOrder.Get(ctx, orderID)
+	o, err := s.entClient.PaymentOrder.Query().Where(paymentorder.IDEQ(orderID)).WithCarpoolGroup().Only(ctx)
 	if err != nil {
 		return nil, infraerrors.NotFound("NOT_FOUND", "order not found")
 	}
@@ -856,7 +936,7 @@ func (s *PaymentService) GetUserOrders(ctx context.Context, userID int64, p Orde
 		return nil, 0, fmt.Errorf("count user orders: %w", err)
 	}
 	ps, pg := applyPagination(p.PageSize, p.Page)
-	orders, err := q.Order(dbent.Desc(paymentorder.FieldCreatedAt)).Limit(ps).Offset((pg - 1) * ps).All(ctx)
+	orders, err := q.WithCarpoolGroup().Order(dbent.Desc(paymentorder.FieldCreatedAt)).Limit(ps).Offset((pg - 1) * ps).All(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query user orders: %w", err)
 	}
@@ -890,7 +970,7 @@ func (s *PaymentService) AdminListOrders(ctx context.Context, userID int64, p Or
 		return nil, 0, fmt.Errorf("count admin orders: %w", err)
 	}
 	ps, pg := applyPagination(p.PageSize, p.Page)
-	orders, err := q.Order(dbent.Desc(paymentorder.FieldCreatedAt)).Limit(ps).Offset((pg - 1) * ps).All(ctx)
+	orders, err := q.WithCarpoolGroup().Order(dbent.Desc(paymentorder.FieldCreatedAt)).Limit(ps).Offset((pg - 1) * ps).All(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query admin orders: %w", err)
 	}

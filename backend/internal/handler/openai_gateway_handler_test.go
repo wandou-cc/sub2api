@@ -126,6 +126,44 @@ func TestOpenAIHandleStreamingAwareErrorWithCode_EmitsStableClassification(t *te
 	require.Equal(t, http.StatusBadGateway, streamErr.IntendedStatus)
 }
 
+func TestOpenAIHandleFailoverExhausted_ResponsesExposesUpstreamStatusCode(t *testing.T) {
+	tests := []struct {
+		name           string
+		upstreamStatus int
+		wantStatus     int
+		wantCode       string
+		wantMessage    string
+	}{
+		{
+			name:           "429",
+			upstreamStatus: http.StatusTooManyRequests,
+			wantStatus:     http.StatusTooManyRequests,
+			wantCode:       "rate_limit_exceeded",
+			wantMessage:    "[错误码：429 / rate_limit_exceeded] 当前请求频率、并发数或使用额度已达到限制，请稍后重试。如需技术支持，请前往官网联系客服。",
+		},
+		{
+			name:           "503",
+			upstreamStatus: http.StatusServiceUnavailable,
+			wantStatus:     http.StatusBadGateway,
+			wantCode:       "upstream_http_503",
+			wantMessage:    "[错误码：502 / upstream_http_503] 上游服务暂时不可用，请稍后重试。如需技术支持，请前往官网联系客服。",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, recorder := newGinContextForEndpoint(t, EndpointResponses)
+			(&OpenAIGatewayHandler{}).handleFailoverExhausted(c, &service.UpstreamFailoverError{
+				StatusCode: tt.upstreamStatus,
+			}, false)
+
+			require.Equal(t, tt.wantStatus, recorder.Code)
+			require.Equal(t, tt.wantCode, gjson.GetBytes(recorder.Body.Bytes(), "error.code").String())
+			require.Equal(t, tt.wantMessage, gjson.GetBytes(recorder.Body.Bytes(), "error.message").String())
+		})
+	}
+}
+
 func TestOpenAIForwardSucceededForScheduling(t *testing.T) {
 	require.True(t, openAIForwardSucceededForScheduling(nil))
 	require.True(t, openAIForwardSucceededForScheduling(&service.OpenAIForwardResult{}))
@@ -294,7 +332,7 @@ func TestOpenAIEnsureForwardErrorResponse_ResponsesRouteAfterWrittenEmitsRespons
 	assert.Contains(t, body, "event: response.failed\n", "appended a Responses terminal event")
 	assert.Contains(t, body, `"type":"response.failed"`)
 	assert.Contains(t, body, `"code":"upstream_error"`)
-	assert.Contains(t, body, "Upstream request failed")
+	assert.Contains(t, body, "[错误码：502 / upstream_error] 上游请求失败，请稍后重试。如需技术支持，请前往官网联系客服。")
 }
 
 func TestOpenAIEnsureForwardErrorResponse_AfterDeltaAppendsSingleValidResponseFailed(t *testing.T) {
@@ -480,7 +518,11 @@ func TestOpenAIRecoverResponsesPanic_WritesFallbackResponse(t *testing.T) {
 	errorObj, ok := parsed["error"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "upstream_error", errorObj["type"])
-	assert.Equal(t, "Upstream request failed", errorObj["message"])
+	assert.Equal(t, "upstream_error", errorObj["code"])
+	assert.Equal(t,
+		"[错误码：502 / upstream_error] 上游请求失败，请稍后重试。如需技术支持，请前往官网联系客服。",
+		errorObj["message"],
+	)
 }
 
 func TestOpenAIRecoverResponsesPanic_NoPanicNoWrite(t *testing.T) {
@@ -2008,7 +2050,11 @@ func TestOpenAIResponses_APIKeyPassthroughPool5xxRetriesThenExhaustsMaxSwitches(
 	require.Equal(t, []int64{9910, 9910, 9911}, upstream.calls())
 	require.Equal(t, http.StatusBadGateway, rec.Code)
 	require.Equal(t, "upstream_error", gjson.GetBytes(rec.Body.Bytes(), "error.type").String())
-	require.Equal(t, "Upstream service temporarily unavailable", gjson.GetBytes(rec.Body.Bytes(), "error.message").String())
+	require.Equal(t, "upstream_http_502", gjson.GetBytes(rec.Body.Bytes(), "error.code").String())
+	require.Equal(t,
+		"[错误码：502 / upstream_http_502] 上游服务暂时不可用，请稍后重试。如需技术支持，请前往官网联系客服。",
+		gjson.GetBytes(rec.Body.Bytes(), "error.message").String(),
+	)
 }
 
 func TestOpenAIResponsesWebSocket_FailoverOnUpstreamUsageLimitEvent(t *testing.T) {

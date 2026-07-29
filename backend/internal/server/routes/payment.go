@@ -34,6 +34,7 @@ func RegisterPaymentRoutes(
 		authenticated.GET("/plans", paymentHandler.GetPlans)
 		authenticated.GET("/limits", paymentHandler.GetLimits)
 		authenticated.GET("/lottery", paymentHandler.GetRechargeLottery)
+		authenticated.GET("/carpools/overview", paymentHandler.GetCarpoolOverview)
 
 		orders := authenticated.Group("/orders")
 		{
@@ -92,6 +93,21 @@ func RegisterPaymentRoutes(
 			adminOrders.POST("/:id/retry", adminPaymentHandler.RetryFulfillment)
 			adminOrders.POST("/:id/refund", adminPaymentHandler.ProcessRefund)
 			adminOrders.POST("/:id/refund/query", adminPaymentHandler.QueryAndFinalizeRefund)
+		}
+
+		carpools := adminGroup.Group("/carpools")
+		{
+			carpools.GET("", adminPaymentHandler.ListCarpoolGroups)
+			carpools.POST("/:id/open", adminPaymentHandler.OpenCarpoolGroup)
+			carpools.POST("/:id/refund-pending", adminPaymentHandler.MarkCarpoolRefundPending)
+		}
+
+		carpoolPlans := adminGroup.Group("/carpool-plans")
+		{
+			carpoolPlans.GET("", adminPaymentHandler.ListCarpoolPlans)
+			carpoolPlans.POST("", adminPaymentHandler.CreateCarpoolPlan)
+			carpoolPlans.PUT("/:id", adminPaymentHandler.UpdateCarpoolPlan)
+			carpoolPlans.DELETE("/:id", adminPaymentHandler.DeleteCarpoolPlan)
 		}
 
 		// Subscription Plans

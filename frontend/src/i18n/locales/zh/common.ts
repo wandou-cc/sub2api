@@ -203,6 +203,7 @@ export default {
     incomeManagement: '收入管理',
     paymentConfig: '支付配置',
     paymentPlans: '订阅套餐',
+    carpoolManagement: '拼车管理',
     channelManagement: '渠道管理',
     channelPricing: '渠道定价',
     channelMonitor: '渠道监控',

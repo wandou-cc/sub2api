@@ -271,6 +271,7 @@ type CreateOrderRequest struct {
 	PaymentSource     string  `json:"payment_source"`
 	OrderType         string  `json:"order_type"`
 	PlanID            int64   `json:"plan_id"`
+	CarpoolPlanID     int64   `json:"carpool_plan_id"`
 	// IsMobile lets the frontend declare its mobile status directly. When
 	// nil we fall back to User-Agent heuristics (which miss iPadOS / some
 	// embedded browsers that strip the "Mobile" keyword).
@@ -320,6 +321,7 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 		PaymentSource:   req.PaymentSource,
 		OrderType:       req.OrderType,
 		PlanID:          req.PlanID,
+		CarpoolPlanID:   req.CarpoolPlanID,
 		Locale:          c.GetHeader("Accept-Language"),
 	})
 	if err != nil {
@@ -327,6 +329,21 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 	response.Success(c, result)
+}
+
+// GetCarpoolOverview returns configured plans, current progress, and the user's carpool records.
+// GET /api/v1/payment/carpools/overview
+func (h *PaymentHandler) GetCarpoolOverview(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+	overview, err := h.paymentService.GetCarpoolOverview(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, overview)
 }
 
 func applyWeChatPaymentResumeClaims(req *CreateOrderRequest, claims *service.WeChatPaymentResumeClaims) error {
@@ -676,6 +693,16 @@ type PaymentOrderResult struct {
 	RefundRequestReason *string    `json:"refund_request_reason,omitempty"`
 	PlanID              *int64     `json:"plan_id,omitempty"`
 	ProviderInstanceID  *string    `json:"provider_instance_id,omitempty"`
+	CarpoolPlanID       *int64     `json:"carpool_plan_id,omitempty"`
+	CarpoolSize         *int       `json:"carpool_size,omitempty"`
+	CarpoolTotalAmount  *float64   `json:"carpool_total_amount,omitempty"`
+	CarpoolPlanNote     *string    `json:"carpool_plan_note,omitempty"`
+	CarpoolGroupID      *int64     `json:"carpool_group_id,omitempty"`
+	CarpoolStatus       string     `json:"carpool_status,omitempty"`
+	CarpoolMemberCount  int        `json:"carpool_member_count,omitempty"`
+	CarpoolDeadlineAt   *time.Time `json:"carpool_deadline_at,omitempty"`
+	CarpoolOpenedAt     *time.Time `json:"carpool_opened_at,omitempty"`
+	CarpoolExpiresAt    *time.Time `json:"carpool_expires_at,omitempty"`
 }
 
 func sanitizePaymentOrdersForResponse(orders []*dbent.PaymentOrder) []PaymentOrderResult {
@@ -692,7 +719,7 @@ func sanitizePaymentOrderForResponse(order *dbent.PaymentOrder) *PaymentOrderRes
 	if order == nil {
 		return nil
 	}
-	return &PaymentOrderResult{
+	result := &PaymentOrderResult{
 		ID:                  order.ID,
 		UserID:              order.UserID,
 		Amount:              order.Amount,
@@ -714,7 +741,20 @@ func sanitizePaymentOrderForResponse(order *dbent.PaymentOrder) *PaymentOrderRes
 		RefundRequestReason: order.RefundRequestReason,
 		PlanID:              order.PlanID,
 		ProviderInstanceID:  order.ProviderInstanceID,
+		CarpoolPlanID:       order.CarpoolPlanID,
+		CarpoolSize:         order.CarpoolSize,
+		CarpoolTotalAmount:  order.CarpoolTotalAmount,
+		CarpoolPlanNote:     order.CarpoolPlanNote,
+		CarpoolGroupID:      order.CarpoolGroupID,
 	}
+	if group := order.Edges.CarpoolGroup; group != nil {
+		result.CarpoolStatus = group.Status
+		result.CarpoolMemberCount = group.MemberCount
+		result.CarpoolDeadlineAt = group.DeadlineAt
+		result.CarpoolOpenedAt = group.OpenedAt
+		result.CarpoolExpiresAt = group.ExpiresAt
+	}
+	return result
 }
 
 func isWeChatBrowser(c *gin.Context) bool {

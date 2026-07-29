@@ -1207,6 +1207,9 @@ export default function InputBar() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // 输入法组合期间的按键必须交给浏览器，否则确认文本的 Enter 会被误当成提交或换行。
+    if (e.nativeEvent.isComposing) return
+
     if (showAtImageMenu) {
       if (e.key === 'ArrowDown') {
         e.preventDefault()

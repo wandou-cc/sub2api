@@ -43,6 +43,7 @@ vi.mock('qrcode', () => ({
 }))
 
 import PaymentStatusPanel from '../PaymentStatusPanel.vue'
+import { formatPaymentAmount } from '@/components/payment/currency'
 
 const orderFactory = (status: string) => ({
   id: 42,
@@ -98,6 +99,29 @@ describe('PaymentStatusPanel', () => {
     expect(pollOrderStatus).toHaveBeenCalledWith(42)
     expect(wrapper.text()).toContain('payment.result.success')
     expect(wrapper.emitted('success')).toHaveLength(1)
+  })
+
+  it('shows carpool-specific success copy', async () => {
+    pollOrderStatus.mockResolvedValue({ ...orderFactory('COMPLETED'), order_type: 'carpool' })
+
+    const wrapper = mount(PaymentStatusPanel, {
+      props: {
+        orderId: 42,
+        qrCode: 'https://pay.example.com/qr/42',
+        expiresAt: '2099-01-01T12:30:00Z',
+        paymentType: 'alipay',
+        orderType: 'carpool',
+      },
+      global: { stubs: { Icon: true } },
+    })
+
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(3000)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('payment.result.carpoolSuccess')
+    expect(wrapper.text()).toContain(formatPaymentAmount(88, 'CNY'))
+    expect(wrapper.text()).not.toContain('$88.00')
   })
 
   it('shows reopen button in QR mode when payUrl is also available', async () => {

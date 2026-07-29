@@ -141,7 +141,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		if retryAfter > 0 {
 			c.Header("Retry-After", strconv.Itoa(retryAfter))
 		}
-		h.responsesErrorResponse(c, status, code, message)
+		h.responsesOperationalErrorResponse(c, status, code, message)
 		return
 	}
 
@@ -172,11 +172,11 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 				if !cls.ModelNotFound {
 					markOpsRoutingCapacityLimitedIfNoAvailable(c, err)
 				}
-				message := cls.Message
-				if !cls.ModelNotFound {
-					message = "No available accounts: " + err.Error()
+				if cls.ModelNotFound {
+					h.responsesErrorResponse(c, cls.Status, cls.ErrType, cls.Message)
+				} else {
+					h.responsesOperationalErrorResponse(c, cls.Status, "server_error", cls.Message)
 				}
-				h.responsesErrorResponse(c, cls.Status, cls.ErrType, message)
 				return
 			}
 			action := fs.HandleSelectionExhausted(requestCtx)
@@ -190,7 +190,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 				if fs.LastFailoverErr != nil {
 					h.handleResponsesFailoverExhausted(c, fs.LastFailoverErr, streamStarted)
 				} else {
-					h.responsesErrorResponse(c, http.StatusBadGateway, "server_error", "All available accounts exhausted")
+					h.responsesOperationalErrorResponse(c, http.StatusBadGateway, "server_error", "All available accounts exhausted")
 				}
 				return
 			}
@@ -203,7 +203,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		if !selection.Acquired {
 			if selection.WaitPlan == nil {
 				markOpsRoutingCapacityLimited(c)
-				h.responsesErrorResponse(c, http.StatusServiceUnavailable, "api_error", "No available accounts")
+				h.responsesOperationalErrorResponse(c, http.StatusServiceUnavailable, "server_error", "No available accounts")
 				return
 			}
 			accountReleaseFunc, err = h.concurrencyHelper.AcquireAccountSlotWithWaitTimeout(
@@ -232,7 +232,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		setActualUpstreamEndpoint(c, "")
 		if shouldUseAntigravityCompat(account) {
 			if h.antigravityGatewayService == nil {
-				h.responsesErrorResponse(c, http.StatusBadGateway, "upstream_error", "Antigravity compatibility service is not configured")
+				h.responsesOperationalErrorResponse(c, http.StatusBadGateway, "upstream_error", "Antigravity compatibility service is not configured")
 				if accountReleaseFunc != nil {
 					accountReleaseFunc()
 				}
@@ -328,17 +328,21 @@ func (h *GatewayHandler) responsesErrorResponse(c *gin.Context, status int, code
 	})
 }
 
+func (h *GatewayHandler) responsesOperationalErrorResponse(c *gin.Context, status int, code, message string) {
+	code = mapResponsesErrorCode(code)
+	h.responsesErrorResponse(c, status, code, codexOperationalErrorMessage(status, code, message))
+}
+
 // handleResponsesFailoverExhausted writes a failover-exhausted error in Responses format.
 func (h *GatewayHandler) handleResponsesFailoverExhausted(c *gin.Context, lastErr *service.UpstreamFailoverError, streamStarted bool) {
-	if streamStarted {
-		return // Can't write error after stream started
-	}
 	if lastErr != nil {
 		copyFailoverRetryAfter(c, lastErr.ResponseHeaders)
 	}
 	if lastErr != nil && lastErr.IsCredentialFailure() {
 		status, message := credentialFailoverClientResponse(lastErr)
-		h.responsesErrorResponse(c, status, "server_error", message)
+		h.handleStreamingAwareErrorWithCode(
+			c, status, "upstream_error", credentialFailoverClientCode(lastErr), message, streamStarted,
+		)
 		return
 	}
 	statusCode := http.StatusBadGateway
@@ -347,8 +351,11 @@ func (h *GatewayHandler) handleResponsesFailoverExhausted(c *gin.Context, lastEr
 	}
 	if lastErr != nil && service.IsOpenAISilentRefusalErrorBody(lastErr.ResponseBody) {
 		service.SetOpsUpstreamError(c, statusCode, service.OpenAISilentRefusalClientMessage(), "")
-		h.responsesErrorResponse(c, http.StatusBadGateway, "upstream_error", service.OpenAISilentRefusalClientMessage())
+		h.handleStreamingAwareErrorWithCode(
+			c, http.StatusBadGateway, "upstream_error", "openai_silent_refusal", service.OpenAISilentRefusalClientMessage(), streamStarted,
+		)
 		return
 	}
-	h.responsesErrorResponse(c, statusCode, "server_error", "All available accounts exhausted")
+	_, errType, message := h.mapUpstreamError(statusCode)
+	h.handleStreamingAwareErrorWithCode(c, statusCode, errType, upstreamErrorCode(statusCode), message, streamStarted)
 }

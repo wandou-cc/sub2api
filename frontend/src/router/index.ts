@@ -749,6 +749,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/orders/carpools',
+    name: 'AdminCarpoolGroups',
+    component: () => import('@/views/admin/orders/AdminCarpoolGroupsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Carpool Management',
+      titleKey: 'nav.carpoolManagement',
+      requiresPayment: true
+    }
+  },
+  {
     path: '/admin/orders/plans',
     name: 'AdminPaymentPlans',
     component: () => import('@/views/admin/orders/AdminPaymentPlansView.vue'),

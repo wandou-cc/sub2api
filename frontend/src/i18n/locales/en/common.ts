@@ -203,6 +203,7 @@ export default {
     incomeManagement: 'Income',
     paymentConfig: 'Payment Config',
     paymentPlans: 'Plans',
+    carpoolManagement: 'Carpools',
     channelManagement: 'Channels',
     channelPricing: 'Channel Pricing',
     channelMonitor: 'Channel Monitor',

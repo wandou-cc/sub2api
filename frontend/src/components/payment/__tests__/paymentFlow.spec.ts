@@ -331,6 +331,24 @@ describe('buildCreateOrderPayload', () => {
     })
   })
 
+  it('sends the configured carpool plan ID without a client-owned group size', () => {
+    expect(buildCreateOrderPayload({
+      amount: 800,
+      paymentType: 'alipay',
+      orderType: 'carpool',
+      carpoolPlanId: 42,
+      isMobile: false,
+      isWechatBrowser: false,
+    })).toEqual({
+      amount: 800,
+      payment_type: 'alipay',
+      order_type: 'carpool',
+      carpool_plan_id: 42,
+      is_mobile: false,
+      payment_source: 'hosted_redirect',
+    })
+  })
+
   it('passes is_mobile: false when forceQRCode is enabled for alipay', () => {
     expect(buildCreateOrderPayload({
       amount: 50,

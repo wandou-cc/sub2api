@@ -58,7 +58,8 @@
             ({{ row.fee_rate }}%)
           </span>
           <div v-if="row.amount !== row.pay_amount" class="text-xs text-gray-500">
-            {{ t('payment.orders.creditedAmount') }}: {{ creditedAmountSymbol }}{{ row.amount.toFixed(2) }}
+            {{ t(row.order_type === 'carpool' ? 'payment.orders.amount' : 'payment.orders.creditedAmount') }}:
+            {{ row.order_type === 'carpool' ? paymentAmountSymbol(row) : creditedAmountSymbol }}{{ row.amount.toFixed(2) }}
           </div>
         </div>
       </template>
@@ -226,10 +227,11 @@ const orderTypeFilterOptions = computed(() => [
   { value: '', label: t('payment.admin.allOrderTypes') },
   { value: 'balance', label: t('payment.admin.balanceOrder') },
   { value: 'subscription', label: t('payment.admin.subscriptionOrder') },
+  { value: 'carpool', label: t('payment.admin.carpoolOrder') },
 ])
 
 function canRefundRow(order: PaymentOrder): boolean {
-  return canRefund(order.status)
+  return order.order_type !== 'carpool' && canRefund(order.status)
 }
 
 function formatDateTime(dateStr: string): string {

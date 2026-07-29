@@ -1,15 +1,15 @@
 <template>
   <AppLayout>
-    <div class="mx-auto max-w-4xl space-y-5">
+    <div class="mx-auto max-w-6xl space-y-8">
       <div v-if="loading" class="flex items-center justify-center py-20">
         <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
       </div>
       <template v-else>
         <!-- Tab Switcher (hide during payment and subscription confirm) -->
-        <div v-if="tabs.length > 1 && paymentPhase === 'select' && !selectedPlan" class="flex border-b border-gray-200 dark:border-dark-700">
+        <div v-if="tabs.length > 1 && paymentPhase === 'select' && !selectedPlan" class="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm dark:border-dark-700 dark:bg-dark-800">
           <button v-for="tab in tabs" :key="tab.key"
-            class="-mb-px flex-1 border-b-2 px-4 py-3 text-sm font-medium transition-colors"
-            :class="activeTab === tab.key ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+            class="rounded-full px-5 py-2 text-sm font-medium transition-colors"
+            :class="activeTab === tab.key ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'"
             @click="activeTab = tab.key">{{ tab.label }}</button>
         </div>
         <!-- Payment in progress (shared by recharge and subscription) -->
@@ -35,33 +35,42 @@
         <template v-else>
           <!-- Top-up Tab -->
           <template v-if="activeTab === 'recharge'">
-            <div class="card overflow-hidden" data-test="recharge-form">
-              <header class="flex items-center justify-between gap-6 border-b border-gray-200 px-5 py-4 dark:border-dark-700 md:px-6">
-                <div class="min-w-0" data-test="recharge-account">
-                  <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
-                  <p class="mt-1 truncate text-sm font-semibold text-gray-900 dark:text-white">{{ user?.username || '' }}</p>
-                </div>
-                <div class="shrink-0 text-right">
-                  <p class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.currentBalance') }}</p>
-                  <p class="mt-1 text-base font-semibold text-green-600 dark:text-green-400">{{ user?.balance?.toFixed(2) || '0.00' }}</p>
-                </div>
-              </header>
+            <section class="rounded-[28px] border border-white/80 bg-white px-6 py-7 shadow-[0_24px_60px_rgba(28,25,20,0.12)] dark:border-dark-700 dark:bg-dark-800 md:px-10 md:py-9" data-test="recharge-summary">
+              <div class="inline-flex max-w-full items-center gap-2 rounded-full border border-primary-300 bg-primary-50 px-4 py-2 text-sm text-primary-700 dark:border-primary-700 dark:bg-primary-950 dark:text-primary-300">
+                <Icon name="infoCircle" size="sm" :stroke-width="2" class="shrink-0" />
+                <span class="min-w-0 leading-5">{{ t('payment.rechargeRateNotice', { usd: balanceRechargeMultiplier.toFixed(2) }) }}</span>
+              </div>
 
+              <div class="mt-8 max-w-2xl">
+                <p class="font-serif text-sm italic text-gray-500 dark:text-gray-400">{{ t('payment.currentBalanceEditorial') }}</p>
+                <div class="mt-3 flex items-start font-serif font-semibold tabular-nums text-gray-950 dark:text-white">
+                  <span class="mt-2 text-2xl">$</span>
+                  <span class="text-[56px] leading-none">{{ currentBalanceAmount }}</span>
+                </div>
+                <div class="mt-7 flex flex-wrap items-center gap-x-10 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span>{{ t('payment.totalRecharged') }} <strong class="ml-1 font-mono font-semibold tabular-nums text-gray-900 dark:text-white">${{ totalRechargedAmount }}</strong></span>
+                  <span>{{ t('payment.rechargeAccount') }} <strong class="ml-1 font-semibold text-gray-900 dark:text-white">{{ user?.username || '' }}</strong></span>
+                </div>
+              </div>
+            </section>
+
+            <div class="overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_18px_50px_rgba(28,25,20,0.09)] dark:border-dark-700 dark:bg-dark-800" data-test="recharge-form">
               <div v-if="enabledMethods.length === 0" class="py-16 text-center">
                 <p class="text-gray-500 dark:text-gray-400">{{ t('payment.notAvailable') }}</p>
               </div>
               <template v-else>
-                <section class="px-5 py-5 md:px-6">
+                <section class="px-6 py-7 md:px-10 md:py-9">
                   <AmountInput
                     v-model="amount"
-                    :amounts="[10, 20, 50, 100, 200, 500, 1000, 2000, 5000]"
+                    :amounts="[1, 10, 30, 50, 100]"
+                    :currency="selectedCurrency"
                     :min="globalMinAmount"
                     :max="globalMaxAmount"
                   />
                   <p v-if="amountError" class="mt-2 text-xs text-amber-600 dark:text-amber-300">{{ amountError }}</p>
                 </section>
 
-                <section class="border-t border-gray-200 px-5 py-5 dark:border-dark-700 md:px-6">
+                <section class="border-t border-gray-200 px-6 py-7 dark:border-dark-700 md:px-10">
                   <PaymentMethodSelector
                     :methods="methodOptions"
                     :selected="selectedMethod"
@@ -69,7 +78,7 @@
                   />
                 </section>
 
-                <section v-if="validAmount > 0" class="border-t border-gray-200 bg-gray-50/50 px-5 py-4 dark:border-dark-700 dark:bg-dark-800/40 md:px-6">
+                <section v-if="validAmount > 0" class="border-t border-gray-200 bg-gray-50/50 px-6 py-5 dark:border-dark-700 dark:bg-dark-900/30 md:px-10">
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
                       <span class="text-gray-500 dark:text-gray-400">{{ t('payment.paymentAmount') }}</span>
@@ -81,20 +90,17 @@
                     </div>
                     <div v-if="feeRate > 0" class="flex justify-between gap-4 border-t border-gray-200 pt-2 dark:border-dark-600">
                       <span class="font-medium text-gray-700 dark:text-gray-300">{{ t('payment.actualPay') }}</span>
-                      <span class="text-base font-bold text-primary-600 dark:text-primary-400">{{ formatSelectedPaymentAmount(totalAmount) }}</span>
+                      <span class="text-base font-bold text-gray-950 dark:text-white">{{ formatSelectedPaymentAmount(totalAmount) }}</span>
                     </div>
                     <div v-if="balanceRechargeMultiplier !== 1" class="flex justify-between gap-4" :class="{ 'border-t border-gray-200 pt-2 dark:border-dark-600': feeRate <= 0 }">
                       <span class="text-gray-500 dark:text-gray-400">{{ t('payment.creditedBalance') }}</span>
                       <span class="text-gray-900 dark:text-white">${{ creditedAmount.toFixed(2) }}</span>
                     </div>
-                    <p v-if="balanceRechargeMultiplier !== 1" class="border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-dark-600 dark:text-gray-400">
-                      {{ t('payment.rechargeRatePreview', { usd: balanceRechargeMultiplier.toFixed(2) }) }}
-                    </p>
                   </div>
                 </section>
 
-                <footer class="border-t border-gray-200 px-5 py-5 dark:border-dark-700 md:px-6">
-                  <button :class="['btn w-full py-3 text-base font-medium', paymentButtonClass]" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
+                <footer class="border-t border-gray-200 px-6 py-6 dark:border-dark-700 md:px-10">
+                  <button class="btn w-full bg-gray-950 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
                     <span v-if="submitting" class="flex items-center justify-center gap-2">
                       <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                       {{ t('common.processing') }}
@@ -104,6 +110,112 @@
                 </footer>
               </template>
             </div>
+          </template>
+          <!-- Carpool Tab -->
+          <template v-else-if="activeTab === 'carpool'">
+            <section class="border-b border-gray-200 pb-7 dark:border-dark-700">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400">{{ t('payment.carpool.label') }}</p>
+                  <h2 class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ t('payment.carpool.title') }}</h2>
+                  <i18n-t keypath="payment.carpool.description" tag="p" scope="global" class="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400">
+                    <template #groupName>
+                      <strong class="font-semibold text-gray-900 dark:text-white">{{ t('payment.carpool.groupName') }}</strong>
+                    </template>
+                  </i18n-t>
+                </div>
+                <div class="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 dark:border-dark-700 dark:bg-dark-800 dark:text-gray-300">
+                  <Icon name="clock" size="sm" class="text-emerald-600 dark:text-emerald-400" />
+                  {{ t('payment.carpool.formationWindow') }}
+                </div>
+              </div>
+            </section>
+
+            <div v-if="carpoolOverview.plans.length" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <article v-for="plan in carpoolOverview.plans" :key="plan.id"
+                class="flex min-h-[440px] flex-col rounded-lg border border-gray-200 bg-white p-5 dark:border-dark-700 dark:bg-dark-800"
+                :data-test="`carpool-plan-${plan.id}`">
+                <div class="flex min-h-7 items-start justify-between gap-3">
+                  <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ t('payment.carpool.planName', { count: plan.size }) }}</span>
+                  <span v-if="plan.size === 1" class="rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">{{ t('payment.carpool.credentialsAvailable') }}</span>
+                </div>
+
+                <div class="mt-5 flex items-end gap-1 text-gray-950 dark:text-white">
+                  <span class="text-4xl font-semibold tabular-nums">{{ formatCarpoolAmount(plan.price) }}</span>
+                  <span class="mb-1 text-sm text-gray-400">/ {{ t('payment.carpool.person') }}</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('payment.carpool.servicePeriod') }}
+                </p>
+
+                <p class="mt-5 flex-1 whitespace-pre-line border-t border-gray-100 pt-5 text-sm leading-6 text-gray-600 dark:border-dark-700 dark:text-gray-300">{{ plan.note }}</p>
+
+                <div class="mt-6 min-h-[92px] border-t border-gray-100 pt-5 dark:border-dark-700">
+                  <template v-if="plan.size > 1">
+                    <div class="flex items-center justify-between text-sm">
+                      <span class="text-gray-500 dark:text-gray-400">{{ t('payment.carpool.progress') }}</span>
+                      <span class="font-medium tabular-nums text-gray-900 dark:text-white">{{ plan.current_members }}/{{ plan.size }}</span>
+                    </div>
+                    <div class="mt-3 h-2 overflow-hidden rounded-sm bg-gray-200 dark:bg-dark-600">
+                      <div class="h-full bg-emerald-500 transition-[width]" :style="{ width: `${Math.min(100, plan.current_members / plan.size * 100)}%` }"></div>
+                    </div>
+                    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                      {{ plan.remaining_members > 0 ? t('payment.carpool.remaining', { count: plan.remaining_members }) : t('payment.carpool.formed') }}
+                      <span v-if="plan.deadline_at"> · {{ t('payment.carpool.deadline', { time: formatDateTime(plan.deadline_at) }) }}</span>
+                    </p>
+                  </template>
+                  <div v-else class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                    <Icon name="checkCircle" size="sm" class="text-emerald-600 dark:text-emerald-400" />
+                    {{ t('payment.carpool.immediateFormation') }}
+                  </div>
+                </div>
+
+                <button class="btn mt-auto w-full bg-gray-950 py-3 font-semibold text-white hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
+                  :disabled="submitting || !canPurchaseCarpool(plan)"
+                  @click="handleCarpoolPurchase(plan)">
+                  <span v-if="submitting" class="flex items-center justify-center gap-2">
+                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+                    {{ t('common.processing') }}
+                  </span>
+                  <span v-else>{{ t('payment.carpool.join') }} · {{ formatCarpoolAmount(carpoolTotalAmount(plan.price)) }}</span>
+                </button>
+              </article>
+            </div>
+            <p v-else class="border-y border-gray-200 py-14 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-gray-400">{{ t('payment.carpool.noPlans') }}</p>
+
+            <section class="border-y border-gray-200 py-6 dark:border-dark-700">
+              <PaymentMethodSelector
+                v-if="carpoolMethodOptions.length"
+                :methods="carpoolMethodOptions"
+                :selected="carpoolPaymentMethod"
+                @select="selectedMethod = $event"
+              />
+              <p v-else class="text-sm text-amber-700 dark:text-amber-300">{{ t('payment.carpool.alipayUnavailable') }}</p>
+            </section>
+
+            <section v-if="carpoolOverview.my_groups.length" class="border-t border-gray-200 pt-6 dark:border-dark-700">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-950 dark:text-white">{{ t('payment.carpool.myGroups') }}</h3>
+                <button class="btn btn-secondary px-3 py-2" :disabled="carpoolLoading" :title="t('common.refresh')" @click="loadCarpoolOverview">
+                  <Icon name="refresh" size="sm" :class="carpoolLoading ? 'animate-spin' : ''" />
+                </button>
+              </div>
+              <div class="divide-y divide-gray-200 border-y border-gray-200 dark:divide-dark-700 dark:border-dark-700">
+                <div v-for="group in carpoolOverview.my_groups" :key="group.id" class="grid gap-3 py-4 text-sm md:grid-cols-[120px_1fr_auto] md:items-center">
+                  <div>
+                    <p class="font-semibold text-gray-900 dark:text-white">{{ t('payment.carpool.planName', { count: group.target_members }) }}</p>
+                    <p class="mt-1 font-mono text-xs text-gray-400">#{{ group.order_id }}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-700 dark:text-gray-200">{{ carpoolStatusText(group.status) }}</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ carpoolStatusDetail(group) }}</p>
+                  </div>
+                  <span class="justify-self-start rounded px-2 py-1 text-xs font-medium md:justify-self-end" :class="carpoolStatusClass(group.status)">
+                    {{ group.current_members }}/{{ group.target_members }}
+                  </span>
+                </div>
+              </div>
+            </section>
           </template>
           <!-- Subscribe Tab -->
           <template v-else-if="activeTab === 'subscription'">
@@ -279,7 +391,16 @@ import { paymentAPI } from '@/api/payment'
 import { extractApiErrorMessage, extractI18nErrorMessage } from '@/utils/apiError'
 import { isMobileDevice } from '@/utils/device'
 import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel, type PeakRateFields } from '@/utils/peak-rate'
-import type { SubscriptionPlan, CheckoutInfoResponse, CreateOrderResult, OrderType } from '@/types/payment'
+import type {
+  CarpoolGroupOverview,
+  CarpoolOverview,
+  CarpoolPlanOverview,
+  CarpoolStatus,
+  SubscriptionPlan,
+  CheckoutInfoResponse,
+  CreateOrderResult,
+  OrderType,
+} from '@/types/payment'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AmountInput from '@/components/payment/AmountInput.vue'
 import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector.vue'
@@ -334,7 +455,7 @@ const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
 const errorHintMessage = ref('')
-const activeTab = ref<'recharge' | 'subscription'>('recharge')
+const activeTab = ref<'recharge' | 'carpool' | 'subscription'>('recharge')
 const amount = ref<number | null>(null)
 const selectedMethod = ref('')
 const selectedPlan = ref<SubscriptionPlan | null>(null)
@@ -348,6 +469,7 @@ interface CreateOrderOptions {
   paymentType?: string
   isResume?: boolean
   mobileQrFallbackAttempted?: boolean
+  carpoolPlanId?: number
 }
 
 interface WeixinJSBridgeLike {
@@ -490,10 +612,14 @@ function buildWechatOAuthAuthorizeUrl(
 
 function onPaymentDone() {
   const wasSubscription = paymentState.value.orderType === 'subscription'
+  const wasCarpool = paymentState.value.orderType === 'carpool'
   resetPayment()
   selectedPlan.value = null
   if (wasSubscription) {
     subscriptionStore.fetchActiveSubscriptions(true).catch(() => {})
+  }
+  if (wasCarpool) {
+    loadCarpoolOverview()
   }
 }
 
@@ -517,14 +643,19 @@ const checkout = ref<CheckoutInfoResponse>({
   plans: [], balance_disabled: false, balance_recharge_multiplier: 1, subscription_usd_to_cny_rate: 0, recharge_fee_rate: 0, help_text: '', help_image_url: '', stripe_publishable_key: '',
 })
 
+const carpoolOverview = ref<CarpoolOverview>({ plans: [], my_groups: [] })
+const carpoolLoading = ref(false)
+
 const tabs = computed(() => {
-  const result: { key: 'recharge' | 'subscription'; label: string }[] = []
+  const result: { key: 'recharge' | 'carpool' | 'subscription'; label: string }[] = []
   if (!checkout.value.balance_disabled) result.push({ key: 'recharge', label: t('payment.tabTopUp') })
+  result.push({ key: 'carpool', label: t('payment.tabCarpool') })
   result.push({ key: 'subscription', label: t('payment.tabSubscribe') })
   return result
 })
 
 const visibleMethods = computed(() => getVisibleMethods(checkout.value.methods))
+// The backend only includes methods backed by enabled provider instances.
 const enabledMethods = computed(() => Object.keys(visibleMethods.value))
 const validAmount = computed(() => amount.value ?? 0)
 const balanceRechargeMultiplier = computed(() => {
@@ -580,6 +711,8 @@ const localeCode = computed(() => {
   }
   return undefined
 })
+const currentBalanceAmount = computed(() => user.value ? user.value.balance.toFixed(2) : '0.00')
+const totalRechargedAmount = computed(() => user.value ? user.value.total_recharged.toFixed(2) : '0.00')
 
 function currencyFractionDigits(currency: string): number {
   try {
@@ -625,10 +758,24 @@ const methodOptions = computed<PaymentMethodOption[]>(() =>
       type,
       display_name: ml?.display_name,
       fee_rate: ml?.fee_rate ?? 0,
-      available: ml?.available !== false && amountFitsMethod(validAmount.value, type),
+      available: amountFitsMethod(validAmount.value, type),
     }
   })
 )
+
+const carpoolPaymentMethod = computed(() => enabledMethods.value.find(type => isBuiltInAlipayMethod(type)) || '')
+
+const carpoolMethodOptions = computed<PaymentMethodOption[]>(() => {
+  const type = carpoolPaymentMethod.value
+  if (!type) return []
+  const method = visibleMethods.value[type]
+  return [{
+    type,
+    display_name: method.display_name,
+    fee_rate: method.fee_rate,
+    available: normalizePaymentCurrency(method.currency) === DEFAULT_PAYMENT_CURRENCY,
+  }]
+})
 
 const feeRate = computed(() => checkout.value?.recharge_fee_rate ?? 0)
 const feeAmount = computed(() =>
@@ -660,7 +807,6 @@ const amountError = computed(() => {
 const canSubmit = computed(() =>
   validAmount.value > 0
     && amountFitsMethod(validAmount.value, selectedMethod.value)
-    && selectedLimit.value?.available !== false
 )
 
 const subPaymentAmount = computed(() => {
@@ -695,7 +841,7 @@ const subMethodOptions = computed<PaymentMethodOption[]>(() => {
       type,
       display_name: ml?.display_name,
       fee_rate: ml?.fee_rate ?? 0,
-      available: ml?.available !== false && amountFitsMethod(subscriptionTotalAmountForCurrency(price, currency), type),
+      available: amountFitsMethod(subscriptionTotalAmountForCurrency(price, currency), type),
     }
   })
 })
@@ -703,7 +849,6 @@ const subMethodOptions = computed<PaymentMethodOption[]>(() => {
 const canSubmitSubscription = computed(() =>
   selectedPlan.value !== null
     && amountFitsMethod(subTotalAmount.value, selectedMethod.value)
-    && selectedLimit.value?.available !== false
 )
 
 // Auto-switch to first available method when current selection can't handle the amount
@@ -766,6 +911,97 @@ function closeRenewalModal() {
   renewGroupId.value = null
 }
 
+// Carpool prices are fixed in CNY and use the same configured payment fee as other orders.
+function carpoolTotalAmount(price: number): number {
+  if (feeRate.value <= 0) return price
+  return roundPaymentAmount(price + ceilPaymentAmount((price * feeRate.value) / 100, DEFAULT_PAYMENT_CURRENCY), DEFAULT_PAYMENT_CURRENCY)
+}
+
+// Carpool amounts are never formatted using the currently selected non-CNY method.
+function formatCarpoolAmount(value: number): string {
+  return formatPaymentAmount(value, DEFAULT_PAYMENT_CURRENCY, localeCode.value)
+}
+
+// A carpool card is payable only when the configured Alipay channel accepts its final amount.
+function canPurchaseCarpool(plan: CarpoolPlanOverview): boolean {
+  const methodType = carpoolPaymentMethod.value
+  if (!methodType) return false
+  const method = visibleMethods.value[methodType]
+  if (normalizePaymentCurrency(method.currency) !== DEFAULT_PAYMENT_CURRENCY) return false
+  return amountFitsMethod(carpoolTotalAmount(plan.price), methodType)
+}
+
+// Creating a carpool order sends only the plan ID; the backend owns all price snapshots.
+async function handleCarpoolPurchase(plan: CarpoolPlanOverview) {
+  if (submitting.value || !canPurchaseCarpool(plan)) return
+  await createOrder(plan.price, 'carpool', undefined, {
+    paymentType: carpoolPaymentMethod.value,
+    carpoolPlanId: plan.id,
+  })
+}
+
+// Refreshes live plan progress and the current user's carpool records.
+async function loadCarpoolOverview() {
+  carpoolLoading.value = true
+  try {
+    const response = await paymentAPI.getCarpoolOverview()
+    carpoolOverview.value = response.data
+  } catch (err: unknown) {
+    appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error')))
+  } finally {
+    carpoolLoading.value = false
+  }
+}
+
+// Formats persisted timestamps in the user's local timezone.
+function formatDateTime(value: string): string {
+  return new Date(value).toLocaleString()
+}
+
+// Maps the carpool state contract to the user-facing workflow text.
+function carpoolStatusText(status: CarpoolStatus): string {
+  switch (status) {
+  case 'waiting': return t('payment.carpool.status.waiting')
+  case 'purchasing': return t('payment.carpool.status.purchasing')
+  case 'active': return t('payment.carpool.status.active')
+  case 'refund_pending': return t('payment.carpool.status.refundPending')
+  case 'refunded': return t('payment.carpool.status.refunded')
+  case 'expired': return t('payment.carpool.status.expired')
+  }
+}
+
+// Describes the next operational step for one of the user's carpool groups.
+function carpoolStatusDetail(group: CarpoolGroupOverview): string {
+  switch (group.status) {
+  case 'waiting':
+    return group.deadline_at
+      ? t('payment.carpool.waitingDetail', { count: group.target_members - group.current_members, time: formatDateTime(group.deadline_at) })
+      : t('payment.carpool.remaining', { count: group.target_members - group.current_members })
+  case 'purchasing':
+    return t('payment.carpool.purchasingDetail')
+  case 'active':
+    return group.expires_at ? t('payment.carpool.activeDetail', { time: formatDateTime(group.expires_at) }) : t('payment.carpool.status.active')
+  case 'refund_pending':
+    return group.status_reason === 'not_formed' ? t('payment.carpool.notFormedDetail') : t('payment.carpool.refundPendingDetail')
+  case 'refunded':
+    return t('payment.carpool.refundedDetail')
+  case 'expired':
+    return t('payment.carpool.expiredDetail')
+  }
+}
+
+// Uses restrained state colors so progress remains scannable in the order list.
+function carpoolStatusClass(status: CarpoolStatus): string {
+  switch (status) {
+  case 'waiting': return 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+  case 'purchasing': return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+  case 'active': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+  case 'refund_pending': return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+  case 'refunded': return 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-300'
+  case 'expired': return 'bg-gray-100 text-gray-500 dark:bg-dark-700 dark:text-gray-400'
+  }
+}
+
 async function handleSubmitRecharge() {
   if (!canSubmit.value || submitting.value) return
   await createOrder(validAmount.value, 'balance')
@@ -787,6 +1023,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
       paymentType: requestType,
       orderType,
       planId,
+      carpoolPlanId: options.carpoolPlanId,
       origin: typeof window !== 'undefined' ? window.location.origin : '',
       isMobile: isMobileDevice(),
       isWechatBrowser: typeof window !== 'undefined' && /MicroMessenger/i.test(window.navigator.userAgent),
@@ -894,6 +1131,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
               planId,
               paymentType: visibleMethod,
               attempted: options.mobileQrFallbackAttempted === true,
+              carpoolPlanId: options.carpoolPlanId,
             },
           )
           if (!fallbackApplied) {
@@ -912,6 +1150,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
           planId,
           paymentType: visibleMethod,
           attempted: options.mobileQrFallbackAttempted === true,
+          carpoolPlanId: options.carpoolPlanId,
         })
         if (!fallbackApplied) {
           throw err
@@ -941,6 +1180,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
       planId,
       paymentType: requestType,
       attempted: options.mobileQrFallbackAttempted === true,
+      carpoolPlanId: options.carpoolPlanId,
     })) {
       return
     } else {
@@ -968,6 +1208,7 @@ interface MobileQrFallbackContext {
   planId?: number
   paymentType: string
   attempted: boolean
+  carpoolPlanId?: number
 }
 
 function shouldFallbackToDesktopQr(err: unknown, paymentMethod: string, attempted: boolean): boolean {
@@ -1015,6 +1256,7 @@ async function attemptMobileQrFallback(err: unknown, context: MobileQrFallbackCo
       paymentType: visibleMethod,
       orderType: context.orderType,
       planId: context.planId,
+      carpoolPlanId: context.carpoolPlanId,
       origin: typeof window !== 'undefined' ? window.location.origin : '',
       isMobile: false,
       isWechatBrowser: false,
@@ -1112,6 +1354,7 @@ onMounted(async () => {
   try {
     const res = await paymentAPI.getCheckoutInfo()
     checkout.value = res.data
+    await loadCarpoolOverview()
     if (enabledMethods.value.length) {
       const order: readonly string[] = METHOD_ORDER
       const sorted = [...enabledMethods.value].sort((a, b) => {
@@ -1163,6 +1406,9 @@ onMounted(async () => {
           showRenewalModal.value = true
         }
       }
+    }
+    if (route.query.tab === 'carpool') {
+      activeTab.value = 'carpool'
     }
   } catch (err: unknown) { appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error'))) }
   finally { loading.value = false }

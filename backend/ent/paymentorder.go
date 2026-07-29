@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/Wei-Shaw/sub2api/ent/carpoolgroup"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/rechargelotterydraw"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -56,6 +57,18 @@ type PaymentOrder struct {
 	SubscriptionGroupID *int64 `json:"subscription_group_id,omitempty"`
 	// SubscriptionDays holds the value of the "subscription_days" field.
 	SubscriptionDays *int `json:"subscription_days,omitempty"`
+	// CarpoolSize holds the value of the "carpool_size" field.
+	CarpoolSize *int `json:"carpool_size,omitempty"`
+	// CarpoolPlanID holds the value of the "carpool_plan_id" field.
+	CarpoolPlanID *int64 `json:"carpool_plan_id,omitempty"`
+	// CarpoolPlanRevision holds the value of the "carpool_plan_revision" field.
+	CarpoolPlanRevision *int `json:"carpool_plan_revision,omitempty"`
+	// CarpoolTotalAmount holds the value of the "carpool_total_amount" field.
+	CarpoolTotalAmount *float64 `json:"carpool_total_amount,omitempty"`
+	// CarpoolPlanNote holds the value of the "carpool_plan_note" field.
+	CarpoolPlanNote *string `json:"carpool_plan_note,omitempty"`
+	// CarpoolGroupID holds the value of the "carpool_group_id" field.
+	CarpoolGroupID *int64 `json:"carpool_group_id,omitempty"`
 	// ProviderInstanceID holds the value of the "provider_instance_id" field.
 	ProviderInstanceID *string `json:"provider_instance_id,omitempty"`
 	// ProviderKey holds the value of the "provider_key" field.
@@ -110,9 +123,11 @@ type PaymentOrderEdges struct {
 	User *User `json:"user,omitempty"`
 	// RechargeLotteryDraw holds the value of the recharge_lottery_draw edge.
 	RechargeLotteryDraw *RechargeLotteryDraw `json:"recharge_lottery_draw,omitempty"`
+	// CarpoolGroup holds the value of the carpool_group edge.
+	CarpoolGroup *CarpoolGroup `json:"carpool_group,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -137,6 +152,17 @@ func (e PaymentOrderEdges) RechargeLotteryDrawOrErr() (*RechargeLotteryDraw, err
 	return nil, &NotLoadedError{edge: "recharge_lottery_draw"}
 }
 
+// CarpoolGroupOrErr returns the CarpoolGroup value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PaymentOrderEdges) CarpoolGroupOrErr() (*CarpoolGroup, error) {
+	if e.CarpoolGroup != nil {
+		return e.CarpoolGroup, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: carpoolgroup.Label}
+	}
+	return nil, &NotLoadedError{edge: "carpool_group"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*PaymentOrder) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -146,11 +172,11 @@ func (*PaymentOrder) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case paymentorder.FieldForceRefund:
 			values[i] = new(sql.NullBool)
-		case paymentorder.FieldAmount, paymentorder.FieldPayAmount, paymentorder.FieldFeeRate, paymentorder.FieldRefundAmount:
+		case paymentorder.FieldAmount, paymentorder.FieldPayAmount, paymentorder.FieldFeeRate, paymentorder.FieldCarpoolTotalAmount, paymentorder.FieldRefundAmount:
 			values[i] = new(sql.NullFloat64)
-		case paymentorder.FieldID, paymentorder.FieldUserID, paymentorder.FieldPlanID, paymentorder.FieldSubscriptionGroupID, paymentorder.FieldSubscriptionDays:
+		case paymentorder.FieldID, paymentorder.FieldUserID, paymentorder.FieldPlanID, paymentorder.FieldSubscriptionGroupID, paymentorder.FieldSubscriptionDays, paymentorder.FieldCarpoolSize, paymentorder.FieldCarpoolPlanID, paymentorder.FieldCarpoolPlanRevision, paymentorder.FieldCarpoolGroupID:
 			values[i] = new(sql.NullInt64)
-		case paymentorder.FieldUserEmail, paymentorder.FieldUserName, paymentorder.FieldUserNotes, paymentorder.FieldRechargeCode, paymentorder.FieldOutTradeNo, paymentorder.FieldPaymentType, paymentorder.FieldPaymentTradeNo, paymentorder.FieldPayURL, paymentorder.FieldQrCode, paymentorder.FieldQrCodeImg, paymentorder.FieldOrderType, paymentorder.FieldProviderInstanceID, paymentorder.FieldProviderKey, paymentorder.FieldStatus, paymentorder.FieldRefundReason, paymentorder.FieldRefundRequestReason, paymentorder.FieldRefundRequestedBy, paymentorder.FieldFailedReason, paymentorder.FieldClientIP, paymentorder.FieldSrcHost, paymentorder.FieldSrcURL:
+		case paymentorder.FieldUserEmail, paymentorder.FieldUserName, paymentorder.FieldUserNotes, paymentorder.FieldRechargeCode, paymentorder.FieldOutTradeNo, paymentorder.FieldPaymentType, paymentorder.FieldPaymentTradeNo, paymentorder.FieldPayURL, paymentorder.FieldQrCode, paymentorder.FieldQrCodeImg, paymentorder.FieldOrderType, paymentorder.FieldCarpoolPlanNote, paymentorder.FieldProviderInstanceID, paymentorder.FieldProviderKey, paymentorder.FieldStatus, paymentorder.FieldRefundReason, paymentorder.FieldRefundRequestReason, paymentorder.FieldRefundRequestedBy, paymentorder.FieldFailedReason, paymentorder.FieldClientIP, paymentorder.FieldSrcHost, paymentorder.FieldSrcURL:
 			values[i] = new(sql.NullString)
 		case paymentorder.FieldRefundAt, paymentorder.FieldRefundRequestedAt, paymentorder.FieldExpiresAt, paymentorder.FieldPaidAt, paymentorder.FieldCompletedAt, paymentorder.FieldFailedAt, paymentorder.FieldCreatedAt, paymentorder.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -289,6 +315,48 @@ func (_m *PaymentOrder) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SubscriptionDays = new(int)
 				*_m.SubscriptionDays = int(value.Int64)
+			}
+		case paymentorder.FieldCarpoolSize:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_size", values[i])
+			} else if value.Valid {
+				_m.CarpoolSize = new(int)
+				*_m.CarpoolSize = int(value.Int64)
+			}
+		case paymentorder.FieldCarpoolPlanID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_plan_id", values[i])
+			} else if value.Valid {
+				_m.CarpoolPlanID = new(int64)
+				*_m.CarpoolPlanID = value.Int64
+			}
+		case paymentorder.FieldCarpoolPlanRevision:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_plan_revision", values[i])
+			} else if value.Valid {
+				_m.CarpoolPlanRevision = new(int)
+				*_m.CarpoolPlanRevision = int(value.Int64)
+			}
+		case paymentorder.FieldCarpoolTotalAmount:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_total_amount", values[i])
+			} else if value.Valid {
+				_m.CarpoolTotalAmount = new(float64)
+				*_m.CarpoolTotalAmount = value.Float64
+			}
+		case paymentorder.FieldCarpoolPlanNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_plan_note", values[i])
+			} else if value.Valid {
+				_m.CarpoolPlanNote = new(string)
+				*_m.CarpoolPlanNote = value.String
+			}
+		case paymentorder.FieldCarpoolGroupID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field carpool_group_id", values[i])
+			} else if value.Valid {
+				_m.CarpoolGroupID = new(int64)
+				*_m.CarpoolGroupID = value.Int64
 			}
 		case paymentorder.FieldProviderInstanceID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -453,6 +521,11 @@ func (_m *PaymentOrder) QueryRechargeLotteryDraw() *RechargeLotteryDrawQuery {
 	return NewPaymentOrderClient(_m.config).QueryRechargeLotteryDraw(_m)
 }
 
+// QueryCarpoolGroup queries the "carpool_group" edge of the PaymentOrder entity.
+func (_m *PaymentOrder) QueryCarpoolGroup() *CarpoolGroupQuery {
+	return NewPaymentOrderClient(_m.config).QueryCarpoolGroup(_m)
+}
+
 // Update returns a builder for updating this PaymentOrder.
 // Note that you need to call PaymentOrder.Unwrap() before calling this method if this PaymentOrder
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -541,6 +614,36 @@ func (_m *PaymentOrder) String() string {
 	builder.WriteString(", ")
 	if v := _m.SubscriptionDays; v != nil {
 		builder.WriteString("subscription_days=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolSize; v != nil {
+		builder.WriteString("carpool_size=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolPlanID; v != nil {
+		builder.WriteString("carpool_plan_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolPlanRevision; v != nil {
+		builder.WriteString("carpool_plan_revision=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolTotalAmount; v != nil {
+		builder.WriteString("carpool_total_amount=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolPlanNote; v != nil {
+		builder.WriteString("carpool_plan_note=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.CarpoolGroupID; v != nil {
+		builder.WriteString("carpool_group_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

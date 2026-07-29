@@ -89,6 +89,22 @@ func TestGatewayEnsureForwardErrorResponse_ResponsesRouteAfterWrittenEmitsRespon
 	assert.Contains(t, body, `"type":"response.failed"`)
 }
 
+func TestGatewayHandleResponsesFailoverExhausted_AfterStreamEmitsLocalizedFailure(t *testing.T) {
+	c, w := newGinContextForEndpoint(t, EndpointResponses)
+	h := &GatewayHandler{}
+
+	h.handleResponsesFailoverExhausted(c, &service.UpstreamFailoverError{
+		StatusCode: http.StatusServiceUnavailable,
+	}, true)
+
+	_, errObj := parseResponsesFailedSSE(t, w.Body.String())
+	assert.Equal(t, "upstream_http_503", errObj["code"])
+	assert.Equal(t,
+		"[错误码：503 / upstream_http_503] 上游服务暂时不可用，请稍后重试。如需技术支持，请前往官网联系客服。",
+		errObj["message"],
+	)
+}
+
 func TestGatewayForwardErrorAlreadyCommunicated(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

@@ -1713,7 +1713,9 @@ func (h *GatewayHandler) handleFailoverExhausted(c *gin.Context, failoverErr *se
 	responseBody := failoverErr.ResponseBody
 	if service.IsOpenAISilentRefusalErrorBody(responseBody) {
 		service.SetOpsUpstreamError(c, statusCode, service.OpenAISilentRefusalClientMessage(), "")
-		h.handleStreamingAwareError(c, http.StatusBadGateway, "upstream_error", service.OpenAISilentRefusalClientMessage(), streamStarted)
+		h.handleStreamingAwareErrorWithCode(
+			c, http.StatusBadGateway, "upstream_error", "openai_silent_refusal", service.OpenAISilentRefusalClientMessage(), streamStarted,
+		)
 		return
 	}
 
@@ -1747,14 +1749,14 @@ func (h *GatewayHandler) handleFailoverExhausted(c *gin.Context, failoverErr *se
 
 	// 使用默认的错误映射
 	status, errType, errMsg := h.mapUpstreamError(statusCode)
-	h.handleStreamingAwareError(c, status, errType, errMsg, streamStarted)
+	h.handleStreamingAwareErrorWithCode(c, status, errType, upstreamErrorCode(statusCode), errMsg, streamStarted)
 }
 
 // handleFailoverExhaustedSimple 简化版本，用于没有响应体的情况
 func (h *GatewayHandler) handleFailoverExhaustedSimple(c *gin.Context, statusCode int, streamStarted bool) {
 	status, errType, errMsg := h.mapUpstreamError(statusCode)
 	service.SetOpsUpstreamError(c, statusCode, errMsg, "")
-	h.handleStreamingAwareError(c, status, errType, errMsg, streamStarted)
+	h.handleStreamingAwareErrorWithCode(c, status, errType, upstreamErrorCode(statusCode), errMsg, streamStarted)
 }
 
 func (h *GatewayHandler) mapUpstreamError(statusCode int) (int, string, string) {
@@ -1776,6 +1778,29 @@ func (h *GatewayHandler) mapUpstreamError(statusCode int) (int, string, string) 
 
 // handleStreamingAwareError handles errors that may occur after streaming has started
 func (h *GatewayHandler) handleStreamingAwareError(c *gin.Context, status int, errType, message string, streamStarted bool) {
+	code := ""
+	if inboundIsResponses(c) {
+		code = mapResponsesErrorCode(errType)
+	}
+	h.handleStreamingAwareErrorWithCode(c, status, errType, code, message, streamStarted)
+}
+
+func (h *GatewayHandler) handleStreamingAwareErrorWithCode(
+	c *gin.Context,
+	status int,
+	errType string,
+	code string,
+	message string,
+	streamStarted bool,
+) {
+	isResponses := inboundIsResponses(c)
+	if isResponses && code == "" {
+		code = mapResponsesErrorCode(errType)
+	}
+	clientMessage := message
+	if isResponses {
+		clientMessage = codexOperationalErrorMessage(status, code, message)
+	}
 	if streamStarted {
 		// 响应状态码已固化为 200（ping/部分数据已 flush），错误只能就地以 SSE 帧回传。
 		// 标记本次流内错误，供 ops_error_logger 补记——否则该中间件按 status>=400 采集，
@@ -1785,8 +1810,8 @@ func (h *GatewayHandler) handleStreamingAwareError(c *gin.Context, status int, e
 		// /v1/responses 的严格 SDK（Codex CLI）要求终止事件必须属于
 		// response.completed/failed/incomplete/cancelled 集合。
 		// Anthropic-backed Responses 路径同样会因为通用 error 帧被拒。
-		if inboundIsResponses(c) {
-			if writeResponsesFailedSSE(c, errType, message) {
+		if isResponses {
+			if writeResponsesFailedSSE(c, code, clientMessage) {
 				return
 			}
 		}
@@ -1794,7 +1819,7 @@ func (h *GatewayHandler) handleStreamingAwareError(c *gin.Context, status int, e
 		flusher, ok := c.Writer.(http.Flusher)
 		if ok {
 			// SSE 错误事件固定 schema，使用 Quote 直拼可避免额外 Marshal 分配。
-			errorEvent := `data: {"type":"error","error":{"type":` + strconv.Quote(errType) + `,"message":` + strconv.Quote(message) + `}}` + "\n\n"
+			errorEvent := `data: {"type":"error","error":{"type":` + strconv.Quote(errType) + `,"message":` + strconv.Quote(clientMessage) + `}}` + "\n\n"
 			if _, err := fmt.Fprint(c.Writer, errorEvent); err != nil {
 				_ = c.Error(err)
 			}
@@ -1804,6 +1829,10 @@ func (h *GatewayHandler) handleStreamingAwareError(c *gin.Context, status int, e
 	}
 
 	// Normal case: return JSON response with proper status code
+	if isResponses {
+		h.responsesErrorResponse(c, status, code, clientMessage)
+		return
+	}
 	h.errorResponse(c, status, errType, message)
 }
 
@@ -2268,6 +2297,12 @@ func billingErrorDetails(err error) (status int, code, message string, retryAfte
 		}
 		return http.StatusServiceUnavailable, "billing_service_error", msg, 0
 	}
+	if errors.Is(err, service.ErrInsufficientBalance) {
+		return http.StatusForbidden, "INSUFFICIENT_BALANCE", "账户余额不足，请充值后重试", 0
+	}
+	if errors.Is(err, service.ErrSubscriptionInvalid) {
+		return http.StatusForbidden, "SUBSCRIPTION_INVALID", "订阅无效或已过期，请检查订阅状态", 0
+	}
 	if errors.Is(err, service.ErrAPIKeyRateLimit5hExceeded) {
 		msg := pkgerrors.Message(err)
 		return http.StatusTooManyRequests, "rate_limit_exceeded", msg, 0
@@ -2295,6 +2330,11 @@ func billingErrorDetails(err error) (status int, code, message string, retryAfte
 		msg := pkgerrors.Message(err)
 		return http.StatusTooManyRequests, "rate_limit_exceeded", msg, extractQuotaResetSeconds(err)
 	}
+	if errors.Is(err, service.ErrDailyLimitExceeded) ||
+		errors.Is(err, service.ErrWeeklyLimitExceeded) ||
+		errors.Is(err, service.ErrMonthlyLimitExceeded) {
+		return http.StatusTooManyRequests, "rate_limit_exceeded", pkgerrors.Message(err), 0
+	}
 	msg := pkgerrors.Message(err)
 	if msg == "" {
 		logger.L().With(
@@ -2304,6 +2344,17 @@ func billingErrorDetails(err error) (status int, code, message string, retryAfte
 		msg = "Billing error"
 	}
 	return http.StatusForbidden, "billing_error", msg, 0
+}
+
+func billingErrorType(code string) string {
+	switch code {
+	case "rate_limit_exceeded":
+		return "rate_limit_error"
+	case "billing_service_error":
+		return "api_error"
+	default:
+		return "billing_error"
+	}
 }
 
 func (h *GatewayHandler) metadataBridgeEnabled() bool {

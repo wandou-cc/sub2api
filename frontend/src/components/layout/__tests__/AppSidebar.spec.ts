@@ -72,6 +72,12 @@ describe('AppSidebar contact entry', () => {
   })
 })
 
+describe('AppSidebar carpool management entry', () => {
+  it('registers carpool management under payment orders', () => {
+    expect(componentSource).toContain("{ path: '/admin/orders/carpools', label: t('nav.carpoolManagement')")
+  })
+})
+
 describe('AppSidebar header styles', () => {
   it('does not clip the version badge dropdown', () => {
     const sidebarHeaderBlockMatch = styleSource.match(/\.sidebar-header\s*\{[\s\S]*?\n {2}\}/)

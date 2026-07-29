@@ -204,6 +204,25 @@ describe('PaymentResultView', () => {
     expect(window.localStorage.getItem(PAYMENT_RECOVERY_STORAGE_KEY)).toBeNull()
   })
 
+  it('shows carpool success without a credited-balance row', async () => {
+    routeState.query = { order_id: '42' }
+    pollOrderStatus.mockResolvedValue({
+      ...orderFactory('COMPLETED'),
+      order_type: 'carpool',
+      amount: 800,
+      pay_amount: 824,
+      fee_rate: 3,
+    })
+
+    const wrapper = mount(PaymentResultView, {
+      global: { stubs: { OrderStatusBadge: true } },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('payment.result.carpoolSuccess')
+    expect(wrapper.text()).not.toContain('payment.orders.creditedAmount')
+  })
+
   it('refreshes a pending resume-token result until the order becomes paid', async () => {
     vi.useFakeTimers()
     routeState.query = {

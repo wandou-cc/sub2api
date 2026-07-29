@@ -129,6 +129,30 @@ func (f BatchImageJobFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BatchImageJobMutation", m)
 }
 
+// The CarpoolGroupFunc type is an adapter to allow the use of ordinary
+// function as CarpoolGroup mutator.
+type CarpoolGroupFunc func(context.Context, *ent.CarpoolGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CarpoolGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CarpoolGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CarpoolGroupMutation", m)
+}
+
+// The CarpoolPlanFunc type is an adapter to allow the use of ordinary
+// function as CarpoolPlan mutator.
+type CarpoolPlanFunc func(context.Context, *ent.CarpoolPlanMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CarpoolPlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CarpoolPlanMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CarpoolPlanMutation", m)
+}
+
 // The ChannelMonitorFunc type is an adapter to allow the use of ordinary
 // function as ChannelMonitor mutator.
 type ChannelMonitorFunc func(context.Context, *ent.ChannelMonitorMutation) (ent.Value, error)

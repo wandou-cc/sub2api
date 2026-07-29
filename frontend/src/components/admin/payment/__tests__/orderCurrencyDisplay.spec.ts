@@ -123,6 +123,69 @@ describe('admin order currency display', () => {
     expect(text).toContain('$100.00')
   })
 
+  it('renders carpool amounts only in the fixed payment currency', () => {
+    const sharedWrapper = mount(OrderTable, {
+      props: {
+        orders: [orderFactory({ order_type: 'carpool', currency: 'CNY' })],
+        loading: false,
+        showUser: true,
+      },
+      global: {
+        stubs: {
+          DataTable: DataTableStub,
+          OrderStatusBadge: true,
+        },
+      },
+    })
+    const adminWrapper = mount(AdminOrderTable, {
+      props: {
+        orders: [orderFactory({ order_type: 'carpool', currency: 'CNY' })],
+        loading: false,
+        page: 1,
+        pageSize: 20,
+        total: 1,
+      },
+      global: {
+        stubs: {
+          DataTable: DataTableStub,
+          Icon: true,
+          Pagination: true,
+          Select: true,
+        },
+      },
+    })
+
+    expect(sharedWrapper.text()).toContain('¥108.00')
+    expect(sharedWrapper.text()).toContain('¥100.00')
+    expect(sharedWrapper.text()).not.toContain('$100.00')
+    expect(adminWrapper.text()).toContain('¥108.00')
+    expect(adminWrapper.text()).toContain('¥100.00')
+    expect(adminWrapper.text()).not.toContain('$100.00')
+  })
+
+  it('renders carpool order details and refunds in CNY', () => {
+    const wrapper = mount(AdminOrderDetail, {
+      props: {
+        show: true,
+        order: orderFactory({ order_type: 'carpool', currency: 'CNY' }),
+      },
+      global: {
+        stubs: {
+          BaseDialog: BaseDialogStub,
+        },
+      },
+    })
+
+    const text = wrapper.text()
+    expect(text).toContain('¥100.00')
+    expect(text).toContain('¥8.00')
+    expect(text).toContain('¥108.00')
+    expect(text).toContain('¥25.00')
+    expect(text).not.toContain('$100.00')
+    expect(text).not.toContain('$25.00')
+    expect(wrapper.find('button').exists()).toBe(false)
+  })
+
   it('renders payment currency consistently in the admin order table', () => {
     const wrapper = mount(AdminOrderTable, {
       props: {

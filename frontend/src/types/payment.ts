@@ -21,7 +21,7 @@ export type OrderStatus =
 
 export type PaymentType = 'alipay' | 'wxpay' | 'alipay_direct' | 'wxpay_direct' | 'stripe' | 'easypay' | 'airwallex'
 
-export type OrderType = 'balance' | 'subscription'
+export type OrderType = 'balance' | 'subscription' | 'carpool'
 
 // ==================== Configuration ====================
 
@@ -42,15 +42,13 @@ export interface PaymentConfig {
 }
 
 export interface MethodLimit {
-  currency?: string
+  payment_type: string
   display_name?: string
+  currency: string
   daily_limit: number
-  daily_used: number
-  daily_remaining: number
   single_min: number
   single_max: number
   fee_rate: number
-  available: boolean
 }
 
 /** Response from /payment/limits API */
@@ -104,6 +102,52 @@ export interface PaymentOrder {
   refund_request_reason?: string
   plan_id?: number
   provider_instance_id?: string
+  carpool_plan_id?: number
+  carpool_size?: number
+  carpool_total_amount?: number
+  carpool_plan_note?: string
+  carpool_group_id?: number
+  carpool_status?: CarpoolStatus
+  carpool_member_count?: number
+  carpool_deadline_at?: string
+  carpool_opened_at?: string
+  carpool_expires_at?: string
+}
+
+export type CarpoolStatus = 'waiting' | 'purchasing' | 'active' | 'refund_pending' | 'refunded' | 'expired'
+
+export interface CarpoolPlanOverview {
+  id: number
+  total_amount: number
+  size: number
+  price: number
+  note: string
+  current_members: number
+  remaining_members: number
+  deadline_at?: string
+}
+
+export interface CarpoolGroupOverview {
+  id: number
+  order_id?: number
+  carpool_plan_id: number
+  target_members: number
+  total_amount: number
+  price_per_member: number
+  plan_note: string
+  current_members: number
+  status: CarpoolStatus
+  status_reason?: string
+  deadline_at?: string
+  formed_at?: string
+  opened_at?: string
+  expires_at?: string
+  created_at: string
+}
+
+export interface CarpoolOverview {
+  plans: CarpoolPlanOverview[]
+  my_groups: CarpoolGroupOverview[]
 }
 
 export type RechargeLotteryRarity = 'common' | 'rare' | 'epic' | 'epic_plus' | 'legendary'
@@ -190,6 +234,7 @@ export interface CreateOrderRequest {
   payment_type: string
   order_type: string
   plan_id?: number
+  carpool_plan_id?: number
   return_url?: string
   payment_source?: string
   openid?: string

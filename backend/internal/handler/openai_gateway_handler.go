@@ -412,7 +412,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 		if retryAfter > 0 {
 			c.Header("Retry-After", strconv.Itoa(retryAfter))
 		}
-		h.handleStreamingAwareError(c, status, code, message, streamStarted)
+		h.handleStreamingAwareErrorWithCode(c, status, billingErrorType(code), code, message, streamStarted, false)
 		return
 	}
 
@@ -2280,14 +2280,18 @@ func (h *OpenAIGatewayHandler) handleFailoverExhausted(c *gin.Context, failoverE
 	copyFailoverRetryAfter(c, failoverErr.ResponseHeaders)
 	if failoverErr.IsCredentialFailure() {
 		status, message := credentialFailoverClientResponse(failoverErr)
-		h.handleStreamingAwareError(c, status, "upstream_error", message, streamStarted)
+		h.handleStreamingAwareErrorWithCode(
+			c, status, "upstream_error", credentialFailoverClientCode(failoverErr), message, streamStarted, false,
+		)
 		return
 	}
 	statusCode := failoverErr.StatusCode
 	responseBody := failoverErr.ResponseBody
 	if service.IsOpenAISilentRefusalErrorBody(responseBody) {
 		service.SetOpsUpstreamError(c, statusCode, service.OpenAISilentRefusalClientMessage(), "")
-		h.handleStreamingAwareError(c, http.StatusBadGateway, "upstream_error", service.OpenAISilentRefusalClientMessage(), streamStarted)
+		h.handleStreamingAwareErrorWithCode(
+			c, http.StatusBadGateway, "upstream_error", "openai_silent_refusal", service.OpenAISilentRefusalClientMessage(), streamStarted, false,
+		)
 		return
 	}
 
@@ -2321,7 +2325,7 @@ func (h *OpenAIGatewayHandler) handleFailoverExhausted(c *gin.Context, failoverE
 
 	// 使用默认的错误映射
 	status, errType, errMsg := h.mapUpstreamError(statusCode)
-	h.handleStreamingAwareError(c, status, errType, errMsg, streamStarted)
+	h.handleStreamingAwareErrorWithCode(c, status, errType, upstreamErrorCode(statusCode), errMsg, streamStarted, false)
 }
 
 func credentialFailoverClientResponse(failoverErr *service.UpstreamFailoverError) (int, string) {
@@ -2329,6 +2333,13 @@ func credentialFailoverClientResponse(failoverErr *service.UpstreamFailoverError
 		return http.StatusBadGateway, service.AntigravityCredentialRejectedClientMessage
 	}
 	return http.StatusServiceUnavailable, service.GrokCredentialUnavailableClientMessage
+}
+
+func credentialFailoverClientCode(failoverErr *service.UpstreamFailoverError) string {
+	if failoverErr != nil && failoverErr.Reason == service.AntigravityCredentialRejectedReason {
+		return "antigravity_credential_rejected"
+	}
+	return "upstream_credential_unavailable"
 }
 
 func copyFailoverRetryAfter(c *gin.Context, headers http.Header) {
@@ -2365,7 +2376,7 @@ func isSafeRetryAfter(value string) bool {
 func (h *OpenAIGatewayHandler) handleFailoverExhaustedSimple(c *gin.Context, statusCode int, streamStarted bool) {
 	status, errType, errMsg := h.mapUpstreamError(statusCode)
 	service.SetOpsUpstreamError(c, statusCode, errMsg, "")
-	h.handleStreamingAwareError(c, status, errType, errMsg, streamStarted)
+	h.handleStreamingAwareErrorWithCode(c, status, errType, upstreamErrorCode(statusCode), errMsg, streamStarted, false)
 }
 
 func (h *OpenAIGatewayHandler) mapUpstreamError(statusCode int) (int, string, string) {
@@ -2387,7 +2398,11 @@ func (h *OpenAIGatewayHandler) mapUpstreamError(statusCode int) (int, string, st
 
 // handleStreamingAwareError handles errors that may occur after streaming has started
 func (h *OpenAIGatewayHandler) handleStreamingAwareError(c *gin.Context, status int, errType, message string, streamStarted bool) {
-	h.handleStreamingAwareErrorWithCode(c, status, errType, "", message, streamStarted, false)
+	code := ""
+	if inboundIsResponses(c) {
+		code = mapResponsesErrorCode(errType)
+	}
+	h.handleStreamingAwareErrorWithCode(c, status, errType, code, message, streamStarted, false)
 }
 
 func (h *OpenAIGatewayHandler) handleStreamingAwareErrorWithCode(
@@ -2404,6 +2419,14 @@ func (h *OpenAIGatewayHandler) handleStreamingAwareErrorWithCode(
 	if service.StopOpenAICompactSSEKeepaliveCommitted(c) {
 		streamStarted = true
 	}
+	isResponses := inboundIsResponses(c)
+	if isResponses && code == "" {
+		code = mapResponsesErrorCode(errType)
+	}
+	clientMessage := message
+	if isResponses {
+		clientMessage = codexOperationalErrorMessage(status, code, message)
+	}
 	if streamStarted {
 		if countTowardsSLA {
 			service.MarkOpsStreamFailure(c, errType, code, message, status)
@@ -2414,15 +2437,15 @@ func (h *OpenAIGatewayHandler) handleStreamingAwareErrorWithCode(
 		// response.completed/failed/incomplete/cancelled 集合。
 		// 通用 `event: error` 帧不被识别为终止事件，会导致
 		// "stream closed before response.completed"。
-		if inboundIsResponses(c) {
-			if writeResponsesFailedSSE(c, errType, message) {
+		if isResponses {
+			if writeResponsesFailedSSE(c, code, clientMessage) {
 				return
 			}
 		}
 		// Stream already started, send error as SSE event then close
 		flusher, ok := c.Writer.(http.Flusher)
 		if ok {
-			errorObject := gin.H{"type": errType, "message": message}
+			errorObject := gin.H{"type": errType, "message": clientMessage}
 			if code != "" {
 				errorObject["code"] = code
 			}
@@ -2440,6 +2463,12 @@ func (h *OpenAIGatewayHandler) handleStreamingAwareErrorWithCode(
 	}
 
 	// Normal case: return JSON response with proper status code
+	if isResponses {
+		c.JSON(status, gin.H{"error": gin.H{
+			"type": errType, "code": code, "message": clientMessage,
+		}})
+		return
+	}
 	if code == "" {
 		h.errorResponse(c, status, errType, message)
 		return
@@ -2578,9 +2607,19 @@ func (h *OpenAIGatewayHandler) errorResponse(c *gin.Context, status int, errType
 	// 提交的 SSE 流交错，必须降级为 response.failed 终止事件（#3887）。
 	if service.StopOpenAICompactSSEKeepaliveCommitted(c) {
 		service.MarkOpsStreamError(c, errType, message, status)
-		if writeResponsesFailedSSE(c, errType, message) {
+		if writeResponsesFailedSSE(c, mapResponsesErrorCode(errType), message) {
 			return
 		}
+	}
+	if inboundIsResponses(c) {
+		c.JSON(status, gin.H{
+			"error": gin.H{
+				"type":    errType,
+				"code":    mapResponsesErrorCode(errType),
+				"message": message,
+			},
+		})
+		return
 	}
 	c.JSON(status, gin.H{
 		"error": gin.H{
@@ -2870,7 +2909,7 @@ func (h *OpenAIGatewayHandler) rejectIfCyberSessionBlocked(c *gin.Context, apiKe
 	// 写 JSON（#3887）。
 	if service.StopOpenAICompactSSEKeepaliveCommitted(c) {
 		service.MarkOpsStreamError(c, "permission_error", cyberSessionBlockedClientMsg, http.StatusForbidden)
-		if writeResponsesFailedSSE(c, "permission_error", cyberSessionBlockedClientMsg) {
+		if writeResponsesFailedSSE(c, "session_blocked_by_cyber_policy", cyberSessionBlockedClientMsg) {
 			h.enqueueCyberSessionBlockedOpsEntry(c, apiKey, model, key)
 			return true
 		}

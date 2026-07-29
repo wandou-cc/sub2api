@@ -35,6 +35,69 @@ type responsesFailedEvent struct {
 	Response responsesFailedBody `json:"response"`
 }
 
+const codexTechnicalSupportSuffix = "如需技术支持，请前往官网联系客服。"
+
+// upstreamErrorCode preserves the original upstream HTTP status without
+// changing the downstream HTTP status selected by the existing failover code.
+func upstreamErrorCode(statusCode int) string {
+	if statusCode == http.StatusTooManyRequests {
+		return "rate_limit_exceeded"
+	}
+	if statusCode <= 0 {
+		return "upstream_error"
+	}
+	return fmt.Sprintf("upstream_http_%d", statusCode)
+}
+
+// codexOperationalErrorMessage owns the Chinese presentation for operational
+// failures returned by Responses/Codex endpoints. Validation, policy, and
+// model codes are deliberately not mapped and retain their existing messages.
+func codexOperationalErrorMessage(status int, code, original string) string {
+	var reason string
+	switch code {
+	case "rate_limit_exceeded":
+		reason = "当前请求频率、并发数或使用额度已达到限制，请稍后重试"
+	case "INSUFFICIENT_BALANCE":
+		reason = "账户余额不足，请充值后重试"
+	case "SUBSCRIPTION_INVALID":
+		reason = "订阅无效或已过期，请检查订阅状态"
+	case "billing_service_error":
+		reason = "计费服务暂时不可用，请稍后重试"
+	case "billing_error":
+		reason = "计费校验未通过，请检查账户余额或订阅状态"
+	case "upstream_stream_read_error", "upstream_http2_stream_error":
+		reason = "上游响应流连接中断，请稍后重试"
+	case "upstream_http_401":
+		reason = "上游身份验证失败，请联系管理员处理"
+	case "upstream_http_402":
+		reason = "上游账户余额或使用额度不足，请联系管理员处理"
+	case "upstream_http_403":
+		reason = "上游拒绝访问，请联系管理员处理"
+	case "upstream_http_429":
+		reason = "上游请求频率已达到限制，请稍后重试"
+	case "upstream_http_500", "upstream_http_502", "upstream_http_503", "upstream_http_504":
+		reason = "上游服务暂时不可用，请稍后重试"
+	case "upstream_http_529":
+		reason = "上游服务负载过高，请稍后重试"
+	case "upstream_credential_unavailable":
+		reason = "当前没有可用的上游授权账号，请稍后重试"
+	case "antigravity_credential_rejected":
+		reason = "上游凭证验证失败，请联系管理员处理"
+	case "openai_silent_refusal":
+		reason = "上游未返回有效内容，且当前没有可切换的线路"
+	case "compact_not_supported":
+		reason = "当前没有支持 Responses Compact 的可用线路"
+	case "server_error":
+		reason = "服务暂时不可用，请稍后重试"
+	case "upstream_error":
+		reason = "上游请求失败，请稍后重试"
+	default:
+		return original
+	}
+
+	return fmt.Sprintf("[错误码：%d / %s] %s。%s", status, code, reason, codexTechnicalSupportSuffix)
+}
+
 // writeResponsesFailedSSE emits a `response.failed` SSE event in the OpenAI
 // Responses API protocol after the stream has already started.
 //
@@ -52,7 +115,7 @@ type responsesFailedEvent struct {
 // 返回 false 表示 writer 不支持 Flusher，无法以 SSE 形式回报错误；
 // 此时 caller 也无法回退到 JSON（HTTP 200 已固化），通常意味着连接已经损坏，
 // 应当让请求处理函数 return，由上层关闭连接。
-func writeResponsesFailedSSE(c *gin.Context, errType, message string) bool {
+func writeResponsesFailedSSE(c *gin.Context, code, message string) bool {
 	flusher, ok := c.Writer.(http.Flusher)
 	if !ok {
 		return false
@@ -67,7 +130,7 @@ func writeResponsesFailedSSE(c *gin.Context, errType, message string) bool {
 			Status: "failed",
 			Output: []any{},
 			Error: responsesFailedError{
-				Code:    mapResponsesErrorCode(errType),
+				Code:    code,
 				Message: message,
 			},
 		},

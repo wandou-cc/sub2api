@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import PaymentView from '../PaymentView.vue'
+import AmountInput from '@/components/payment/AmountInput.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
 import { formatPaymentAmount } from '@/components/payment/currency'
-import type { CheckoutInfoResponse, MethodLimit, SubscriptionPlan } from '@/types/payment'
+import type { CarpoolOverview, CheckoutInfoResponse, MethodLimit, SubscriptionPlan } from '@/types/payment'
 
 const routeState = vi.hoisted(() => ({
   path: '/purchase',
@@ -20,6 +21,7 @@ const showError = vi.hoisted(() => vi.fn())
 const showInfo = vi.hoisted(() => vi.fn())
 const showWarning = vi.hoisted(() => vi.fn())
 const getCheckoutInfo = vi.hoisted(() => vi.fn())
+const getCarpoolOverview = vi.hoisted(() => vi.fn())
 const bridgeInvoke = vi.hoisted(() => vi.fn())
 
 vi.mock('vue-router', async () => {
@@ -50,6 +52,7 @@ vi.mock('@/stores/auth', () => ({
     user: {
       username: 'demo-user',
       balance: 0,
+      total_recharged: 128.5,
     },
     refreshUser,
   }),
@@ -79,6 +82,7 @@ vi.mock('@/stores', () => ({
 vi.mock('@/api/payment', () => ({
   paymentAPI: {
     getCheckoutInfo,
+    getCarpoolOverview,
   },
 }))
 
@@ -159,6 +163,19 @@ function checkoutInfoWithPlansFixture(options: {
   }
 }
 
+function carpoolOverviewFixture(): { data: CarpoolOverview } {
+  return {
+    data: {
+      plans: [
+        { id: 41, total_amount: 1600, size: 4, price: 400, note: 'four-person rules', current_members: 1, remaining_members: 3, deadline_at: '2026-07-28T08:00:00Z' },
+        { id: 42, total_amount: 1600, size: 2, price: 800, note: 'two-person rules', current_members: 0, remaining_members: 2 },
+        { id: 43, total_amount: 1400, size: 1, price: 1400, note: 'single-person rules', current_members: 0, remaining_members: 1 },
+      ],
+      my_groups: [],
+    },
+  }
+}
+
 function jsapiOrderFixture(resumeToken: string) {
   return {
     order_id: 123,
@@ -216,6 +233,7 @@ async function mountSubscriptionConfirm(options: Parameters<typeof checkoutInfoW
   showInfo.mockReset()
   showWarning.mockReset()
   getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoWithPlansFixture(options))
+  getCarpoolOverview.mockReset().mockResolvedValue(carpoolOverviewFixture())
   bridgeInvoke.mockReset()
   window.localStorage.clear()
   ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = undefined
@@ -340,12 +358,13 @@ describe('PaymentView payment recovery', () => {
     showError.mockReset()
     showInfo.mockReset()
     showWarning.mockReset()
+    getCarpoolOverview.mockReset().mockResolvedValue(carpoolOverviewFixture())
     bridgeInvoke.mockReset()
     window.localStorage.clear()
     ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = undefined
   })
 
-  it('groups recharge account and checkout controls into one form surface', async () => {
+  it('shows the account summary and the requested quick recharge amounts', async () => {
     getCheckoutInfo.mockResolvedValue(checkoutInfoFixture())
 
     const wrapper = shallowMount(PaymentView, {
@@ -361,10 +380,72 @@ describe('PaymentView payment recovery', () => {
     })
     await flushPromises()
 
+    const summary = wrapper.get('[data-test="recharge-summary"]')
+    expect(summary.text()).toContain('demo-user')
+    expect(summary.text()).toContain('payment.totalRecharged')
+    expect(summary.text()).toContain('$128.50')
+    expect(summary.text()).toContain('payment.rechargeRateNotice')
+
     const rechargeForm = wrapper.get('[data-test="recharge-form"]')
-    expect(rechargeForm.get('[data-test="recharge-account"]').text()).toContain('demo-user')
     expect(rechargeForm.find('amount-input-stub').exists()).toBe(true)
     expect(rechargeForm.find('payment-method-selector-stub').exists()).toBe(true)
+    expect(wrapper.getComponent(AmountInput).props('amounts')).toEqual([1, 10, 30, 50, 100])
+    expect(wrapper.getComponent(AmountInput).props('currency')).toBe('CNY')
+  })
+
+  it('places carpool between recharge and subscription and submits the configured plan ID', async () => {
+    routeState.query = { tab: 'carpool' }
+    getCheckoutInfo.mockResolvedValue(checkoutInfoFixture({
+      methods: {
+        alipay: {
+          daily_limit: 0,
+          daily_used: 0,
+          daily_remaining: 0,
+          single_min: 0,
+          single_max: 0,
+          fee_rate: 0,
+          available: true,
+          currency: 'CNY',
+        },
+      },
+    }))
+    createOrder.mockResolvedValue({
+      order_id: 202,
+      amount: 800,
+      pay_amount: 800,
+      fee_rate: 0,
+      expires_at: '2099-01-01T00:10:00.000Z',
+      payment_type: 'alipay',
+      qr_code: 'https://pay.example.com/carpool-202',
+      out_trade_no: 'sub2_carpool_202',
+    })
+
+    const wrapper = shallowMount(PaymentView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          Teleport: true,
+          Transition: false,
+        },
+      },
+    })
+    await flushPromises()
+
+    const tabs = wrapper.findAll('button').slice(0, 3).map(button => button.text())
+    expect(tabs).toEqual(['payment.tabTopUp', 'payment.tabCarpool', 'payment.tabSubscribe'])
+    expect(wrapper.get('[data-test="carpool-plan-41"]').text()).toContain('1/4')
+    expect(wrapper.get('[data-test="carpool-plan-41"]').text()).toContain('four-person rules')
+    expect(wrapper.get('[data-test="carpool-plan-43"]').text()).toContain('payment.carpool.credentialsAvailable')
+
+    await wrapper.get('[data-test="carpool-plan-42"] button').trigger('click')
+    await flushPromises()
+
+    expect(createOrder).toHaveBeenCalledWith(expect.objectContaining({
+      amount: 800,
+      payment_type: 'alipay',
+      order_type: 'carpool',
+      carpool_plan_id: 42,
+    }))
   })
 
   it('restores a custom EasyPay method as the selected payment method', async () => {
@@ -447,6 +528,7 @@ describe('PaymentView WeChat JSAPI flow', () => {
     showInfo.mockReset()
     showWarning.mockReset()
     getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoFixture())
+    getCarpoolOverview.mockReset().mockResolvedValue(carpoolOverviewFixture())
     bridgeInvoke.mockReset()
     window.localStorage.clear()
     ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = {

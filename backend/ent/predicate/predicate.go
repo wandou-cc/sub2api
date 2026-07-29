@@ -36,6 +36,12 @@ type BatchImageItem func(*sql.Selector)
 // BatchImageJob is the predicate function for batchimagejob builders.
 type BatchImageJob func(*sql.Selector)
 
+// CarpoolGroup is the predicate function for carpoolgroup builders.
+type CarpoolGroup func(*sql.Selector)
+
+// CarpoolPlan is the predicate function for carpoolplan builders.
+type CarpoolPlan func(*sql.Selector)
+
 // ChannelMonitor is the predicate function for channelmonitor builders.
 type ChannelMonitor func(*sql.Selector)
 

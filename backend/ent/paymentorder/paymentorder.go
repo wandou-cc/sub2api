@@ -50,6 +50,18 @@ const (
 	FieldSubscriptionGroupID = "subscription_group_id"
 	// FieldSubscriptionDays holds the string denoting the subscription_days field in the database.
 	FieldSubscriptionDays = "subscription_days"
+	// FieldCarpoolSize holds the string denoting the carpool_size field in the database.
+	FieldCarpoolSize = "carpool_size"
+	// FieldCarpoolPlanID holds the string denoting the carpool_plan_id field in the database.
+	FieldCarpoolPlanID = "carpool_plan_id"
+	// FieldCarpoolPlanRevision holds the string denoting the carpool_plan_revision field in the database.
+	FieldCarpoolPlanRevision = "carpool_plan_revision"
+	// FieldCarpoolTotalAmount holds the string denoting the carpool_total_amount field in the database.
+	FieldCarpoolTotalAmount = "carpool_total_amount"
+	// FieldCarpoolPlanNote holds the string denoting the carpool_plan_note field in the database.
+	FieldCarpoolPlanNote = "carpool_plan_note"
+	// FieldCarpoolGroupID holds the string denoting the carpool_group_id field in the database.
+	FieldCarpoolGroupID = "carpool_group_id"
 	// FieldProviderInstanceID holds the string denoting the provider_instance_id field in the database.
 	FieldProviderInstanceID = "provider_instance_id"
 	// FieldProviderKey holds the string denoting the provider_key field in the database.
@@ -96,6 +108,8 @@ const (
 	EdgeUser = "user"
 	// EdgeRechargeLotteryDraw holds the string denoting the recharge_lottery_draw edge name in mutations.
 	EdgeRechargeLotteryDraw = "recharge_lottery_draw"
+	// EdgeCarpoolGroup holds the string denoting the carpool_group edge name in mutations.
+	EdgeCarpoolGroup = "carpool_group"
 	// Table holds the table name of the paymentorder in the database.
 	Table = "payment_orders"
 	// UserTable is the table that holds the user relation/edge.
@@ -112,6 +126,13 @@ const (
 	RechargeLotteryDrawInverseTable = "recharge_lottery_draws"
 	// RechargeLotteryDrawColumn is the table column denoting the recharge_lottery_draw relation/edge.
 	RechargeLotteryDrawColumn = "order_id"
+	// CarpoolGroupTable is the table that holds the carpool_group relation/edge.
+	CarpoolGroupTable = "payment_orders"
+	// CarpoolGroupInverseTable is the table name for the CarpoolGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "carpoolgroup" package.
+	CarpoolGroupInverseTable = "carpool_groups"
+	// CarpoolGroupColumn is the table column denoting the carpool_group relation/edge.
+	CarpoolGroupColumn = "carpool_group_id"
 )
 
 // Columns holds all SQL columns for paymentorder fields.
@@ -135,6 +156,12 @@ var Columns = []string{
 	FieldPlanID,
 	FieldSubscriptionGroupID,
 	FieldSubscriptionDays,
+	FieldCarpoolSize,
+	FieldCarpoolPlanID,
+	FieldCarpoolPlanRevision,
+	FieldCarpoolTotalAmount,
+	FieldCarpoolPlanNote,
+	FieldCarpoolGroupID,
 	FieldProviderInstanceID,
 	FieldProviderKey,
 	FieldProviderSnapshot,
@@ -313,6 +340,36 @@ func BySubscriptionDays(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSubscriptionDays, opts...).ToFunc()
 }
 
+// ByCarpoolSize orders the results by the carpool_size field.
+func ByCarpoolSize(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolSize, opts...).ToFunc()
+}
+
+// ByCarpoolPlanID orders the results by the carpool_plan_id field.
+func ByCarpoolPlanID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolPlanID, opts...).ToFunc()
+}
+
+// ByCarpoolPlanRevision orders the results by the carpool_plan_revision field.
+func ByCarpoolPlanRevision(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolPlanRevision, opts...).ToFunc()
+}
+
+// ByCarpoolTotalAmount orders the results by the carpool_total_amount field.
+func ByCarpoolTotalAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolTotalAmount, opts...).ToFunc()
+}
+
+// ByCarpoolPlanNote orders the results by the carpool_plan_note field.
+func ByCarpoolPlanNote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolPlanNote, opts...).ToFunc()
+}
+
+// ByCarpoolGroupID orders the results by the carpool_group_id field.
+func ByCarpoolGroupID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCarpoolGroupID, opts...).ToFunc()
+}
+
 // ByProviderInstanceID orders the results by the provider_instance_id field.
 func ByProviderInstanceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProviderInstanceID, opts...).ToFunc()
@@ -426,6 +483,13 @@ func ByRechargeLotteryDrawField(field string, opts ...sql.OrderTermOption) Order
 		sqlgraph.OrderByNeighborTerms(s, newRechargeLotteryDrawStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCarpoolGroupField orders the results by carpool_group field.
+func ByCarpoolGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCarpoolGroupStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -438,5 +502,12 @@ func newRechargeLotteryDrawStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RechargeLotteryDrawInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, RechargeLotteryDrawTable, RechargeLotteryDrawColumn),
+	)
+}
+func newCarpoolGroupStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CarpoolGroupInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CarpoolGroupTable, CarpoolGroupColumn),
 	)
 }

@@ -157,6 +157,16 @@ type AdminPaymentOrderResult struct {
 	PlanID              *int64     `json:"plan_id,omitempty"`
 	SubscriptionGroupID *int64     `json:"subscription_group_id,omitempty"`
 	SubscriptionDays    *int       `json:"subscription_days,omitempty"`
+	CarpoolPlanID       *int64     `json:"carpool_plan_id,omitempty"`
+	CarpoolSize         *int       `json:"carpool_size,omitempty"`
+	CarpoolTotalAmount  *float64   `json:"carpool_total_amount,omitempty"`
+	CarpoolPlanNote     *string    `json:"carpool_plan_note,omitempty"`
+	CarpoolGroupID      *int64     `json:"carpool_group_id,omitempty"`
+	CarpoolStatus       string     `json:"carpool_status,omitempty"`
+	CarpoolMemberCount  int        `json:"carpool_member_count,omitempty"`
+	CarpoolDeadlineAt   *time.Time `json:"carpool_deadline_at,omitempty"`
+	CarpoolOpenedAt     *time.Time `json:"carpool_opened_at,omitempty"`
+	CarpoolExpiresAt    *time.Time `json:"carpool_expires_at,omitempty"`
 	ProviderInstanceID  *string    `json:"provider_instance_id,omitempty"`
 	ProviderKey         *string    `json:"provider_key,omitempty"`
 	Status              string     `json:"status"`
@@ -193,7 +203,7 @@ func sanitizeAdminPaymentOrderForResponse(order *dbent.PaymentOrder) *AdminPayme
 	if order == nil {
 		return nil
 	}
-	return &AdminPaymentOrderResult{
+	result := &AdminPaymentOrderResult{
 		ID:                  order.ID,
 		UserID:              order.UserID,
 		UserEmail:           order.UserEmail,
@@ -214,6 +224,11 @@ func sanitizeAdminPaymentOrderForResponse(order *dbent.PaymentOrder) *AdminPayme
 		PlanID:              order.PlanID,
 		SubscriptionGroupID: order.SubscriptionGroupID,
 		SubscriptionDays:    order.SubscriptionDays,
+		CarpoolPlanID:       order.CarpoolPlanID,
+		CarpoolSize:         order.CarpoolSize,
+		CarpoolTotalAmount:  order.CarpoolTotalAmount,
+		CarpoolPlanNote:     order.CarpoolPlanNote,
+		CarpoolGroupID:      order.CarpoolGroupID,
 		ProviderInstanceID:  order.ProviderInstanceID,
 		ProviderKey:         order.ProviderKey,
 		Status:              order.Status,
@@ -235,6 +250,226 @@ func sanitizeAdminPaymentOrderForResponse(order *dbent.PaymentOrder) *AdminPayme
 		CreatedAt:           order.CreatedAt,
 		UpdatedAt:           order.UpdatedAt,
 	}
+	if group := order.Edges.CarpoolGroup; group != nil {
+		result.CarpoolStatus = group.Status
+		result.CarpoolMemberCount = group.MemberCount
+		result.CarpoolDeadlineAt = group.DeadlineAt
+		result.CarpoolOpenedAt = group.OpenedAt
+		result.CarpoolExpiresAt = group.ExpiresAt
+	}
+	return result
+}
+
+type AdminCarpoolMemberResult struct {
+	OrderID        int64      `json:"order_id"`
+	UserID         int64      `json:"user_id"`
+	UserEmail      string     `json:"user_email"`
+	UserName       string     `json:"user_name"`
+	Amount         float64    `json:"amount"`
+	PayAmount      float64    `json:"pay_amount"`
+	Currency       string     `json:"currency"`
+	PaymentType    string     `json:"payment_type"`
+	Status         string     `json:"status"`
+	RefundAmount   float64    `json:"refund_amount"`
+	RefundReason   *string    `json:"refund_reason,omitempty"`
+	PaidAt         *time.Time `json:"paid_at,omitempty"`
+	ProviderID     *string    `json:"provider_instance_id,omitempty"`
+	PaymentTradeNo string     `json:"payment_trade_no,omitempty"`
+}
+
+type AdminCarpoolGroupResult struct {
+	ID             int64                      `json:"id"`
+	CarpoolPlanID  int64                      `json:"carpool_plan_id"`
+	TargetMembers  int                        `json:"target_members"`
+	CurrentMembers int                        `json:"current_members"`
+	TotalAmount    float64                    `json:"total_amount"`
+	PricePerMember float64                    `json:"price_per_member"`
+	PlanNote       string                     `json:"plan_note"`
+	Status         string                     `json:"status"`
+	StatusReason   *string                    `json:"status_reason,omitempty"`
+	DeadlineAt     *time.Time                 `json:"deadline_at,omitempty"`
+	FormedAt       *time.Time                 `json:"formed_at,omitempty"`
+	OpenedAt       *time.Time                 `json:"opened_at,omitempty"`
+	ExpiresAt      *time.Time                 `json:"expires_at,omitempty"`
+	CreatedAt      time.Time                  `json:"created_at"`
+	UpdatedAt      time.Time                  `json:"updated_at"`
+	Members        []AdminCarpoolMemberResult `json:"members"`
+}
+
+// ListCarpoolGroups returns current groups or completed history for manual operations.
+// GET /api/v1/admin/payment/carpools
+func (h *PaymentHandler) ListCarpoolGroups(c *gin.Context) {
+	groups, err := h.paymentService.ListCarpoolGroups(c.Request.Context(), c.Query("history") == "true")
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	result := make([]AdminCarpoolGroupResult, 0, len(groups))
+	for _, group := range groups {
+		item := AdminCarpoolGroupResult{
+			ID:             group.ID,
+			CarpoolPlanID:  group.CarpoolPlanID,
+			TargetMembers:  group.TargetMembers,
+			CurrentMembers: group.MemberCount,
+			TotalAmount:    group.TotalAmount,
+			PricePerMember: group.PricePerMember,
+			PlanNote:       group.PlanNote,
+			Status:         group.Status,
+			StatusReason:   group.StatusReason,
+			DeadlineAt:     group.DeadlineAt,
+			FormedAt:       group.FormedAt,
+			OpenedAt:       group.OpenedAt,
+			ExpiresAt:      group.ExpiresAt,
+			CreatedAt:      group.CreatedAt,
+			UpdatedAt:      group.UpdatedAt,
+			Members:        make([]AdminCarpoolMemberResult, 0, len(group.Edges.Orders)),
+		}
+		for _, order := range group.Edges.Orders {
+			item.Members = append(item.Members, AdminCarpoolMemberResult{
+				OrderID:        order.ID,
+				UserID:         order.UserID,
+				UserEmail:      order.UserEmail,
+				UserName:       order.UserName,
+				Amount:         order.Amount,
+				PayAmount:      order.PayAmount,
+				Currency:       service.PaymentOrderCurrency(order),
+				PaymentType:    order.PaymentType,
+				Status:         order.Status,
+				RefundAmount:   order.RefundAmount,
+				RefundReason:   order.RefundReason,
+				PaidAt:         order.PaidAt,
+				ProviderID:     order.ProviderInstanceID,
+				PaymentTradeNo: order.PaymentTradeNo,
+			})
+		}
+		result = append(result, item)
+	}
+	response.Success(c, result)
+}
+
+// OpenCarpoolGroup marks a formed group as delivered with its actual service window.
+// POST /api/v1/admin/payment/carpools/:id/open
+func (h *PaymentHandler) OpenCarpoolGroup(c *gin.Context) {
+	groupID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	if err := h.paymentService.OpenCarpoolGroup(c.Request.Context(), groupID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"message": "carpool group opened"})
+}
+
+type AdminCarpoolRefundPendingRequest struct {
+	Reason string `json:"reason" binding:"required"`
+}
+
+// MarkCarpoolRefundPending closes a group before administrators refund its member orders.
+// POST /api/v1/admin/payment/carpools/:id/refund-pending
+func (h *PaymentHandler) MarkCarpoolRefundPending(c *gin.Context) {
+	groupID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	var req AdminCarpoolRefundPendingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if err := h.paymentService.MarkCarpoolRefundPending(c.Request.Context(), groupID, req.Reason); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"message": "carpool group marked refund pending"})
+}
+
+type AdminCarpoolPlanResult struct {
+	ID             int64     `json:"id"`
+	TotalAmount    float64   `json:"total_amount"`
+	TargetMembers  int       `json:"target_members"`
+	PricePerMember float64   `json:"price_per_member"`
+	Note           string    `json:"note"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// adminCarpoolPlanForResponse exposes business fields without the internal revision counter.
+func adminCarpoolPlanForResponse(plan *dbent.CarpoolPlan) AdminCarpoolPlanResult {
+	return AdminCarpoolPlanResult{
+		ID:             plan.ID,
+		TotalAmount:    plan.TotalAmount,
+		TargetMembers:  plan.TargetMembers,
+		PricePerMember: plan.TotalAmount / float64(plan.TargetMembers),
+		Note:           plan.Note,
+		CreatedAt:      plan.CreatedAt,
+		UpdatedAt:      plan.UpdatedAt,
+	}
+}
+
+// ListCarpoolPlans returns every administrator-configured carpool package.
+// GET /api/v1/admin/payment/carpool-plans
+func (h *PaymentHandler) ListCarpoolPlans(c *gin.Context) {
+	plans, err := h.paymentService.ListCarpoolPlans(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	result := make([]AdminCarpoolPlanResult, 0, len(plans))
+	for _, plan := range plans {
+		result = append(result, adminCarpoolPlanForResponse(plan))
+	}
+	response.Success(c, result)
+}
+
+// CreateCarpoolPlan creates a package from total amount, group size, and note.
+// POST /api/v1/admin/payment/carpool-plans
+func (h *PaymentHandler) CreateCarpoolPlan(c *gin.Context) {
+	var req service.CarpoolPlanInput
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	plan, err := h.paymentService.CreateCarpoolPlan(c.Request.Context(), req)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Created(c, adminCarpoolPlanForResponse(plan))
+}
+
+// UpdateCarpoolPlan replaces the three configurable package fields.
+// PUT /api/v1/admin/payment/carpool-plans/:id
+func (h *PaymentHandler) UpdateCarpoolPlan(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	var req service.CarpoolPlanInput
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	plan, err := h.paymentService.UpdateCarpoolPlan(c.Request.Context(), id, req)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, adminCarpoolPlanForResponse(plan))
+}
+
+// DeleteCarpoolPlan removes an unused package configuration.
+// DELETE /api/v1/admin/payment/carpool-plans/:id
+func (h *PaymentHandler) DeleteCarpoolPlan(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	if err := h.paymentService.DeleteCarpoolPlan(c.Request.Context(), id); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"message": "deleted"})
 }
 
 // AdminProcessRefundRequest is the request body for admin refund processing.

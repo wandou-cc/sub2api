@@ -1,20 +1,20 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-7">
     <!-- Quick Amount Buttons -->
     <div>
-      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label class="mb-3 block text-sm font-semibold text-gray-900 dark:text-white">
         {{ t('payment.quickAmounts') }}
       </label>
-      <div class="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+      <div class="grid grid-cols-5 gap-2">
         <button
           v-for="amt in filteredAmounts"
           :key="amt"
           type="button"
           :class="[
-            'rounded-lg border px-2 py-2.5 text-center text-sm font-medium transition-colors',
+            'min-h-14 rounded-xl border px-2 py-3 text-center text-base font-semibold tabular-nums transition-colors',
             modelValue === amt
-              ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-900/40 dark:text-primary-300'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:border-dark-500',
+              ? 'border-gray-900 bg-gray-900 text-white shadow-sm dark:border-white dark:bg-white dark:text-gray-950'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:border-dark-400 dark:hover:text-white',
           ]"
           @click="selectAmount(amt)"
         >
@@ -25,19 +25,19 @@
 
     <!-- Custom Amount Input -->
     <div>
-      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label class="mb-3 block text-sm font-semibold text-gray-900 dark:text-white">
         {{ t('payment.customAmount') }}
       </label>
       <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500">
-          $
+        <span class="absolute left-5 top-1/2 -translate-y-1/2 font-serif text-xl font-semibold text-gray-500 dark:text-gray-400">
+          {{ inputCurrencySymbol }}
         </span>
         <input
           type="text"
           inputmode="decimal"
           :value="customText"
           :placeholder="placeholderText"
-          class="input w-full rounded-lg py-2.5 pl-8 pr-4"
+          class="input h-14 w-full rounded-xl pl-12 pr-5 text-base"
           @input="handleInput"
         />
       </div>
@@ -48,16 +48,19 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { currencySymbol } from './currency'
 
 const props = withDefaults(defineProps<{
   amounts?: number[]
   modelValue: number | null
   min?: number
   max?: number
+  currency?: string
 }>(), {
-  amounts: () => [10, 20, 50, 100, 200, 500, 1000, 2000, 5000],
+  amounts: () => [1, 10, 30, 50, 100],
   min: 0,
   max: 0,
+  currency: 'CNY',
 })
 
 const emit = defineEmits<{
@@ -67,6 +70,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const customText = ref('')
+const inputCurrencySymbol = computed(() => currencySymbol(props.currency))
 
 // 0 = no limit
 const filteredAmounts = computed(() =>

@@ -918,6 +918,7 @@ const adminNavGroups = computed((): NavGroup[] => {
           children: [
             { path: '/admin/orders/dashboard', label: t('nav.incomeManagement'), icon: ChartIcon },
             { path: '/admin/orders', label: t('nav.orderManagement'), icon: OrderIcon },
+            { path: '/admin/orders/carpools', label: t('nav.carpoolManagement'), icon: UsersIcon },
             { path: '/admin/orders/plans', label: t('nav.paymentPlans'), icon: CreditCardIcon },
           ],
         },

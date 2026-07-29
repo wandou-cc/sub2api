@@ -240,3 +240,27 @@ func TestMigration173AllowsCyberBlockedUsageRequestType(t *testing.T) {
 	require.Contains(t, sql, "ADD CONSTRAINT usage_logs_request_type_check")
 	require.Contains(t, sql, "CHECK (request_type IN (0, 1, 2, 3, 4)) NOT VALID")
 }
+
+func TestMigration191AddsCarpoolPlansGroupsAndSnapshots(t *testing.T) {
+	content, err := FS.ReadFile("191_carpool_subscriptions.sql")
+	require.NoError(t, err)
+
+	sql := strings.Join(strings.Fields(string(content)), " ")
+	require.Contains(t, sql, "CREATE TABLE IF NOT EXISTS carpool_plans")
+	require.Contains(t, sql, "total_amount DECIMAL(20,2) NOT NULL CHECK (total_amount > 0)")
+	require.Contains(t, sql, "target_members INTEGER NOT NULL CHECK (target_members > 0)")
+	require.Contains(t, sql, "SELECT 1600.00, 4")
+	require.Contains(t, sql, "SELECT 1600.00, 2")
+	require.Contains(t, sql, "SELECT 1400.00, 1")
+	require.Contains(t, sql, "CREATE TABLE IF NOT EXISTS carpool_groups")
+	require.Contains(t, sql, "carpool_plan_revision INTEGER NOT NULL CHECK (carpool_plan_revision > 0)")
+	require.Contains(t, sql, "plan_note TEXT NOT NULL")
+	require.Contains(t, sql, "carpool_group_id BIGINT REFERENCES carpool_groups(id) ON DELETE SET NULL")
+	require.Contains(t, sql, "carpool_plan_id BIGINT")
+	require.Contains(t, sql, "carpool_total_amount DECIMAL(20,2)")
+	require.Contains(t, sql, "carpool_plan_note TEXT")
+	require.Contains(t, sql, "CREATE UNIQUE INDEX IF NOT EXISTS payment_orders_carpool_group_id_user_id_key")
+	require.Contains(t, sql, "CREATE UNIQUE INDEX payment_orders_active_carpool_order_key")
+	require.Contains(t, sql, "status IN ('PENDING', 'PAID', 'RECHARGING')")
+	require.Contains(t, sql, "OR (status = 'FAILED' AND paid_at IS NOT NULL)")
+}

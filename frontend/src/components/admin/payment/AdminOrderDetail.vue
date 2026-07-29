@@ -29,7 +29,7 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('payment.orders.payAmount') }}</p>
           <p class="text-sm font-medium text-gray-900 dark:text-white">{{ paymentAmountSymbol }}{{ order.pay_amount.toFixed(2) }}</p>
         </div>
-        <div v-if="order.amount !== order.pay_amount">
+        <div v-if="order.order_type !== 'carpool' && order.amount !== order.pay_amount">
           <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('payment.orders.creditedAmount') }}</p>
           <p class="text-sm font-medium text-gray-900 dark:text-white">{{ creditedAmountSymbol }}{{ order.amount.toFixed(2) }}</p>
         </div>
@@ -77,7 +77,7 @@
         <div class="grid grid-cols-2 gap-2 text-sm">
           <div>
             <span class="text-red-600 dark:text-red-400">{{ t('payment.admin.refundAmount') }}:</span>
-            <span class="ml-1 font-medium text-red-700 dark:text-red-300">{{ creditedAmountSymbol }}{{ order.refund_amount.toFixed(2) }}</span>
+            <span class="ml-1 font-medium text-red-700 dark:text-red-300">{{ orderAmountSymbol }}{{ order.refund_amount.toFixed(2) }}</span>
           </div>
           <div v-if="order.refund_reason" class="col-span-2">
             <span class="text-red-600 dark:text-red-400">{{ t('payment.admin.refundReason') }}:</span>
@@ -132,6 +132,9 @@ const creditedAmountSymbol = currencySymbol('USD')
 
 const paymentAmountSymbol = computed(() => currencySymbol(props.order?.currency))
 
+// Carpool order amounts are stored in the gateway currency; other order amounts remain USD-denominated.
+const orderAmountSymbol = computed(() => props.order?.order_type === 'carpool' ? paymentAmountSymbol.value : creditedAmountSymbol)
+
 /** 充值金额 (base amount before fee) = pay_amount - fee = pay_amount / (1 + fee_rate/100) */
 const baseAmount = computed(() => {
   if (!props.order) return 0
@@ -156,7 +159,7 @@ const emit = defineEmits<{
 }>()
 
 function canRefund(order: PaymentOrder): boolean {
-  return canRefundStatus(order.status)
+  return order.order_type !== 'carpool' && canRefundStatus(order.status)
 }
 
 function formatDateTime(dateStr: string): string {

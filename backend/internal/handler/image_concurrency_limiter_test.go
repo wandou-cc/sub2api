@@ -138,7 +138,7 @@ func TestOpenAIGatewayHandlerAcquireImageGenerationSlot_Returns429WhenFull(t *te
 	require.Nil(t, blockedRelease)
 	require.Equal(t, http.StatusTooManyRequests, rec.Code)
 	require.Equal(t, "rate_limit_error", gjson.GetBytes(rec.Body.Bytes(), "error.type").String())
-	require.Contains(t, rec.Body.String(), "Image generation concurrency limit exceeded")
+	require.Equal(t, "Image generation concurrency limit exceeded, please retry later", gjson.GetBytes(rec.Body.Bytes(), "error.message").String())
 }
 
 func TestOpenAIGatewayHandlerResponses_ImageIntentRejectedByImageConcurrency(t *testing.T) {
@@ -183,7 +183,11 @@ func TestOpenAIGatewayHandlerResponses_ImageIntentRejectedByImageConcurrency(t *
 
 	require.Equal(t, http.StatusTooManyRequests, rec.Code)
 	require.Equal(t, "rate_limit_error", gjson.GetBytes(rec.Body.Bytes(), "error.type").String())
-	require.Contains(t, rec.Body.String(), "Image generation concurrency limit exceeded")
+	require.Equal(t, "rate_limit_exceeded", gjson.GetBytes(rec.Body.Bytes(), "error.code").String())
+	require.Equal(t,
+		"[错误码：429 / rate_limit_exceeded] 当前请求频率、并发数或使用额度已达到限制，请稍后重试。如需技术支持，请前往官网联系客服。",
+		gjson.GetBytes(rec.Body.Bytes(), "error.message").String(),
+	)
 }
 
 func TestOpenAIGatewayHandlerResponses_TextOnlyNotRejectedByImageConcurrency(t *testing.T) {

@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 )
 
 // Regression for the production incident on 2026-05-24 around 9:13 CST:
@@ -74,7 +75,10 @@ func TestOpenAIHandleStreamingAwareError_ResponsesStreamingEmitsResponseFailed(t
 	id, _ := resp["id"].(string)
 	assert.True(t, strings.HasPrefix(id, "resp_"), "id should start with resp_, got %q", id)
 	assert.Equal(t, "rate_limit_exceeded", errObj["code"])
-	assert.Equal(t, "Concurrency limit exceeded for user, please retry later", errObj["message"])
+	assert.Equal(t,
+		"[错误码：429 / rate_limit_exceeded] 当前请求频率、并发数或使用额度已达到限制，请稍后重试。如需技术支持，请前往官网联系客服。",
+		errObj["message"],
+	)
 }
 
 // 当 setOpsRequestContext 写过 model，合成事件应回填该字段（与 codebase 已有 makeResponsesCompletedEvent 对齐）。
@@ -133,8 +137,7 @@ func TestOpenAIHandleStreamingAwareError_ResponsesStreamingJSONEscaping(t *testi
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			c, w := newGinContextForEndpoint(t, EndpointResponses)
-			h := &OpenAIGatewayHandler{}
-			h.handleStreamingAwareError(c, http.StatusBadGateway, tc.errType, tc.message, true)
+			require.True(t, writeResponsesFailedSSE(c, mapResponsesErrorCode(tc.errType), tc.message))
 
 			_, errObj := parseResponsesFailedSSE(t, w.Body.String())
 			assert.Equal(t, tc.message, errObj["message"], "message 必须被原样还原")
@@ -161,7 +164,38 @@ func TestGatewayHandleStreamingAwareError_ResponsesStreamingEmitsResponseFailed(
 
 	_, errObj := parseResponsesFailedSSE(t, w.Body.String())
 	assert.Equal(t, "upstream_error", errObj["code"])
-	assert.Equal(t, "upstream gone", errObj["message"])
+	assert.Equal(t,
+		"[错误码：502 / upstream_error] 上游请求失败，请稍后重试。如需技术支持，请前往官网联系客服。",
+		errObj["message"],
+	)
+}
+
+func TestOpenAIHandleStreamingAwareError_ResponsesNonStreamingIncludesCode(t *testing.T) {
+	c, w := newGinContextForEndpoint(t, EndpointResponses)
+	h := &OpenAIGatewayHandler{}
+	h.handleStreamingAwareError(c, http.StatusTooManyRequests, "rate_limit_error", "source message", false)
+
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+	assert.Equal(t, "rate_limit_error", gjson.GetBytes(w.Body.Bytes(), "error.type").String())
+	assert.Equal(t, "rate_limit_exceeded", gjson.GetBytes(w.Body.Bytes(), "error.code").String())
+	assert.Equal(t,
+		"[错误码：429 / rate_limit_exceeded] 当前请求频率、并发数或使用额度已达到限制，请稍后重试。如需技术支持，请前往官网联系客服。",
+		gjson.GetBytes(w.Body.Bytes(), "error.message").String(),
+	)
+}
+
+func TestGatewayHandleStreamingAwareError_ResponsesNonStreamingUsesResponsesEnvelope(t *testing.T) {
+	c, w := newGinContextForEndpoint(t, EndpointResponses)
+	h := &GatewayHandler{}
+	h.handleStreamingAwareError(c, http.StatusServiceUnavailable, "api_error", "source message", false)
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Equal(t, "server_error", gjson.GetBytes(w.Body.Bytes(), "error.code").String())
+	assert.Equal(t,
+		"[错误码：503 / server_error] 服务暂时不可用，请稍后重试。如需技术支持，请前往官网联系客服。",
+		gjson.GetBytes(w.Body.Bytes(), "error.message").String(),
+	)
+	assert.False(t, gjson.GetBytes(w.Body.Bytes(), "type").Exists())
 }
 
 // Gateway handler: /v1/messages preserves the legacy data:{type:error,...} format
@@ -249,5 +283,50 @@ func TestMapResponsesErrorCode(t *testing.T) {
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.out, mapResponsesErrorCode(tc.in), "in=%q", tc.in)
+	}
+}
+
+func TestCodexOperationalErrorMessage(t *testing.T) {
+	tests := []struct {
+		name     string
+		status   int
+		code     string
+		original string
+		want     string
+	}{
+		{
+			name:     "balance",
+			status:   http.StatusForbidden,
+			code:     "INSUFFICIENT_BALANCE",
+			original: "insufficient balance",
+			want:     "[错误码：403 / INSUFFICIENT_BALANCE] 账户余额不足，请充值后重试。如需技术支持，请前往官网联系客服。",
+		},
+		{
+			name:     "upstream 503",
+			status:   http.StatusBadGateway,
+			code:     "upstream_http_503",
+			original: "upstream unavailable",
+			want:     "[错误码：502 / upstream_http_503] 上游服务暂时不可用，请稍后重试。如需技术支持，请前往官网联系客服。",
+		},
+		{
+			name:     "stream interrupted",
+			status:   http.StatusBadGateway,
+			code:     "upstream_stream_read_error",
+			original: "stream read error",
+			want:     "[错误码：502 / upstream_stream_read_error] 上游响应流连接中断，请稍后重试。如需技术支持，请前往官网联系客服。",
+		},
+		{
+			name:     "unsupported validation error remains unchanged",
+			status:   http.StatusBadRequest,
+			code:     "invalid_request",
+			original: "model is required",
+			want:     "model is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, codexOperationalErrorMessage(tt.status, tt.code, tt.original))
+		})
 	}
 }
