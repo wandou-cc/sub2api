@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 
 const componentPath = resolve(dirname(fileURLToPath(import.meta.url)), '../AppSidebar.vue')
 const componentSource = readFileSync(componentPath, 'utf8')
+const routerPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../../router/index.ts')
+const routerSource = readFileSync(routerPath, 'utf8')
 const stylePath = resolve(dirname(fileURLToPath(import.meta.url)), '../../../style.css')
 const styleSource = readFileSync(stylePath, 'utf8')
 
@@ -56,6 +58,12 @@ describe('AppSidebar activity entries', () => {
   it('registers the blind-box menu and Token Arena label keys', () => {
     expect(componentSource).toContain("{ path: '/lottery', label: t('nav.rechargeLottery')")
     expect(componentSource).toContain("{ path: '/speed-rank', label: t('nav.speedRank')")
+  })
+
+  it('registers a standalone carpool menu and route', () => {
+    expect(componentSource).toContain("{ path: '/carpool', label: t('nav.carpool')")
+    expect(routerSource).toContain("path: '/carpool'")
+    expect(routerSource).toContain("name: 'CarpoolSubscription'")
   })
 
   it('gives the blind-box menu its restrained light-red treatment', () => {

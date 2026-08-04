@@ -194,6 +194,7 @@ export default {
     github: 'GitHub',
     mySubscriptions: '我的订阅',
     buySubscription: '充值/订阅',
+    carpool: '拼车订阅',
     rechargeLottery: '盲盒抽奖',
     docs: '文档',
     contactUs: '联系我们',

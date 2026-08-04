@@ -797,6 +797,7 @@ function buildSelfNavGroups(withDashboard: boolean): NavGroup[] {
       items: [
         { path: '/subscriptions', label: t('nav.mySubscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
         { path: '/purchase', label: t('nav.buySubscription'), icon: RechargeSubscriptionIcon, hideInSimpleMode: true, featureFlag: flagPayment },
+        { path: '/carpool', label: t('nav.carpool'), icon: UsersIcon, hideInSimpleMode: true, featureFlag: flagPayment },
         { path: '/lottery', label: t('nav.rechargeLottery'), icon: GiftIcon, hideInSimpleMode: true, featureFlag: flagPayment },
         { path: '/orders', label: t('nav.myOrders'), icon: OrderListIcon, hideInSimpleMode: true, featureFlag: flagPayment },
         { path: '/redeem', label: t('nav.redeem'), icon: GiftIcon, hideInSimpleMode: true },

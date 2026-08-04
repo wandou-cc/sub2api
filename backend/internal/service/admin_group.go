@@ -995,8 +995,8 @@ func (s *adminServiceImpl) BatchSetGroupRateMultipliers(ctx context.Context, gro
 		return nil
 	}
 	for _, e := range entries {
-		if e.RateMultiplier <= 0 {
-			return fmt.Errorf("rate_multiplier must be > 0 (user_id=%d)", e.UserID)
+		if e.RateMultiplier < 0 {
+			return fmt.Errorf("rate_multiplier must be >= 0 (user_id=%d)", e.UserID)
 		}
 	}
 	return s.userGroupRateRepo.SyncGroupRateMultipliers(ctx, groupID, entries)

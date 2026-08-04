@@ -170,7 +170,7 @@ func TestCalculateCostUnified_ImageMode(t *testing.T) {
 }
 
 // TestCalculateCostUnified_RateMultiplierZeroProducesZero 锁定新行为：
-// 保存时强制 > 0；若 0 仍泄漏到计费层，按 0 计费（而非历史上的 1.0）。
+// 保存时允许 0；计费层继续按原公式乘以 0，而不是替换为默认倍率 1.0。
 func TestCalculateCostUnified_RateMultiplierZeroProducesZero(t *testing.T) {
 	bs := newTestBillingService()
 	resolver := NewModelPricingResolver(nil, bs)

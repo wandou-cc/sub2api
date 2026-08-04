@@ -450,7 +450,8 @@ describe('PaymentView payment recovery', () => {
   })
 
   it('places carpool between recharge and subscription and submits the configured plan ID', async () => {
-    routeState.query = { tab: 'carpool' }
+    routeState.path = '/carpool'
+    routeState.query = {}
     getCheckoutInfo.mockResolvedValue(checkoutInfoFixture({
       methods: {
         alipay: {

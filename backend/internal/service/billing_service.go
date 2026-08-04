@@ -964,7 +964,7 @@ func (s *BillingService) CalculateCostUnified(input CostInput) (*CostBreakdown, 
 		})
 	}
 
-	// 保存时强制 > 0；若仍有负数泄漏（缓存/迁移残留），按 0 处理避免按 1x 误扣。
+	// 保存时仅允许非负数；若仍有负数泄漏（缓存/迁移残留），按 0 处理避免按 1x 误扣。
 	if input.RateMultiplier < 0 {
 		input.RateMultiplier = 0
 	}
@@ -1013,7 +1013,7 @@ func (s *BillingService) computeTokenBreakdown(
 	rateMultiplier float64, serviceTier string,
 	applyLongCtx bool,
 ) *CostBreakdown {
-	// 保存时强制 > 0；若仍有负数泄漏，按 0 处理避免按 1x 误扣。
+	// 保存时仅允许非负数；若仍有负数泄漏，按 0 处理避免按 1x 误扣。
 	if rateMultiplier < 0 {
 		rateMultiplier = 0
 	}
@@ -1450,7 +1450,7 @@ func (s *BillingService) CalculateWebSearchCost(callCount int, groupPrice *float
 	}
 	totalCost := unitPrice * float64(callCount)
 
-	// 应用倍率（保存时强制 > 0；负数按 0 处理避免按 1x 误扣）
+	// 应用倍率（保存时仅允许非负数；负数按 0 处理避免按 1x 误扣）
 	if rateMultiplier < 0 {
 		rateMultiplier = 0
 	}
@@ -1479,7 +1479,7 @@ func (s *BillingService) CalculateImageCost(model string, imageSize string, imag
 	// 计算总费用
 	totalCost := unitPrice * float64(imageCount)
 
-	// 应用倍率（保存时强制 > 0；负数按 0 处理避免按 1x 误扣）
+	// 应用倍率（保存时仅允许非负数；负数按 0 处理避免按 1x 误扣）
 	if rateMultiplier < 0 {
 		rateMultiplier = 0
 	}

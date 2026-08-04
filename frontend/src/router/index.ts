@@ -358,6 +358,19 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/carpool',
+    name: 'CarpoolSubscription',
+    component: () => import('@/views/user/PaymentView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Carpool Subscription',
+      titleKey: 'nav.carpool',
+      descriptionKey: 'payment.carpool.description',
+      requiresPayment: true
+    }
+  },
+  {
     path: '/lottery',
     name: 'RechargeLottery',
     component: () => import('@/views/user/RechargeLotteryView.vue'),

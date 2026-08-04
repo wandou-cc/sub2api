@@ -646,6 +646,18 @@ const checkout = ref<CheckoutInfoResponse>({
 const carpoolOverview = ref<CarpoolOverview>({ plans: [], my_groups: [] })
 const carpoolLoading = ref(false)
 
+function syncActiveTabFromRoute() {
+  if (route.path === '/carpool' || route.query.tab === 'carpool') {
+    activeTab.value = 'carpool'
+    return
+  }
+  if (route.query.tab === 'subscription' || checkout.value.balance_disabled) {
+    activeTab.value = 'subscription'
+    return
+  }
+  activeTab.value = 'recharge'
+}
+
 const tabs = computed(() => {
   const result: { key: 'recharge' | 'carpool' | 'subscription'; label: string }[] = []
   if (!checkout.value.balance_disabled) result.push({ key: 'recharge', label: t('payment.tabTopUp') })
@@ -857,6 +869,11 @@ watch(() => [validAmount.value, selectedMethod.value] as const, ([amt, method]) 
   const available = enabledMethods.value.find((m) => amountFitsMethod(amt, m))
   if (available) selectedMethod.value = available
 })
+
+watch(
+  () => [route.path, route.query.tab] as const,
+  syncActiveTabFromRoute,
+)
 
 // Payment button class: follows selected payment method color
 const paymentButtonClass = computed(() => {
@@ -1390,12 +1407,9 @@ onMounted(async () => {
       }
     }
     await resumeWechatPaymentFromQuery()
-    if (checkout.value.balance_disabled) {
-      activeTab.value = 'subscription'
-    }
+    syncActiveTabFromRoute()
     // Handle renewal navigation: ?tab=subscription&group=123
     if (route.query.tab === 'subscription') {
-      activeTab.value = 'subscription'
       if (route.query.group) {
         const groupId = Number(route.query.group)
         const groupPlans = checkout.value.plans.filter(p => p.group_id === groupId)
@@ -1406,9 +1420,6 @@ onMounted(async () => {
           showRenewalModal.value = true
         }
       }
-    }
-    if (route.query.tab === 'carpool') {
-      activeTab.value = 'carpool'
     }
   } catch (err: unknown) { appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error'))) }
   finally { loading.value = false }

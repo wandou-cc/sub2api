@@ -194,6 +194,7 @@ export default {
     github: 'GitHub',
     mySubscriptions: 'My Subscriptions',
     buySubscription: 'Recharge / Subscription',
+    carpool: 'Carpool',
     rechargeLottery: 'Blind Box Draw',
     docs: 'Docs',
     contactUs: 'Contact Us',
