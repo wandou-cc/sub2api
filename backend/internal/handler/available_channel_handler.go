@@ -12,16 +12,21 @@ import (
 
 // AvailableChannelHandler 处理用户侧「模型与价格」查询。
 //
-// 用户侧接口委托 ChannelService.ListAvailable，展示所有启用分组、对应平台模型和价格；
-// 返回时仅保留展示需要的字段，不暴露渠道内部配置。
+// 返回前按当前用户可访问分组过滤渠道，再按具体平台拆分模型；响应只包含展示字段，
+// 不暴露渠道内部配置。
 type AvailableChannelHandler struct {
 	channelService *service.ChannelService
+	apiKeyService  *service.APIKeyService
 }
 
 // NewAvailableChannelHandler 创建用户侧可用渠道 handler。
-func NewAvailableChannelHandler(channelService *service.ChannelService) *AvailableChannelHandler {
+func NewAvailableChannelHandler(
+	channelService *service.ChannelService,
+	apiKeyService *service.APIKeyService,
+) *AvailableChannelHandler {
 	return &AvailableChannelHandler{
 		channelService: channelService,
+		apiKeyService:  apiKeyService,
 	}
 }
 
@@ -93,13 +98,23 @@ type userAvailableChannel struct {
 	Platforms   []userChannelPlatformSection `json:"platforms"`
 }
 
-// List 列出所有用户均可查看的启用渠道、分组、模型与价格。
+// List 列出当前用户可访问的启用渠道、分组、模型与价格。
 // GET /api/v1/channels/available
 func (h *AvailableChannelHandler) List(c *gin.Context) {
-	_, ok := middleware.GetAuthSubjectFromContext(c)
+	subject, ok := middleware.GetAuthSubjectFromContext(c)
 	if !ok {
 		response.Unauthorized(c, "User not authenticated")
 		return
+	}
+
+	userGroups, err := h.apiKeyService.GetAvailableGroups(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	allowedGroupIDs := make(map[int64]struct{}, len(userGroups))
+	for i := range userGroups {
+		allowedGroupIDs[userGroups[i].ID] = struct{}{}
 	}
 
 	channels, err := h.channelService.ListAvailable(c.Request.Context())
@@ -113,11 +128,11 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		if ch.Status != service.StatusActive {
 			continue
 		}
-		groups := toUserAvailableGroups(ch.Groups)
-		if len(groups) == 0 {
+		visibleGroups := filterUserVisibleGroups(ch.Groups, allowedGroupIDs)
+		if len(visibleGroups) == 0 {
 			continue
 		}
-		sections := buildPlatformSections(ch, groups)
+		sections := buildPlatformSections(ch, visibleGroups)
 		if len(sections) == 0 {
 			continue
 		}
@@ -131,19 +146,47 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 	response.Success(c, out)
 }
 
-// buildPlatformSections 把一个渠道按 groups 的平台集合拆成有序的 section 列表：
-// 每个 section 对应一个平台，只包含该平台的 groups 和 supported_models。
+// buildPlatformSections 把一个渠道按 visibleGroups 的平台集合拆成有序的 section 列表：
+// 每个 section 对应一个具体平台，只包含该平台的 groups 和 supported_models。
+//
+// Composite 分组可访问渠道中所有已配置的具体平台，因此会被展开到每个有支持模型的
+// 平台 section。普通分组仍严格留在自身平台，避免跨平台模型信息泄漏。Composite 渠道
+// 尚未配置任何模型时保留 composite section，以便前端继续展示该分组和“未配置模型”状态。
 // 输出按 platform 字母序稳定排序，便于前端等效比较与回归测试。
 func buildPlatformSections(
 	ch service.AvailableChannel,
-	groups []userAvailableGroup,
+	visibleGroups []userAvailableGroup,
 ) []userChannelPlatformSection {
 	groupsByPlatform := make(map[string][]userAvailableGroup, 4)
-	for _, g := range groups {
+	compositeGroups := make([]userAvailableGroup, 0, 1)
+	for _, g := range visibleGroups {
 		if g.Platform == "" {
 			continue
 		}
+		if g.Platform == service.PlatformComposite {
+			compositeGroups = append(compositeGroups, g)
+			continue
+		}
 		groupsByPlatform[g.Platform] = append(groupsByPlatform[g.Platform], g)
+	}
+
+	if len(compositeGroups) > 0 {
+		modelPlatforms := make(map[string]struct{}, len(ch.SupportedModels))
+		for i := range ch.SupportedModels {
+			if platform := ch.SupportedModels[i].Platform; platform != "" {
+				modelPlatforms[platform] = struct{}{}
+			}
+		}
+		if len(modelPlatforms) == 0 {
+			groupsByPlatform[service.PlatformComposite] = append(
+				groupsByPlatform[service.PlatformComposite],
+				compositeGroups...,
+			)
+		} else {
+			for platform := range modelPlatforms {
+				groupsByPlatform[platform] = append(groupsByPlatform[platform], compositeGroups...)
+			}
+		}
 	}
 	if len(groupsByPlatform) == 0 {
 		return nil
@@ -167,10 +210,16 @@ func buildPlatformSections(
 	return sections
 }
 
-// toUserAvailableGroups 将全部启用分组转换为用户展示 DTO。
-func toUserAvailableGroups(groups []service.AvailableGroupRef) []userAvailableGroup {
+// filterUserVisibleGroups 仅转换当前用户可访问的启用分组。
+func filterUserVisibleGroups(
+	groups []service.AvailableGroupRef,
+	allowed map[int64]struct{},
+) []userAvailableGroup {
 	visible := make([]userAvailableGroup, 0, len(groups))
 	for _, g := range groups {
+		if _, ok := allowed[g.ID]; !ok {
+			continue
+		}
 		visible = append(visible, userAvailableGroup{
 			ID:                 g.ID,
 			Name:               g.Name,

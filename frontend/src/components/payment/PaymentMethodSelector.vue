@@ -3,14 +3,18 @@
     <label class="mb-3 block text-sm font-semibold text-gray-900 dark:text-white">
       {{ t('payment.paymentMethod') }}
     </label>
-    <div class="grid gap-3 sm:grid-cols-2">
+    <div
+      data-testid="payment-method-grid"
+      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+    >
       <button
         v-for="method in sortedMethods"
         :key="method.type"
         type="button"
+        :title="methodLabel(method)"
         :disabled="!method.available"
         :class="[
-          'relative flex h-[68px] items-center justify-between rounded-xl border px-4 text-left transition-colors',
+          'relative flex h-[68px] min-w-0 items-center justify-between rounded-xl border px-4 text-left transition-colors',
           !method.available
             ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-50 dark:border-dark-700 dark:bg-dark-800/50'
             : selected === method.type
@@ -19,12 +23,14 @@
         ]"
         @click="method.available && emit('select', method.type)"
       >
-        <span class="flex min-w-0 items-center gap-3">
+        <span class="flex min-w-0 flex-1 items-center gap-3">
           <span :class="['flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', methodIconBackgroundClass(method.type)]">
             <img :src="methodIcon(method.type)" :alt="methodLabel(method)" class="h-6 w-6 object-contain" />
           </span>
-          <span class="flex min-w-0 flex-col items-start gap-1 leading-none">
-            <span class="truncate text-sm font-semibold">{{ methodLabel(method) }}</span>
+          <span class="flex min-w-0 flex-1 flex-col items-start gap-1 leading-none">
+            <span data-testid="payment-method-label" class="block w-full truncate text-sm font-semibold">
+              {{ methodLabel(method) }}
+            </span>
             <span
               v-if="method.fee_rate > 0"
               class="text-xs text-gray-500 dark:text-gray-400"
