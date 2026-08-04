@@ -118,11 +118,6 @@
                 <div>
                   <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400">{{ t('payment.carpool.label') }}</p>
                   <h2 class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ t('payment.carpool.title') }}</h2>
-                  <i18n-t keypath="payment.carpool.description" tag="p" scope="global" class="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400">
-                    <template #groupName>
-                      <strong class="font-semibold text-gray-900 dark:text-white">{{ t('payment.carpool.groupName') }}</strong>
-                    </template>
-                  </i18n-t>
                 </div>
                 <div class="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 dark:border-dark-700 dark:bg-dark-800 dark:text-gray-300">
                   <Icon name="clock" size="sm" class="text-emerald-600 dark:text-emerald-400" />
