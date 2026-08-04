@@ -366,7 +366,7 @@ const routes: RouteRecordRaw[] = [
       requiresAdmin: false,
       title: 'Carpool Subscription',
       titleKey: 'nav.carpool',
-      descriptionKey: 'payment.carpool.description',
+      descriptionKey: 'payment.carpool.title',
       requiresPayment: true
     }
   },

@@ -62,8 +62,10 @@ describe('AppSidebar activity entries', () => {
 
   it('registers a standalone carpool menu and route', () => {
     expect(componentSource).toContain("{ path: '/carpool', label: t('nav.carpool')")
-    expect(routerSource).toContain("path: '/carpool'")
-    expect(routerSource).toContain("name: 'CarpoolSubscription'")
+    const carpoolRoute = routerSource.match(/\{\n    path: '\/carpool',[\s\S]*?\n  \},/)?.[0]
+
+    expect(carpoolRoute).toContain("name: 'CarpoolSubscription'")
+    expect(carpoolRoute).toContain("descriptionKey: 'payment.carpool.title'")
   })
 
   it('gives the blind-box menu its restrained light-red treatment', () => {
